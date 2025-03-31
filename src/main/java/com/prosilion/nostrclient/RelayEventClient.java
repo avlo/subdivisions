@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Streams;
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import lombok.NonNull;
@@ -20,19 +19,14 @@ import org.springframework.boot.ssl.SslBundles;
 @Slf4j
 public class RelayEventClient {
   private final WebSocketClient eventSocketClient;
-  private final String relayUri;
-  private SslBundles sslBundles;
 
   public RelayEventClient(@NonNull String relayUri) throws ExecutionException, InterruptedException {
-    this.relayUri = relayUri;
     log.debug("relayUri: \n{}", relayUri);
     this.eventSocketClient = new WebSocketClient(relayUri);
 
   }
 
   public RelayEventClient(@NonNull String relayUri, SslBundles sslBundles) throws ExecutionException, InterruptedException {
-    this.relayUri = relayUri;
-    this.sslBundles = sslBundles;
     log.debug("sslBundles: \n{}", sslBundles);
     final SslBundle server = sslBundles.getBundle("server");
     log.debug("sslBundles name: \n{}", server);
@@ -81,10 +75,5 @@ public class RelayEventClient {
     log.debug("received relay response:");
     log.debug("\n" + events.stream().map(event -> String.format("  %s\n", event)).collect(Collectors.joining()));
     return events;
-  }
-
-  private WebSocketClient getStandardWebSocketClient() throws ExecutionException, InterruptedException {
-    return Objects.nonNull(sslBundles) ? new WebSocketClient(relayUri, sslBundles) :
-        new WebSocketClient(relayUri);
   }
 }
