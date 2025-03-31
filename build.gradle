@@ -1,0 +1,65 @@
+plugins {
+    id 'java'
+    id 'java-library'
+    id 'maven-publish'
+    id 'org.springframework.boot' version '3.4.4'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'io.freefair.lombok' version '8.12.2.1'
+    id 'com.adarshr.test-logger' version '4.0.0'
+}
+
+group = 'com.prosilion'
+version = '0.0.1-SNAPSHOT'
+description = 'prosilionWebSocketClient'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    gradlePluginPortal {
+        url = 'https://plugins.gradle.org/m2/'
+    }
+}
+
+dependencies {
+    def springBootVersion = '3.4.3'
+    def nostrJavaVersion = '0.6.5-SNAPSHOT'
+    def apacheCommonsLang3 = '3.17.0'
+    def googleGuava = '33.2.1-jre'
+    def awaitility = '4.2.0'
+    def retry = '1.6.2'
+
+    implementation 'xyz.tcheeric:nostr-java-api:' + nostrJavaVersion
+
+    developmentOnly 'org.springframework.boot:spring-boot-devtools:' + springBootVersion
+    developmentOnly 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+    implementation 'org.apache.commons:commons-lang3:' + apacheCommonsLang3
+    implementation 'com.google.guava:guava:' + googleGuava
+    implementation 'org.awaitility:awaitility:' + awaitility
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+//    testImplementation 'org.junit.platform:junit-platform-launcher'
+//    implementation 'org.springframework.boot:spring-boot-gradle-plugin:' + springBootVersion
+}
+
+test {
+    systemProperty("spring.profiles.active", "test")
+    useJUnitPlatform()
+}
+
+tasks.bootJar {
+    enabled = false
+}
