@@ -2,13 +2,13 @@ package com.prosilion.nostrclient;
 
 import java.io.IOException;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -48,6 +48,7 @@ public class RelaySubscriptions {
     return sendNostrRequest(reqJson, clientUuid);
   }
 
+
   private Map<Command, Optional<String>> sendNostrRequest(@NonNull String clientUuid, @NonNull String reqJson) {
     List<String> returnedEvents = request(clientUuid, reqJson);
 
@@ -59,24 +60,7 @@ public class RelaySubscriptions {
     log.debug(returnedEvents.stream().map(event -> String.format("  %s\n", event)).collect(Collectors.joining()));
     log.debug("55555555555555555");
 
-    Map<Command, Optional<String>> commandResultsMap = new HashMap<>();
-    commandResultsMap.put(
-        Command.EOSE,
-        returnedEvents.stream()
-            .map(msg ->
-                decode(EoseMessage.class, msg))
-            .findFirst()
-            .map(EoseMessage::getSubscriptionId));
-    commandResultsMap.put(
-        Command.EVENT,
-        returnedEvents.stream()
-            .map(msg ->
-                decode(EventMessage.class, msg))
-            .map(eventMessage -> (GenericEvent) eventMessage.getEvent())
-            .sorted(Comparator.comparing(GenericEvent::getCreatedAt))
-            .map(event -> new BaseEventEncoder<>(event).encode())
-            .reduce((first, second) -> second)); // gets last/aka, most recently dated event
-    return commandResultsMap;
+    return Map.of(Command.EOSE, eose.apply(returnedEvents), Command.EVENT, event.apply(returnedEvents));
   }
 
   @SneakyThrows
@@ -98,4 +82,16 @@ public class RelaySubscriptions {
   private WebSocketClient getStandardWebSocketClient() {
     return Objects.nonNull(sslBundles) ? new WebSocketClient(relayUri, sslBundles) : new WebSocketClient(relayUri);
   }
+
+  private final Function<List<String>, Optional<String>> eose = (events) -> events.stream()
+      .map(msg ->
+          decode(EoseMessage.class, msg)).findFirst().map(EoseMessage::getSubscriptionId);
+
+  private final Function<List<String>, Optional<String>> event = (events) -> events.stream()
+      .map(msg ->
+          decode(EventMessage.class, msg))
+      .map(eventMessage -> (GenericEvent) eventMessage.getEvent())
+      .sorted(Comparator.comparing(GenericEvent::getCreatedAt))
+      .map(event -> new BaseEventEncoder<>(event).encode())
+      .reduce((first, second) -> second); // gets last/aka, most recently dated event
 }

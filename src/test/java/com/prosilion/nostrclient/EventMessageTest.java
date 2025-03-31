@@ -14,19 +14,20 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 @ExtendWith(SpringExtension.class)
 @TestPropertySource("classpath:application-test.properties")
 @ActiveProfiles("test")
-class EventNoOpMessageTest {
+class EventMessageTest {
   private final RelayEventClient relayEventClient;
 
   private final String authorPubKey;
   private final String eventId;
 
   @Autowired
-  public EventNoOpMessageTest(@Value("${afterimage.relay.uri}") String relayUri) throws ExecutionException, InterruptedException {
+  public EventMessageTest(@Value("${superconductor.relay.uri}") String relayUri) throws ExecutionException, InterruptedException {
     this.relayEventClient = new RelayEventClient(relayUri);
     this.eventId = Factory.generateRandomHex64String();
     this.authorPubKey = Factory.generateRandomHex64String();
@@ -46,9 +47,8 @@ class EventNoOpMessageTest {
     log.debug("setup() send event:\n  {}", globalEventJson);
 
     OkMessage okMessage = this.relayEventClient.createEvent(globalEventJson);
-    final String noOpResponse = "afterimage is a nostr-reputation authority relay.  it does not accept events, only requests";
-
-    assertEquals(false, okMessage.getFlag());
-    assertEquals(noOpResponse, okMessage.getMessage());
+    assertTrue(okMessage.getFlag());
+    assertEquals(eventId, okMessage.getEventId());
+    assertEquals("success: request processed", okMessage.getMessage());
   }
 }
