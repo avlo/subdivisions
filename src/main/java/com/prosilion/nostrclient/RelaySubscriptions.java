@@ -1,6 +1,5 @@
 package com.prosilion.nostrclient;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -15,6 +14,7 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nostr.base.Command;
+import nostr.event.BaseMessage;
 import nostr.event.impl.GenericEvent;
 import nostr.event.json.codec.BaseEventEncoder;
 import nostr.event.json.codec.BaseMessageDecoder;
@@ -48,9 +48,7 @@ public class RelaySubscriptions {
     return sendNostrRequest(reqJson, clientUuid);
   }
 
-  private Map<Command, Optional<String>> sendNostrRequest(
-      @NonNull String clientUuid,
-      @NonNull String reqJson) throws IOException, ExecutionException, InterruptedException {
+  private Map<Command, Optional<String>> sendNostrRequest(@NonNull String clientUuid, @NonNull String reqJson) {
     List<String> returnedEvents = request(clientUuid, reqJson);
 
     log.debug("55555555555555555");
@@ -61,38 +59,29 @@ public class RelaySubscriptions {
     log.debug(returnedEvents.stream().map(event -> String.format("  %s\n", event)).collect(Collectors.joining()));
     log.debug("55555555555555555");
 
-    Optional<String> eoseMessageOptional = returnedEvents.stream().map(baseMessage -> {
-          try {
-            return new BaseMessageDecoder<>().decode(baseMessage);
-          } catch (JsonProcessingException e) {
-            return null;
-          }
-        })
-        .filter(Objects::nonNull)
-        .filter(EoseMessage.class::isInstance)
-        .map(EoseMessage.class::cast)
-        .findFirst()
-        .map(EoseMessage::getSubscriptionId);
+    Map<Command, Optional<String>> commandResultsMap = new HashMap<>();
+    commandResultsMap.put(
+        Command.EOSE,
+        returnedEvents.stream()
+            .map(msg ->
+                decode(EoseMessage.class, msg))
+            .findFirst()
+            .map(EoseMessage::getSubscriptionId));
+    commandResultsMap.put(
+        Command.EVENT,
+        returnedEvents.stream()
+            .map(msg ->
+                decode(EventMessage.class, msg))
+            .map(eventMessage -> (GenericEvent) eventMessage.getEvent())
+            .sorted(Comparator.comparing(GenericEvent::getCreatedAt))
+            .map(event -> new BaseEventEncoder<>(event).encode())
+            .reduce((first, second) -> second)); // gets last/aka, most recently dated event
+    return commandResultsMap;
+  }
 
-    Optional<String> eventMessageOptional = returnedEvents.stream().map(baseMessage -> {
-          try {
-            return new BaseMessageDecoder<>().decode(baseMessage);
-          } catch (JsonProcessingException e) {
-            return null;
-          }
-        })
-        .filter(Objects::nonNull)
-        .filter(EventMessage.class::isInstance)
-        .map(EventMessage.class::cast)
-        .map(eventMessage -> (GenericEvent) eventMessage.getEvent())
-        .sorted(Comparator.comparing(GenericEvent::getCreatedAt))
-        .map(event -> new BaseEventEncoder<>(event).encode())
-        .reduce((first, second) -> second); // gets last/aka, most recently dated event
-
-    Map<Command, Optional<String>> returnMap = new HashMap<>();
-    returnMap.put(Command.EOSE, eoseMessageOptional);
-    returnMap.put(Command.EVENT, eventMessageOptional);
-    return returnMap;
+  @SneakyThrows
+  private <T extends BaseMessage> T decode(Class<T> clazz, String baseMessage) {
+    return new BaseMessageDecoder<T>().decode(baseMessage);
   }
 
   private List<String> request(@NonNull String clientUuid, @NonNull String reqJson) {
@@ -107,7 +96,6 @@ public class RelaySubscriptions {
   //  TODO: cleanup sneaky
   @SneakyThrows
   private WebSocketClient getStandardWebSocketClient() {
-    return Objects.nonNull(sslBundles) ? new WebSocketClient(relayUri, sslBundles) :
-        new WebSocketClient(relayUri);
+    return Objects.nonNull(sslBundles) ? new WebSocketClient(relayUri, sslBundles) : new WebSocketClient(relayUri);
   }
 }
