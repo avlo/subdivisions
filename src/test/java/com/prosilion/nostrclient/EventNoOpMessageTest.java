@@ -30,7 +30,6 @@ class EventNoOpMessageTest {
 
   @Autowired
   public EventNoOpMessageTest(@Value("${afterimage.relay.uri}") String relayUri) throws ExecutionException, InterruptedException {
-    System.out.println(relayUri);
     this.relayEventClient = new RelayEventClient(relayUri);
     this.eventId = Factory.generateRandomHex64String();
     this.authorPubKey = Factory.generateRandomHex64String();

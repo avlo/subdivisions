@@ -1,7 +1,6 @@
 package com.prosilion.nostrclient;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.common.collect.Streams;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -13,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nostr.base.Command;
 import nostr.event.impl.GenericEvent;
@@ -20,23 +20,21 @@ import nostr.event.json.codec.BaseEventEncoder;
 import nostr.event.json.codec.BaseMessageDecoder;
 import nostr.event.message.EoseMessage;
 import nostr.event.message.EventMessage;
-import nostr.event.message.OkMessage;
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
 
 @Slf4j
 public class RelaySubscriptions {
-  private final Map<String, WebSocketClient> requestSocketClientMap = new ConcurrentHashMap<>();
+  private final Map<String, WebSocketClient> subscriberIdWebSocketClientMap = new ConcurrentHashMap<>();
   private final String relayUri;
   private SslBundles sslBundles;
 
-  public RelaySubscriptions(@NonNull String relayUri) throws ExecutionException, InterruptedException {
+  public RelaySubscriptions(@NonNull String relayUri) {
     this.relayUri = relayUri;
     log.debug("relayUri: \n{}", relayUri);
-
   }
 
-  public RelaySubscriptions(@NonNull String relayUri, SslBundles sslBundles) throws ExecutionException, InterruptedException {
+  public RelaySubscriptions(@NonNull String relayUri, SslBundles sslBundles) {
     this.relayUri = relayUri;
     this.sslBundles = sslBundles;
     log.debug("sslBundles: \n{}", sslBundles);
@@ -44,18 +42,6 @@ public class RelaySubscriptions {
     log.debug("sslBundles name: \n{}", server);
     log.debug("sslBundles key: \n{}", server.getKey());
     log.debug("sslBundles protocol: \n{}", server.getProtocol());
-  }
-
-  private static OkMessage getOkMessage(List<String> received) {
-    return Streams.findLast(received.stream())
-        .map(baseMessage -> {
-          try {
-            return new BaseMessageDecoder<OkMessage>().decode(baseMessage);
-          } catch (JsonProcessingException e) {
-            return null;
-          }
-        })
-        .orElseThrow();
   }
 
   public Map<Command, Optional<String>> sendRequest(@NonNull String clientUuid, @NonNull String reqJson) throws IOException, ExecutionException, InterruptedException {
@@ -109,31 +95,18 @@ public class RelaySubscriptions {
     return returnMap;
   }
 
-  private List<String> request(@NonNull String clientUuid, @NonNull String reqJson) throws ExecutionException, InterruptedException, IOException {
-    final WebSocketClient existingSubscriberUuidWebClient = requestSocketClientMap.get(clientUuid);
-    if (existingSubscriberUuidWebClient != null) {
-      List<String> events = existingSubscriberUuidWebClient.getEvents();
-      log.debug("-------------");
-      log.debug("socket getEvents():");
-      events.forEach(event -> log.debug("  {}\n", event));
-      log.debug("33333333333\n");
-      return events;
-    }
-
-    requestSocketClientMap.put(clientUuid, getStandardWebSocketClient());
-
-    final WebSocketClient newSubscriberUuidWebClient = requestSocketClientMap.get(clientUuid);
-    log.debug("222222222222 new REQ socket\nkey:\n  [{}]\n\n", clientUuid);
-    newSubscriberUuidWebClient.send(reqJson);
-    List<String> events = newSubscriberUuidWebClient.getEvents();
-    log.debug("-------------");
-    log.debug("socket key (clientUuid) [{}] getEvents():", clientUuid);
-    events.forEach(event -> log.debug("  {}\n", event));
-    log.debug("222222222222\n");
-    return events;
+  private List<String> request(@NonNull String clientUuid, @NonNull String reqJson) {
+    return Optional.ofNullable(subscriberIdWebSocketClientMap.get(clientUuid))
+        .orElseGet(() -> {
+          subscriberIdWebSocketClientMap.put(clientUuid, getStandardWebSocketClient());
+          subscriberIdWebSocketClientMap.get(clientUuid).send(reqJson);
+          return subscriberIdWebSocketClientMap.get(clientUuid);
+        }).getEvents();
   }
 
-  private WebSocketClient getStandardWebSocketClient() throws ExecutionException, InterruptedException {
+  //  TODO: cleanup sneaky
+  @SneakyThrows
+  private WebSocketClient getStandardWebSocketClient() {
     return Objects.nonNull(sslBundles) ? new WebSocketClient(relayUri, sslBundles) :
         new WebSocketClient(relayUri);
   }

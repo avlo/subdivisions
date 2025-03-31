@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nostr.event.BaseMessage;
 import org.awaitility.Awaitility;
@@ -59,7 +60,8 @@ public class WebSocketClient extends TextWebSocketHandler {
     send(eventMessage.encode());
   }
 
-  public void send(String json) throws IOException {
+  @SneakyThrows
+  public void send(String json) {
     clientSession.sendMessage(new TextMessage(json));
     Awaitility.await()
         .timeout(66, TimeUnit.MINUTES)
