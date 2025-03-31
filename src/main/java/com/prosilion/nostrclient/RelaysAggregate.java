@@ -7,11 +7,11 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class RelaysAggregate {
-  private final List<RelaySubscriptions> relaySubscriptions;
+  private final List<RelaySubscriptionsManager> relaySubscriptionManagers;
 
   @Autowired
   public RelaysAggregate(Map<String, String> relays) {
-    this.relaySubscriptions = relays.values().stream().map(RelaySubscriptions::new).toList();
+    this.relaySubscriptionManagers = relays.values().stream().map(RelaySubscriptionsManager::new).toList();
   }
 
 

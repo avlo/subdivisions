@@ -1,12 +1,11 @@
 package com.prosilion.nostrclient;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.common.collect.Streams;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nostr.api.factory.impl.NIP01Impl;
 import nostr.event.impl.GenericEvent;
@@ -17,16 +16,15 @@ import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
 
 @Slf4j
-public class RelayEventClient {
+public class RelayEventPublisher {
   private final WebSocketClient eventSocketClient;
 
-  public RelayEventClient(@NonNull String relayUri) throws ExecutionException, InterruptedException {
+  public RelayEventPublisher(@NonNull String relayUri) throws ExecutionException, InterruptedException {
     log.debug("relayUri: \n{}", relayUri);
     this.eventSocketClient = new WebSocketClient(relayUri);
-
   }
 
-  public RelayEventClient(@NonNull String relayUri, SslBundles sslBundles) throws ExecutionException, InterruptedException {
+  public RelayEventPublisher(@NonNull String relayUri, SslBundles sslBundles) throws ExecutionException, InterruptedException {
     log.debug("sslBundles: \n{}", sslBundles);
     final SslBundle server = sslBundles.getBundle("server");
     log.debug("sslBundles name: \n{}", server);
@@ -46,16 +44,8 @@ public class RelayEventClient {
             new NIP01Impl.EventMessageFactory(event).create()));
   }
 
-  private static OkMessage getOkMessage(List<String> received) {
-    return Streams.findLast(received.stream())
-        .map(baseMessage -> {
-          try {
-            return new BaseMessageDecoder<OkMessage>().decode(baseMessage);
-          } catch (JsonProcessingException e) {
-            return null;
-          }
-        })
-        .orElseThrow();
+  private OkMessage getOkMessage(List<String> received) {
+    return received.stream().map(RelayEventPublisher::getDecode).findFirst().orElseThrow();
   }
 
   private List<String> sendEvent(String eventJson) throws IOException {
@@ -75,5 +65,10 @@ public class RelayEventClient {
     log.debug("received relay response:");
     log.debug("\n" + events.stream().map(event -> String.format("  %s\n", event)).collect(Collectors.joining()));
     return events;
+  }
+
+  @SneakyThrows
+  private static OkMessage getDecode(String baseMessage) {
+    return new BaseMessageDecoder<OkMessage>().decode(baseMessage);
   }
 }

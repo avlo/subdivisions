@@ -1,6 +1,8 @@
 package com.prosilion.nostrclient;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -18,21 +20,22 @@ import nostr.event.json.codec.BaseEventEncoder;
 import nostr.event.json.codec.BaseMessageDecoder;
 import nostr.event.message.EoseMessage;
 import nostr.event.message.EventMessage;
+import org.apache.commons.lang3.stream.Streams;
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
 
 @Slf4j
-public class RelaySubscriptions {
+public class RelaySubscriptionsManager {
   private final Map<String, WebSocketClient> subscriberIdWebSocketClientMap = new ConcurrentHashMap<>();
   private final String relayUri;
   private SslBundles sslBundles;
 
-  public RelaySubscriptions(@NonNull String relayUri) {
+  public RelaySubscriptionsManager(@NonNull String relayUri) {
     this.relayUri = relayUri;
     log.debug("relayUri: \n{}", relayUri);
   }
 
-  public RelaySubscriptions(@NonNull String relayUri, SslBundles sslBundles) {
+  public RelaySubscriptionsManager(@NonNull String relayUri, SslBundles sslBundles) {
     this.relayUri = relayUri;
     this.sslBundles = sslBundles;
     log.debug("sslBundles: \n{}", sslBundles);
@@ -42,12 +45,11 @@ public class RelaySubscriptions {
     log.debug("sslBundles protocol: \n{}", server.getProtocol());
   }
 
-  public Map<Command, Optional<String>> sendRequest(@NonNull String clientUuid, @NonNull String reqJson) {
-    return sendNostrRequest(reqJson, clientUuid);
+  public Map<Command, String> sendRequest(@NonNull String clientUuid, @NonNull String reqJson) {
+    return sendNostrRequest(clientUuid, reqJson);
   }
 
-
-  private Map<Command, Optional<String>> sendNostrRequest(@NonNull String clientUuid, @NonNull String reqJson) {
+  private Map<Command, String> sendNostrRequest(@NonNull String clientUuid, @NonNull String reqJson) {
     List<String> returnedEvents = request(clientUuid, reqJson);
 
     log.debug("55555555555555555");
@@ -58,7 +60,11 @@ public class RelaySubscriptions {
     log.debug(returnedEvents.stream().map(event -> String.format("  %s\n", event)).collect(Collectors.joining()));
     log.debug("55555555555555555");
 
-    return Map.of(Command.EOSE, eose.apply(returnedEvents), Command.EVENT, event.apply(returnedEvents));
+    Map<Command, String> results = new HashMap<>();
+    eose.apply(returnedEvents).ifPresent(events -> results.put(Command.EOSE, events));
+    event.apply(returnedEvents).ifPresent(events -> results.put(Command.EVENT, events));
+
+    return results;
   }
 
   private List<String> request(@NonNull String clientUuid, @NonNull String reqJson) {
@@ -71,26 +77,31 @@ public class RelaySubscriptions {
   }
 
   //  TODO: cleanup sneaky
-
   @SneakyThrows
   private WebSocketClient getStandardWebSocketClient() {
     return Objects.nonNull(sslBundles) ? new WebSocketClient(relayUri, sslBundles) : new WebSocketClient(relayUri);
   }
-  
-  private final Function<List<String>, Optional<String>> eose = (events) -> events.stream()
-      .map(msg ->
-          decode(EoseMessage.class, msg)).findFirst().map(EoseMessage::getSubscriptionId);
 
-  private final Function<List<String>, Optional<String>> event = (events) -> events.stream()
-      .map(msg ->
-          decode(EventMessage.class, msg))
-      .map(eventMessage -> (GenericEvent) eventMessage.getEvent())
-      .sorted(Comparator.comparing(GenericEvent::getCreatedAt))
-      .map(event -> new BaseEventEncoder<>(event).encode())
-      .reduce((first, second) -> second); // gets last/aka, most recently dated event
+  private final Function<List<String>, Optional<String>> eose = (events) ->
+      getTypeSpecificMessage(EoseMessage.class, events).stream().map(EoseMessage::getSubscriptionId).findFirst();
 
-  @SneakyThrows
-  private <T extends BaseMessage> T decode(Class<T> tClass, String baseMessage) {
-    return new BaseMessageDecoder<T>().decode(baseMessage);
+  private final Function<List<String>, Optional<String>> event = (events) ->
+      getTypeSpecificMessage(EventMessage.class, events).stream()
+          .map(eventMessage -> (GenericEvent) eventMessage.getEvent())
+          .sorted(Comparator.comparing(GenericEvent::getCreatedAt))
+          .map(event -> new BaseEventEncoder<>(event).encode())
+          .reduce((first, second) -> second);
+
+  <V extends BaseMessage> List<V> getTypeSpecificMessage(Class<V> messageClass, List<String> messages) {
+    return Streams.failableStream(messages.stream()
+        .map(msg -> {
+          try {
+            return new BaseMessageDecoder<V>().decode(msg);
+          } catch (JsonProcessingException e) {
+            return null;
+          }
+        })
+        .filter(Objects::nonNull)
+        .filter(messageClass::isInstance)).stream().toList();
   }
 }
