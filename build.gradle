@@ -9,7 +9,7 @@ plugins {
 }
 
 group = 'com.prosilion'
-version = '0.0.1-SNAPSHOT'
+version = '0.0.1'
 description = 'prosilion-nostr-springwebsocket-client'
 
 java {
@@ -33,6 +33,11 @@ repositories {
 }
 
 publishing {
+    publications {
+        bootJava(MavenPublication) {
+            artifact tasks.named("jar")
+        }
+    }
     repositories {
         mavenLocal()
     }
@@ -64,4 +69,24 @@ test {
 
 tasks.bootJar {
     enabled = false
+}
+
+tasks.jar {
+    archiveClassifier = ''
+}
+
+java.sourceCompatibility = 21
+java.targetCompatibility = 21
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+tasks.withType(Javadoc).configureEach {
+    options.encoding = 'UTF-8'
 }
