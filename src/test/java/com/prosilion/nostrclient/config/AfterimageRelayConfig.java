@@ -1,4 +1,4 @@
-package com.prosilion.config;
+package com.prosilion.nostrclient.config;
 
 import java.util.Map;
 import java.util.ResourceBundle;

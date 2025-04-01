@@ -1,4 +1,4 @@
-package com.prosilion.config;
+package com.prosilion.nostrclient.config;
 
 import com.prosilion.nostrclient.RelaysPool;
 import java.util.Map;
