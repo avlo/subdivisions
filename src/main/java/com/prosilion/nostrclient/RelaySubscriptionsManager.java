@@ -26,17 +26,17 @@ import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
 
 @Slf4j
-public class SubscriberIdsPerSuperconductorRelay {
+public class RelaySubscriptionsManager {
   private final Map<String, WebSocketClient> subscriberIdWebSocketClientMap = new ConcurrentHashMap<>();
   private final String relayUri;
   private SslBundles sslBundles;
 
-  public SubscriberIdsPerSuperconductorRelay(@NonNull String relayUri) {
+  public RelaySubscriptionsManager(@NonNull String relayUri) {
     this.relayUri = relayUri;
     log.debug("relayUri: \n{}", relayUri);
   }
 
-  public SubscriberIdsPerSuperconductorRelay(@NonNull String relayUri, SslBundles sslBundles) {
+  public RelaySubscriptionsManager(@NonNull String relayUri, SslBundles sslBundles) {
     this.relayUri = relayUri;
     this.sslBundles = sslBundles;
     log.debug("sslBundles: \n{}", sslBundles);

@@ -1,5 +1,6 @@
-package com.prosilion.nostrclient;
+package com.prosilion.nostrclient.util;
 
+import com.prosilion.nostrclient.WebSocketClient;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;

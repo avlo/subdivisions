@@ -20,7 +20,7 @@ public class AfterimageRelayConfig {
   }
 
 //  @Bean
-//  public AggregateSuperconductorRelaysByName afterImageRelaysAggregate(Map<String, String> afterImageRelays) {
-//    return new AggregateSuperconductorRelaysByName(afterImageRelays);
+//  public RelaysPool afterImageRelaysAggregate(Map<String, String> afterImageRelays) {
+//    return new RelaysPool(afterImageRelays);
 //  }
 }

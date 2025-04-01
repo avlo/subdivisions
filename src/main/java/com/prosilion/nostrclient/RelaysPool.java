@@ -9,23 +9,23 @@ import nostr.base.Command;
 import nostr.event.message.ReqMessage;
 import org.apache.commons.lang3.stream.Streams;
 
-public class AggregateSuperconductorRelaysByName {
-  private final Map<String, SubscriberIdsPerSuperconductorRelay> map;
+public class RelaysPool {
+  private final Map<String, RelaySubscriptionsManager> map;
 
-  public AggregateSuperconductorRelaysByName() {
+  public RelaysPool() {
     this(new HashMap<>());
   }
 
-  public AggregateSuperconductorRelaysByName(Map<String, String> relayNameUriMap) {
+  public RelaysPool(Map<String, String> relayNameUriMap) {
     this.map = relayNameUriMap.entrySet().stream()
         .collect(Collectors.toMap(
             Map.Entry::getKey,
             value ->
-                new SubscriberIdsPerSuperconductorRelay(value.getValue())));
+                new RelaySubscriptionsManager(value.getValue())));
   }
 
   public void addRelay(String name, String uri) {
-    this.map.put(name, new SubscriberIdsPerSuperconductorRelay(uri));
+    this.map.put(name, new RelaySubscriptionsManager(uri));
   }
 
   public void removeRelay(String name) {

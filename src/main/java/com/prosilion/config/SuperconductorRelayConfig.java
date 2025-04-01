@@ -1,6 +1,6 @@
 package com.prosilion.config;
 
-import com.prosilion.nostrclient.AggregateSuperconductorRelaysByName;
+import com.prosilion.nostrclient.RelaysPool;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
@@ -22,7 +22,7 @@ public class SuperconductorRelayConfig {
   }
 
   @Bean
-  public AggregateSuperconductorRelaysByName superconductorRelaysAggregate(Map<String, String> superconductorRelays) {
-    return new AggregateSuperconductorRelaysByName(superconductorRelays);
+  public RelaysPool superconductorRelaysAggregate(Map<String, String> superconductorRelays) {
+    return new RelaysPool(superconductorRelays);
   }
 }

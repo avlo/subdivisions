@@ -1,6 +1,7 @@
 package com.prosilion.nostrclient;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.prosilion.nostrclient.util.EventPublisher;
 import com.prosilion.nostrclient.util.Factory;
 import java.io.IOException;
 import java.util.Map;
@@ -33,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestPropertySource("classpath:application-test.properties")
 @ActiveProfiles("test")
 class EventThenReqTest {
-  private final SubscriberIdsPerSuperconductorRelay subscriberIdsPerSuperconductorRelay;
+  private final RelaySubscriptionsManager relaySubscriptionsManager;
 
   private final PublicKey authorPubKey;
   private final String eventId;
@@ -41,7 +42,7 @@ class EventThenReqTest {
   @Autowired
   public EventThenReqTest(@Value("${superconductor.relay.uri}") String relayUri) throws ExecutionException, InterruptedException, IOException {
     final EventPublisher eventPublisher = new EventPublisher(relayUri);
-    this.subscriberIdsPerSuperconductorRelay = new SubscriberIdsPerSuperconductorRelay(relayUri);
+    this.relaySubscriptionsManager = new RelaySubscriptionsManager(relayUri);
     this.eventId = Factory.generateRandomHex64String();
     this.authorPubKey = Factory.createNewIdentity().getPublicKey();
 
@@ -66,7 +67,7 @@ class EventThenReqTest {
   void testReqFilteredByEventAndAuthor() throws JsonProcessingException {
     String subscriberId = Factory.generateRandomHex64String();
 
-    Map<Command, String> returnedJsonMap = subscriberIdsPerSuperconductorRelay.sendRequest(
+    Map<Command, String> returnedJsonMap = relaySubscriptionsManager.sendRequest(
         new ReqMessage(subscriberId,
             new Filters(
                 new AuthorFilter<>(authorPubKey))));
@@ -87,7 +88,7 @@ class EventThenReqTest {
     String aNonExistentEventId = Factory.generateRandomHex64String();
     GenericEvent event = new GenericEvent(aNonExistentEventId);
 
-    Map<Command, String> returnedJsonMap = subscriberIdsPerSuperconductorRelay.sendRequest(
+    Map<Command, String> returnedJsonMap = relaySubscriptionsManager.sendRequest(
         new ReqMessage(subscriberId,
             new Filters(
                 new EventFilter<>(event))));
@@ -108,7 +109,7 @@ class EventThenReqTest {
         new Filters(
             new EventFilter<>(event))));
 
-    Map<Command, String> returnedJsonMap = subscriberIdsPerSuperconductorRelay.sendRequest(
+    Map<Command, String> returnedJsonMap = relaySubscriptionsManager.sendRequest(
         new ReqMessage(subscriberId,
             new Filters(
                 new EventFilter<>(event))));

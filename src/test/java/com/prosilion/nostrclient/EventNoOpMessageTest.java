@@ -1,5 +1,6 @@
 package com.prosilion.nostrclient;
 
+import com.prosilion.nostrclient.util.EventPublisher;
 import com.prosilion.nostrclient.util.Factory;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
