@@ -20,22 +20,23 @@ import nostr.event.json.codec.BaseEventEncoder;
 import nostr.event.json.codec.BaseMessageDecoder;
 import nostr.event.message.EoseMessage;
 import nostr.event.message.EventMessage;
+import nostr.event.message.ReqMessage;
 import org.apache.commons.lang3.stream.Streams;
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
 
 @Slf4j
-public class RelaySubscriptionsManager {
+public class SubscriberIdsPerSuperconductorRelay {
   private final Map<String, WebSocketClient> subscriberIdWebSocketClientMap = new ConcurrentHashMap<>();
   private final String relayUri;
   private SslBundles sslBundles;
 
-  public RelaySubscriptionsManager(@NonNull String relayUri) {
+  public SubscriberIdsPerSuperconductorRelay(@NonNull String relayUri) {
     this.relayUri = relayUri;
     log.debug("relayUri: \n{}", relayUri);
   }
 
-  public RelaySubscriptionsManager(@NonNull String relayUri, SslBundles sslBundles) {
+  public SubscriberIdsPerSuperconductorRelay(@NonNull String relayUri, SslBundles sslBundles) {
     this.relayUri = relayUri;
     this.sslBundles = sslBundles;
     log.debug("sslBundles: \n{}", sslBundles);
@@ -45,16 +46,12 @@ public class RelaySubscriptionsManager {
     log.debug("sslBundles protocol: \n{}", server.getProtocol());
   }
 
-  public Map<Command, String> sendRequest(@NonNull String clientUuid, @NonNull String reqJson) {
-    return sendNostrRequest(clientUuid, reqJson);
-  }
-
-  private Map<Command, String> sendNostrRequest(@NonNull String clientUuid, @NonNull String reqJson) {
-    List<String> returnedEvents = request(clientUuid, reqJson);
+  public Map<Command, String> sendRequest(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
+    List<String> returnedEvents = request(reqMessage.getSubscriptionId(), reqMessage.encode());
 
     log.debug("55555555555555555");
     log.debug("after REQUEST:");
-    log.debug("key:\n  [{}]\n", clientUuid);
+    log.debug("key:\n  [{}]\n", reqMessage.getSubscriptionId());
     log.debug("-----------------");
     log.debug("returnedEvents:");
     log.debug(returnedEvents.stream().map(event -> String.format("  %s\n", event)).collect(Collectors.joining()));
@@ -67,12 +64,12 @@ public class RelaySubscriptionsManager {
     return results;
   }
 
-  private List<String> request(@NonNull String clientUuid, @NonNull String reqJson) {
-    return Optional.ofNullable(subscriberIdWebSocketClientMap.get(clientUuid))
+  private List<String> request(@NonNull String subscriberId, @NonNull String reqJson) {
+    return Optional.ofNullable(subscriberIdWebSocketClientMap.get(subscriberId))
         .orElseGet(() -> {
-          subscriberIdWebSocketClientMap.put(clientUuid, getStandardWebSocketClient());
-          subscriberIdWebSocketClientMap.get(clientUuid).send(reqJson);
-          return subscriberIdWebSocketClientMap.get(clientUuid);
+          subscriberIdWebSocketClientMap.put(subscriberId, getStandardWebSocketClient());
+          subscriberIdWebSocketClientMap.get(subscriberId).send(reqJson);
+          return subscriberIdWebSocketClientMap.get(subscriberId);
         }).getEvents();
   }
 
@@ -103,5 +100,11 @@ public class RelaySubscriptionsManager {
         })
         .filter(Objects::nonNull)
         .filter(messageClass::isInstance)).stream().toList();
+  }
+
+  public void closeAllSessions() {
+    Streams.failableStream(
+        subscriberIdWebSocketClientMap.values().stream()).forEach(WebSocketClient::closeSession);
+    subscriberIdWebSocketClientMap.clear();
   }
 }

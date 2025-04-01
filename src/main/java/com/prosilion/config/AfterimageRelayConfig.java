@@ -1,6 +1,5 @@
 package com.prosilion.config;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
@@ -12,12 +11,16 @@ import org.springframework.context.annotation.PropertySource;
 //@TestPropertySources(
 @PropertySource("classpath:afterimage-relays.properties")
 //)
-public class RelayConfig {
-
+public class AfterimageRelayConfig {
   @Bean
-  public Map<String, String> afterImageRelays() throws IOException {
+  public Map<String, String> afterimageRelays() {
     ResourceBundle relaysBundle = ResourceBundle.getBundle("afterimage-relays");
     return relaysBundle.keySet().stream()
         .collect(Collectors.toMap(key -> key, relaysBundle::getString));
   }
+
+//  @Bean
+//  public AggregateSuperconductorRelaysByName afterImageRelaysAggregate(Map<String, String> afterImageRelays) {
+//    return new AggregateSuperconductorRelaysByName(afterImageRelays);
+//  }
 }

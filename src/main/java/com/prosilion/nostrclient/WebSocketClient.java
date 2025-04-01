@@ -68,4 +68,8 @@ public class WebSocketClient extends TextWebSocketHandler {
         .untilTrue(completed);
     completed.setRelease(false);
   }
+  
+  public void closeSession() throws IOException {
+    clientSession.close();
+  }
 }

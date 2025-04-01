@@ -20,14 +20,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @TestPropertySource("classpath:application-test.properties")
 @ActiveProfiles("test")
 class EventNoOpMessageTest {
-  private final RelayEventPublisher relayEventPublisher;
+  private final EventPublisher eventPublisher;
 
   private final String authorPubKey;
   private final String eventId;
 
   @Autowired
   public EventNoOpMessageTest(@Value("${afterimage.relay.uri}") String relayUri) throws ExecutionException, InterruptedException {
-    this.relayEventPublisher = new RelayEventPublisher(relayUri);
+    this.eventPublisher = new EventPublisher(relayUri);
     this.eventId = Factory.generateRandomHex64String();
     this.authorPubKey = Factory.generateRandomHex64String();
   }
@@ -45,7 +45,7 @@ class EventNoOpMessageTest {
             ",sig:\"86f25c161fec51b9e441bdb2c09095d5f8b92fdce66cb80d9ef09fad6ce53eaa14c5e16787c42f5404905536e43ebec0e463aee819378a4acbe412c533e60546\"}]";
     log.debug("setup() send event:\n  {}", globalEventJson);
 
-    OkMessage okMessage = this.relayEventPublisher.createEvent(globalEventJson);
+    OkMessage okMessage = this.eventPublisher.createEvent(globalEventJson);
     final String noOpResponse = "afterimage is a nostr-reputation authority relay.  it does not accept events, only requests";
 
     assertEquals(false, okMessage.getFlag());

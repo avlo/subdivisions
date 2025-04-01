@@ -10,7 +10,7 @@ plugins {
 
 group = 'com.prosilion'
 version = '0.0.1-SNAPSHOT'
-description = 'prosilionWebSocketClient'
+description = 'prosilion-nostr-springwebsocket-client'
 
 java {
     toolchain {
@@ -32,12 +32,17 @@ repositories {
     }
 }
 
+publishing {
+    repositories {
+        mavenLocal()
+    }
+}
+
 dependencies {
     def nostrJavaVersion = '0.6.5-SNAPSHOT'
     def apacheCommonsLang3 = '3.17.0'
     def googleGuava = '33.2.1-jre'
     def awaitility = '4.2.0'
-    def retry = '1.6.2'
 
     implementation 'xyz.tcheeric:nostr-java-api:' + nostrJavaVersion
 

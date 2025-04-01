@@ -106,7 +106,7 @@ public class Factory {
     return cullStringLength("lnurl" + generateRandomHex64String(), 84);
   }
 
-  private static String cullStringLength(String s, int x) {
+  public static String cullStringLength(String s, int x) {
     return s.length() > x ? s.substring(0, x) : s;
   }
 

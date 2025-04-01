@@ -16,15 +16,15 @@ import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
 
 @Slf4j
-public class RelayEventPublisher {
+public class EventPublisher {
   private final WebSocketClient eventSocketClient;
 
-  public RelayEventPublisher(@NonNull String relayUri) throws ExecutionException, InterruptedException {
+  public EventPublisher(@NonNull String relayUri) throws ExecutionException, InterruptedException {
     log.debug("relayUri: \n{}", relayUri);
     this.eventSocketClient = new WebSocketClient(relayUri);
   }
 
-  public RelayEventPublisher(@NonNull String relayUri, SslBundles sslBundles) throws ExecutionException, InterruptedException {
+  public EventPublisher(@NonNull String relayUri, SslBundles sslBundles) throws ExecutionException, InterruptedException {
     log.debug("sslBundles: \n{}", sslBundles);
     final SslBundle server = sslBundles.getBundle("server");
     log.debug("sslBundles name: \n{}", server);
@@ -45,7 +45,7 @@ public class RelayEventPublisher {
   }
 
   private OkMessage getOkMessage(List<String> received) {
-    return received.stream().map(RelayEventPublisher::getDecode).findFirst().orElseThrow();
+    return received.stream().map(EventPublisher::getDecode).findFirst().orElseThrow();
   }
 
   private List<String> sendEvent(String eventJson) throws IOException {
