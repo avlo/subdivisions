@@ -9,9 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
 @Configuration
-//@TestPropertySources(
 @PropertySource("classpath:superconductor-relays.properties")
-//)
 public class SuperconductorRelayConfig {
 
   @Bean
