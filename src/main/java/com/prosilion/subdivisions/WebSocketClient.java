@@ -1,4 +1,4 @@
-package com.prosilion.nostrclient;
+package com.prosilion.subdivisions;
 
 import java.io.IOException;
 import java.net.URI;
@@ -31,14 +31,14 @@ public class WebSocketClient extends TextWebSocketHandler {
   public WebSocketClient(@NonNull String relayUri) throws ExecutionException, InterruptedException {
     StandardWebSocketClient standardWebSocketClient = new StandardWebSocketClient();
     this.clientSession = getClientSession(relayUri, standardWebSocketClient);
-    log.debug("Non-Secure (WS) WebSocket nostrclient connected {}", clientSession.getId());
+    log.debug("Non-Secure (WS) WebSocket subdivisions connected {}", clientSession.getId());
   }
 
   public WebSocketClient(@NonNull String relayUri, @NonNull SslBundles sslBundles) throws ExecutionException, InterruptedException {
     StandardWebSocketClient standardWebSocketClient = new StandardWebSocketClient();
     standardWebSocketClient.setSslContext(sslBundles.getBundle("server").createSslContext());
     this.clientSession = getClientSession(relayUri, standardWebSocketClient);
-    log.debug("Secure (WSS) WebSocket nostrclient connected {}", clientSession.getId());
+    log.debug("Secure (WSS) WebSocket subdivisions connected {}", clientSession.getId());
   }
 
   private WebSocketSession getClientSession(@NonNull String relayUri, StandardWebSocketClient standardWebSocketClient) throws ExecutionException, InterruptedException {

@@ -1,8 +1,9 @@
-package com.prosilion.nostrclient;
+package com.prosilion.subdivisions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.prosilion.nostrclient.util.EventPublisher;
-import com.prosilion.nostrclient.util.Factory;
+import com.prosilion.subdivisions.event.EventPublisher;
+import com.prosilion.subdivisions.request.RelaySubscriptionsManager;
+import com.prosilion.subdivisions.util.Factory;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;

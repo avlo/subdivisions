@@ -1,4 +1,4 @@
-package com.prosilion.nostrclient.config;
+package com.prosilion.subdivisions.config;
 
 import java.util.Map;
 import java.util.ResourceBundle;

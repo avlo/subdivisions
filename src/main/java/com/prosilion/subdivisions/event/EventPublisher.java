@@ -1,6 +1,6 @@
-package com.prosilion.nostrclient.util;
+package com.prosilion.subdivisions.event;
 
-import com.prosilion.nostrclient.WebSocketClient;
+import com.prosilion.subdivisions.WebSocketClient;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;

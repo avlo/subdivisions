@@ -1,6 +1,8 @@
-package com.prosilion.nostrclient;
+package com.prosilion.subdivisions.request;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.prosilion.subdivisions.WebSocketClient;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -102,9 +104,29 @@ public class RelaySubscriptionsManager {
         .filter(messageClass::isInstance)).stream().toList();
   }
 
+  public void closeSession(@NonNull String... subscriberIds) {
+    closeSessions(List.of(subscriberIds));
+  }
+
+  public void closeSessions(@NonNull List<String> subscriberIds) {
+    subscriberIds.forEach(id -> closeSessions(subscriberIdWebSocketClientMap.get(id)));
+    subscriberIds.forEach(subscriberIdWebSocketClientMap::remove);
+  }
+
   public void closeAllSessions() {
-    Streams.failableStream(
-        subscriberIdWebSocketClientMap.values().stream()).forEach(WebSocketClient::closeSession);
+    closeSessions(subscriberIdWebSocketClientMap);
     subscriberIdWebSocketClientMap.clear();
+  }
+
+  private void closeSessions(Map<String, WebSocketClient> subscriberIdWebSocketClientMap) {
+    closeSessions(subscriberIdWebSocketClientMap.values());
+  }
+
+  private void closeSessions(WebSocketClient... webSocketClients) {
+    closeSessions(List.of(webSocketClients));
+  }
+
+  private void closeSessions(Collection<WebSocketClient> webSocketClients) {
+    Streams.failableStream(webSocketClients.stream()).forEach(WebSocketClient::closeSession);
   }
 }

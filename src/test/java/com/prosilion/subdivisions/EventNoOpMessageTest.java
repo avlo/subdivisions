@@ -1,7 +1,7 @@
-package com.prosilion.nostrclient;
+package com.prosilion.subdivisions;
 
-import com.prosilion.nostrclient.util.EventPublisher;
-import com.prosilion.nostrclient.util.Factory;
+import com.prosilion.subdivisions.event.EventPublisher;
+import com.prosilion.subdivisions.util.Factory;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import lombok.extern.slf4j.Slf4j;

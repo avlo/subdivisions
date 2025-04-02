@@ -1,8 +1,8 @@
-package com.prosilion.nostrclient;
+package com.prosilion.subdivisions;
 
-import com.prosilion.nostrclient.config.SuperconductorRelayConfig;
-import com.prosilion.nostrclient.util.EventPublisher;
-import com.prosilion.nostrclient.util.Factory;
+import com.prosilion.subdivisions.config.SuperconductorRelayConfig;
+import com.prosilion.subdivisions.event.EventPublisher;
+import com.prosilion.subdivisions.util.Factory;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;

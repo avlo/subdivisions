@@ -1,4 +1,4 @@
-package com.prosilion.nostrclient.util;
+package com.prosilion.subdivisions.util;
 
 import java.math.BigDecimal;
 import java.util.List;

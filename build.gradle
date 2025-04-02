@@ -10,7 +10,7 @@ plugins {
 
 group = 'com.prosilion'
 version = '0.0.1'
-description = 'prosilion-nostr-springwebsocket-client'
+description = 'subdivisions'
 
 java {
     toolchain {

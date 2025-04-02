@@ -1,4 +1,4 @@
-package com.prosilion.nostrclient;
+package com.prosilion.subdivisions.request;
 
 import java.util.HashMap;
 import java.util.List;
@@ -9,14 +9,14 @@ import nostr.base.Command;
 import nostr.event.message.ReqMessage;
 import org.apache.commons.lang3.stream.Streams;
 
-public class RelaysPool {
+public class RequestConsolidator {
   private final Map<String, RelaySubscriptionsManager> map;
 
-  public RelaysPool() {
+  public RequestConsolidator() {
     this(new HashMap<>());
   }
 
-  public RelaysPool(Map<String, String> relayNameUriMap) {
+  public RequestConsolidator(Map<String, String> relayNameUriMap) {
     this.map = relayNameUriMap.entrySet().stream()
         .collect(Collectors.toMap(
             Map.Entry::getKey,
