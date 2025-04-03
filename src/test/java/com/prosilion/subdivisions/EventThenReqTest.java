@@ -5,6 +5,7 @@ import com.prosilion.subdivisions.event.EventPublisher;
 import com.prosilion.subdivisions.request.RelaySubscriptionsManager;
 import com.prosilion.subdivisions.util.Factory;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import lombok.extern.slf4j.Slf4j;
@@ -68,7 +69,7 @@ class EventThenReqTest {
   void testReqFilteredByEventAndAuthor() throws JsonProcessingException {
     String subscriberId = Factory.generateRandomHex64String();
 
-    Map<Command, String> returnedJsonMap = relaySubscriptionsManager.sendRequest(
+    Map<Command, List<String>> returnedJsonMap = relaySubscriptionsManager.sendRequestReturnCommandResultsMap(
         new ReqMessage(subscriberId,
             new Filters(
                 new AuthorFilter<>(authorPubKey))));
@@ -89,7 +90,7 @@ class EventThenReqTest {
     String aNonExistentEventId = Factory.generateRandomHex64String();
     GenericEvent event = new GenericEvent(aNonExistentEventId);
 
-    Map<Command, String> returnedJsonMap = relaySubscriptionsManager.sendRequest(
+    Map<Command, List<String>> returnedJsonMap = relaySubscriptionsManager.sendRequestReturnCommandResultsMap(
         new ReqMessage(subscriberId,
             new Filters(
                 new EventFilter<>(event))));
@@ -110,7 +111,7 @@ class EventThenReqTest {
         new Filters(
             new EventFilter<>(event))));
 
-    Map<Command, String> returnedJsonMap = relaySubscriptionsManager.sendRequest(
+    Map<Command, List<String>> returnedJsonMap = relaySubscriptionsManager.sendRequestReturnCommandResultsMap(
         new ReqMessage(subscriberId,
             new Filters(
                 new EventFilter<>(event))));
@@ -118,6 +119,6 @@ class EventThenReqTest {
     log.info("returnedJsonMap testCulledSubscriberId():");
     log.info("  {}", returnedJsonMap);
     assertFalse(returnedJsonMap.containsKey(Command.EVENT));
-    assertEquals(new EoseMessage(returnedJsonMap.get(Command.EOSE)).getSubscriptionId(), subscriberId);
+    assertEquals(new EoseMessage(returnedJsonMap.get(Command.EOSE).getFirst()).getSubscriptionId(), subscriberId);
   }
 }

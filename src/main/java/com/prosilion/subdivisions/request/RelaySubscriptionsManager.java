@@ -48,25 +48,37 @@ public class RelaySubscriptionsManager {
     log.debug("sslBundles protocol: \n{}", server.getProtocol());
   }
 
-  public Map<Command, String> sendRequest(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
-    List<String> returnedEvents = request(reqMessage.getSubscriptionId(), reqMessage.encode());
+  public List<String> sendRequestReturnEvents(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
+    return sendRequestReturnEvents(reqMessage.getSubscriptionId(), reqMessage.encode());
+  }
+
+  public List<String> sendRequestReturnEvents(@NonNull String subscriberId, @NonNull String reqJson) {
+    return allEvents.apply(getRequestResults(subscriberId, reqJson));
+  }
+
+  public Map<Command, List<String>> sendRequestReturnCommandResultsMap(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
+    return sendRequestReturnCommandResultsMap(reqMessage.getSubscriptionId(), reqMessage.encode());
+  }
+
+  public Map<Command, List<String>> sendRequestReturnCommandResultsMap(@NonNull String subscriberId, @NonNull String reqJson) {
+    List<String> returnedEvents = getRequestResults(subscriberId, reqJson);
 
     log.debug("55555555555555555");
     log.debug("after REQUEST:");
-    log.debug("key:\n  [{}]\n", reqMessage.getSubscriptionId());
+    log.debug("key/subscriberId:\n  [{}]\n", subscriberId);
     log.debug("-----------------");
     log.debug("returnedEvents:");
     log.debug(returnedEvents.stream().map(event -> String.format("  %s\n", event)).collect(Collectors.joining()));
     log.debug("55555555555555555");
 
-    Map<Command, String> results = new HashMap<>();
-    eose.apply(returnedEvents).ifPresent(events -> results.put(Command.EOSE, events));
-    event.apply(returnedEvents).ifPresent(events -> results.put(Command.EVENT, events));
+    Map<Command, List<String>> results = new HashMap<>();
+    eose.apply(returnedEvents).ifPresent(eoses -> results.put(Command.EOSE, List.of(eoses)));
+    results.put(Command.EVENT, allEvents.apply(returnedEvents));
 
     return results;
   }
 
-  private List<String> request(@NonNull String subscriberId, @NonNull String reqJson) {
+  private List<String> getRequestResults(String subscriberId, String reqJson) {
     return Optional.ofNullable(subscriberIdWebSocketClientMap.get(subscriberId))
         .orElseGet(() -> {
           subscriberIdWebSocketClientMap.put(subscriberId, getStandardWebSocketClient());
@@ -84,12 +96,19 @@ public class RelaySubscriptionsManager {
   private final Function<List<String>, Optional<String>> eose = (events) ->
       getTypeSpecificMessage(EoseMessage.class, events).stream().map(EoseMessage::getSubscriptionId).findFirst();
 
-  private final Function<List<String>, Optional<String>> event = (events) ->
+  private final Function<List<String>, Optional<String>> newestEvent = (events) ->
       getTypeSpecificMessage(EventMessage.class, events).stream()
           .map(eventMessage -> (GenericEvent) eventMessage.getEvent())
           .sorted(Comparator.comparing(GenericEvent::getCreatedAt))
           .map(event -> new BaseEventEncoder<>(event).encode())
           .reduce((first, second) -> second);
+
+  private final Function<List<String>, List<String>> allEvents = (events) ->
+      getTypeSpecificMessage(EventMessage.class, events).stream()
+          .map(eventMessage -> (GenericEvent) eventMessage.getEvent())
+          .sorted(Comparator.comparing(GenericEvent::getCreatedAt))
+          .map(event -> new BaseEventEncoder<>(event).encode())
+          .toList();
 
   <V extends BaseMessage> List<V> getTypeSpecificMessage(Class<V> messageClass, List<String> messages) {
     return Streams.failableStream(messages.stream()

@@ -38,9 +38,9 @@ public class RequestConsolidator {
 //		return eventsMatchingNipXXX.getPubKeys()
 
 
-  public List<Map<Command, String>> sendRequest(@NonNull ReqMessage reqMessage) {
+  public List<Map<Command, List<String>>> sendRequest(@NonNull ReqMessage reqMessage) {
     return Streams.failableStream(map.values().stream()).map(entry ->
-        entry.sendRequest(reqMessage)).stream().toList();
+        entry.sendRequestReturnCommandResultsMap(reqMessage)).stream().toList();
   }
 }
 //  Map<PubKey, Map<Event<rep-tag (NIP-XXX)>, Relay>

@@ -45,6 +45,12 @@ public class EventPublisher {
             new NIP01Impl.EventMessageFactory(event).create()));
   }
 
+  public List<String> sendEvent(EventMessage eventMessage) throws IOException {
+    eventSocketClient.send(eventMessage);
+    log.debug("socket send EventMessage content\n  {}", eventMessage.getEvent());
+    return getEvents();
+  }
+
   private OkMessage getOkMessage(List<String> received) {
     return received.stream().map(EventPublisher::getDecode).findFirst().orElseThrow();
   }
@@ -52,12 +58,6 @@ public class EventPublisher {
   private List<String> sendEvent(String eventJson) throws IOException {
     eventSocketClient.send(eventJson);
     log.debug("socket send event JSON content\n  {}", eventJson);
-    return getEvents();
-  }
-
-  private List<String> sendEvent(EventMessage eventMessage) throws IOException {
-    eventSocketClient.send(eventMessage);
-    log.debug("socket send EventMessage content\n  {}", eventMessage.getEvent());
     return getEvents();
   }
 
