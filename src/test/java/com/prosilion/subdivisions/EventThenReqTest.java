@@ -55,8 +55,8 @@ class EventThenReqTest {
             "\",\"kind\":1,\"content\":\"" + content +
             "\",\"pubkey\":\"" + authorPubKey.toHexString() +
             "\",\"created_at\":1717357053050" +
-            ",tags:[]" +
-            ",sig:\"86f25c161fec51b9e441bdb2c09095d5f8b92fdce66cb80d9ef09fad6ce53eaa14c5e16787c42f5404905536e43ebec0e463aee819378a4acbe412c533e60546\"}]";
+            ",\"tags\":[]" +
+            ",\"sig\":\"86f25c161fec51b9e441bdb2c09095d5f8b92fdce66cb80d9ef09fad6ce53eaa14c5e16787c42f5404905536e43ebec0e463aee819378a4acbe412c533e60546\"}]";
     log.debug("setup() send event:\n  {}", globalEventJson);
 
     OkMessage okMessage = eventPublisher.createEvent(globalEventJson);
@@ -76,12 +76,12 @@ class EventThenReqTest {
 
     log.debug("returnedJsonMap testReqFilteredByEventAndAuthor():");
     log.debug("  {}", returnedJsonMap);
-    assertTrue(returnedJsonMap.get(Command.EVENT).contains(eventId));
-    assertTrue(returnedJsonMap.get(Command.EVENT).contains(authorPubKey.toHexString()));
-    assertTrue(returnedJsonMap.get(Command.EOSE).contains(subscriberId));
+    assertTrue(returnedJsonMap.get(Command.EVENT).toString().contains(eventId));
+    assertTrue(returnedJsonMap.get(Command.EVENT).toString().contains(authorPubKey.toHexString()));
+    assertTrue(returnedJsonMap.get(Command.EOSE).toString().contains(subscriberId));
 
-    assertFalse(returnedJsonMap.get(Command.EVENT).contains(eventId + "X"));
-    assertFalse(returnedJsonMap.get(Command.EOSE).contains(subscriberId + "X"));
+    assertFalse(returnedJsonMap.get(Command.EVENT).toString().contains(eventId + "X"));
+    assertFalse(returnedJsonMap.get(Command.EOSE).toString().contains(subscriberId + "X"));
   }
 
   @Test
@@ -97,7 +97,7 @@ class EventThenReqTest {
 
     log.info("returnedJsonMap testReqNonMatchingEvent():");
     log.info("  {}", returnedJsonMap);
-    assertFalse(returnedJsonMap.containsKey(Command.EVENT));
+    assertTrue(returnedJsonMap.get(Command.EVENT).isEmpty());
     assertFalse(returnedJsonMap.get(Command.EOSE).isEmpty());
   }
 
@@ -118,7 +118,7 @@ class EventThenReqTest {
 
     log.info("returnedJsonMap testCulledSubscriberId():");
     log.info("  {}", returnedJsonMap);
-    assertFalse(returnedJsonMap.containsKey(Command.EVENT));
+    assertTrue(returnedJsonMap.get(Command.EVENT).isEmpty());
     assertEquals(new EoseMessage(returnedJsonMap.get(Command.EOSE).getFirst()).getSubscriptionId(), subscriberId);
   }
 }
