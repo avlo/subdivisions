@@ -10,7 +10,7 @@
 ```
 
 
-# SubDivisions.  A flexible web-socket client & related utilities. #
+# SubDivisions.  A flexible java web-socket client & related utilities. #
 
 #### simple & comprehensive [nostr-relay event publisher](https://github.com/avlo/subdivisions/blob/master/src/main/java/com/prosilion/nostrclient/RelayEventPublisher.java) and multi-relay capable [nostr-event subscriptions manager](https://github.com/avlo/subdivisions/blob/master/src/main/java/com/prosilion/nostrclient/RelaySubscriptionsManager.java) ####
 
