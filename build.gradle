@@ -51,8 +51,9 @@ dependencies {
 
     implementation 'xyz.tcheeric:nostr-java-api:' + nostrJavaVersion
 
-    developmentOnly 'org.springframework.boot:spring-boot-starter'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
     implementation 'org.apache.commons:commons-lang3:' + apacheCommonsLang3
