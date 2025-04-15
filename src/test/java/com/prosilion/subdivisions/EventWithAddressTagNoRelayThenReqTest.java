@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import nostr.base.PublicKey;
 import nostr.event.filter.AddressTagFilter;
 import nostr.event.filter.Filters;
+import nostr.event.impl.GenericEvent;
 import nostr.event.message.OkMessage;
 import nostr.event.message.ReqMessage;
 import nostr.event.tag.AddressTag;
@@ -57,7 +58,7 @@ class EventWithAddressTagNoRelayThenReqTest {
             "\"sig\":\"86f25c161fec51b9e441bdb2c09095d5f8b92fdce66cb80d9ef09fad6ce53eaa14c5e16787c42f5404905536e43ebec0e463aee819378a4acbe412c533e60546\"}]";
     log.debug("setup() send event:\n  {}", globalEventJson);
 
-    OkMessage okMessage = eventPublisher.createEvent(globalEventJson);
+    OkMessage okMessage = eventPublisher.sendEvent(globalEventJson);
     assertTrue(okMessage.getFlag());
     assertEquals(eventId, okMessage.getEventId());
     assertEquals("success: request processed", okMessage.getMessage());
@@ -73,7 +74,7 @@ class EventWithAddressTagNoRelayThenReqTest {
     addressTag.setIdentifierTag(new IdentifierTag(uuid));
 
     ReqMessage reqMessage = new ReqMessage(subscriberId, new Filters(new AddressTagFilter<>(addressTag)));
-    List<String> returnedEvents = relaySubscriptionsManager.sendRequestReturnEvents(reqMessage);
+    List<GenericEvent> returnedEvents = relaySubscriptionsManager.sendRequestReturnEvents(reqMessage);
 
     log.debug("returnedEvents testReqFilteredByAddressTag():");
     log.debug("  {}", returnedEvents);

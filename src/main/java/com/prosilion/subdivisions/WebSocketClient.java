@@ -64,7 +64,7 @@ public class WebSocketClient extends TextWebSocketHandler {
   public void send(String json) {
     clientSession.sendMessage(new TextMessage(json));
     Awaitility.await()
-        .timeout(66, TimeUnit.MINUTES)
+        .timeout(1, TimeUnit.MINUTES)
         .untilTrue(completed);
     completed.setRelease(false);
   }

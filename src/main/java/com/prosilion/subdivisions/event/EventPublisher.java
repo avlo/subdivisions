@@ -1,20 +1,19 @@
 package com.prosilion.subdivisions.event;
 
 import com.prosilion.subdivisions.WebSocketClient;
-import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import nostr.api.factory.impl.NIP01Impl;
-import nostr.event.impl.GenericEvent;
 import nostr.event.json.codec.BaseMessageDecoder;
 import nostr.event.message.EventMessage;
 import nostr.event.message.OkMessage;
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class EventPublisher {
@@ -34,34 +33,23 @@ public class EventPublisher {
     this.eventSocketClient = new WebSocketClient(relayUri, sslBundles);
   }
 
-  public OkMessage createEvent(@NonNull String eventJson) throws IOException {
-    return getOkMessage(
-        sendEvent(eventJson));
+  public OkMessage sendEvent(@NonNull String eventJson) throws IOException {
+    eventSocketClient.send(eventJson);
+    log.debug("socket send event JSON content\n  {}", eventJson);
+    return getOkMessage(getEvents());
   }
 
-  public OkMessage createEvent(@NonNull GenericEvent event) throws IOException {
-    return getOkMessage(
-        sendEvent(
-            new NIP01Impl.EventMessageFactory(event).create()));
-  }
-
-  public List<String> sendEvent(EventMessage eventMessage) throws IOException {
+  public OkMessage sendEvent(@NonNull EventMessage eventMessage) throws IOException {
     eventSocketClient.send(eventMessage);
     log.debug("socket send EventMessage content\n  {}", eventMessage.getEvent());
-    return getEvents();
+    return getOkMessage(getEvents());
   }
 
   private OkMessage getOkMessage(List<String> received) {
     return received.stream().map(EventPublisher::getDecode).findFirst().orElseThrow();
   }
 
-  private List<String> sendEvent(String eventJson) throws IOException {
-    eventSocketClient.send(eventJson);
-    log.debug("socket send event JSON content\n  {}", eventJson);
-    return getEvents();
-  }
-
-  public List<String> getEvents() {
+  private List<String> getEvents() {
     List<String> events = eventSocketClient.getEvents();
     log.debug("received relay response:");
     log.debug("\n" + events.stream().map(event -> String.format("  %s\n", event)).collect(Collectors.joining()));

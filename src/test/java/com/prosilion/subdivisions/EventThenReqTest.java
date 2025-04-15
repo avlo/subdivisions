@@ -59,7 +59,7 @@ class EventThenReqTest {
             ",\"sig\":\"86f25c161fec51b9e441bdb2c09095d5f8b92fdce66cb80d9ef09fad6ce53eaa14c5e16787c42f5404905536e43ebec0e463aee819378a4acbe412c533e60546\"}]";
     log.debug("setup() send event:\n  {}", globalEventJson);
 
-    OkMessage okMessage = eventPublisher.createEvent(globalEventJson);
+    OkMessage okMessage = eventPublisher.sendEvent(globalEventJson);
     assertTrue(okMessage.getFlag());
     assertEquals(eventId, okMessage.getEventId());
     assertEquals("success: request processed", okMessage.getMessage());
@@ -69,7 +69,7 @@ class EventThenReqTest {
   void testReqFilteredByEventAndAuthor() throws JsonProcessingException {
     String subscriberId = Factory.generateRandomHex64String();
 
-    Map<Command, List<String>> returnedJsonMap = relaySubscriptionsManager.sendRequestReturnCommandResultsMap(
+    Map<Command, List<Object>> returnedJsonMap = relaySubscriptionsManager.sendRequestReturnCommandResultsMap(
         new ReqMessage(subscriberId,
             new Filters(
                 new AuthorFilter<>(authorPubKey))));
@@ -90,7 +90,7 @@ class EventThenReqTest {
     String aNonExistentEventId = Factory.generateRandomHex64String();
     GenericEvent event = new GenericEvent(aNonExistentEventId);
 
-    Map<Command, List<String>> returnedJsonMap = relaySubscriptionsManager.sendRequestReturnCommandResultsMap(
+    Map<Command, List<Object>> returnedJsonMap = relaySubscriptionsManager.sendRequestReturnCommandResultsMap(
         new ReqMessage(subscriberId,
             new Filters(
                 new EventFilter<>(event))));
@@ -111,7 +111,7 @@ class EventThenReqTest {
         new Filters(
             new EventFilter<>(event))));
 
-    Map<Command, List<String>> returnedJsonMap = relaySubscriptionsManager.sendRequestReturnCommandResultsMap(
+    Map<Command, List<Object>> returnedJsonMap = relaySubscriptionsManager.sendRequestReturnCommandResultsMap(
         new ReqMessage(subscriberId,
             new Filters(
                 new EventFilter<>(event))));
@@ -119,6 +119,6 @@ class EventThenReqTest {
     log.info("returnedJsonMap testCulledSubscriberId():");
     log.info("  {}", returnedJsonMap);
     assertTrue(returnedJsonMap.get(Command.EVENT).isEmpty());
-    assertEquals(new EoseMessage(returnedJsonMap.get(Command.EOSE).getFirst()).getSubscriptionId(), subscriberId);
+    assertEquals(new EoseMessage((String) returnedJsonMap.get(Command.EOSE).getFirst()).getSubscriptionId(), subscriberId);
   }
 }

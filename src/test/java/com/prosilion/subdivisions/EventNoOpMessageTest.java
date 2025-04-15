@@ -2,9 +2,10 @@ package com.prosilion.subdivisions;
 
 import com.prosilion.subdivisions.event.EventPublisher;
 import com.prosilion.subdivisions.util.Factory;
-import java.io.IOException;
-import java.util.concurrent.ExecutionException;
 import lombok.extern.slf4j.Slf4j;
+import nostr.base.PublicKey;
+import nostr.event.impl.GenericEvent;
+import nostr.event.message.EventMessage;
 import nostr.event.message.OkMessage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,6 +14,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -36,17 +40,16 @@ class EventNoOpMessageTest {
   @Test
   void testEventNoOpMessage() throws IOException {
     String content = Factory.lorumIpsum(getClass());
-    String globalEventJson =
-        "[\"EVENT\",{" +
-            "\"id\":\"" + eventId +
-            "\",\"kind\":1,\"content\":\"" + content +
-            "\",\"pubkey\":\"" + authorPubKey +
-            "\",\"created_at\":1717357053050" +
-            ",tags:[]" +
-            ",sig:\"86f25c161fec51b9e441bdb2c09095d5f8b92fdce66cb80d9ef09fad6ce53eaa14c5e16787c42f5404905536e43ebec0e463aee819378a4acbe412c533e60546\"}]";
-    log.debug("setup() send event:\n  {}", globalEventJson);
 
-    OkMessage okMessage = this.eventPublisher.createEvent(globalEventJson);
+    GenericEvent genericEvent = new GenericEvent(eventId);
+    genericEvent.setContent(content);
+    genericEvent.setPubKey(new PublicKey(authorPubKey));
+    genericEvent.setCreatedAt(1717357053050L);
+    genericEvent.setKind(1);
+
+    log.debug("setup() send event:\n  {}", genericEvent);
+
+    OkMessage okMessage = this.eventPublisher.sendEvent(new EventMessage(genericEvent));
     final String noOpResponse = "afterimage is a nostr-reputation authority relay.  it does not accept events, only requests";
 
     assertEquals(false, okMessage.getFlag());

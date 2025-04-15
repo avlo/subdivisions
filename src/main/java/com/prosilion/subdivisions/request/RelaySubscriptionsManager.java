@@ -48,19 +48,16 @@ public class RelaySubscriptionsManager {
     log.debug("sslBundles protocol: \n{}", server.getProtocol());
   }
 
-  public List<String> sendRequestReturnEvents(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
-    return sendRequestReturnEvents(reqMessage.getSubscriptionId(), reqMessage.encode());
+  public List<GenericEvent> sendRequestReturnEvents(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
+    List<String> requestResults = getRequestResults(reqMessage.getSubscriptionId(), reqMessage.encode());
+    return eventsAsGenericEvents.apply(requestResults);
   }
 
-  public List<String> sendRequestReturnEvents(@NonNull String subscriberId, @NonNull String reqJson) {
-    return allEvents.apply(getRequestResults(subscriberId, reqJson));
-  }
-
-  public Map<Command, List<String>> sendRequestReturnCommandResultsMap(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
+  public Map<Command, List<Object>> sendRequestReturnCommandResultsMap(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
     return sendRequestReturnCommandResultsMap(reqMessage.getSubscriptionId(), reqMessage.encode());
   }
 
-  public Map<Command, List<String>> sendRequestReturnCommandResultsMap(@NonNull String subscriberId, @NonNull String reqJson) {
+  public Map<Command, List<Object>> sendRequestReturnCommandResultsMap(@NonNull String subscriberId, @NonNull String reqJson) {
     List<String> returnedEvents = getRequestResults(subscriberId, reqJson);
 
     log.debug("55555555555555555");
@@ -71,9 +68,9 @@ public class RelaySubscriptionsManager {
     log.debug(returnedEvents.stream().map(event -> String.format("  %s\n", event)).collect(Collectors.joining()));
     log.debug("55555555555555555");
 
-    Map<Command, List<String>> results = new HashMap<>();
+    Map<Command, List<Object>> results = new HashMap<>();
     eose.apply(returnedEvents).ifPresent(eoses -> results.put(Command.EOSE, List.of(eoses)));
-    results.put(Command.EVENT, allEvents.apply(returnedEvents));
+    results.put(Command.EVENT, eventsAsStrings.apply(returnedEvents));
 
     return results;
   }
@@ -103,11 +100,18 @@ public class RelaySubscriptionsManager {
           .map(event -> new BaseEventEncoder<>(event).encode())
           .reduce((first, second) -> second);
 
-  private final Function<List<String>, List<String>> allEvents = (events) ->
+  private final Function<List<String>, List<Object>> eventsAsStrings = (events) ->
       getTypeSpecificMessage(EventMessage.class, events).stream()
           .map(eventMessage -> (GenericEvent) eventMessage.getEvent())
           .sorted(Comparator.comparing(GenericEvent::getCreatedAt))
           .map(event -> new BaseEventEncoder<>(event).encode())
+          .map(Object.class::cast)
+          .toList();
+
+  private final Function<List<String>, List<GenericEvent>> eventsAsGenericEvents = (events) ->
+      getTypeSpecificMessage(EventMessage.class, events).stream()
+          .map(eventMessage -> (GenericEvent) eventMessage.getEvent())
+          .sorted(Comparator.comparing(GenericEvent::getCreatedAt))
           .toList();
 
   <V extends BaseMessage> List<V> getTypeSpecificMessage(Class<V> messageClass, List<String> messages) {
