@@ -38,7 +38,7 @@ public class RelaySubscriptionsManager {
     log.debug("relayUri: \n{}", relayUri);
   }
 
-  public RelaySubscriptionsManager(@NonNull String relayUri, SslBundles sslBundles) {
+  public RelaySubscriptionsManager(@NonNull String relayUri, @NonNull SslBundles sslBundles) {
     this.relayUri = relayUri;
     this.sslBundles = sslBundles;
     log.debug("sslBundles: \n{}", sslBundles);
@@ -49,12 +49,16 @@ public class RelaySubscriptionsManager {
   }
 
   public List<GenericEvent> sendRequestReturnEvents(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
-    List<String> requestResults = getRequestResults(reqMessage.getSubscriptionId(), reqMessage.encode());
-    return eventsAsGenericEvents.apply(requestResults);
+    return eventsAsGenericEvents.apply(
+        getRequestResults(
+            reqMessage.getSubscriptionId(),
+            reqMessage.encode()));
   }
 
   public Map<Command, List<Object>> sendRequestReturnCommandResultsMap(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
-    return sendRequestReturnCommandResultsMap(reqMessage.getSubscriptionId(), reqMessage.encode());
+    return sendRequestReturnCommandResultsMap(
+        reqMessage.getSubscriptionId(),
+        reqMessage.encode());
   }
 
   public Map<Command, List<Object>> sendRequestReturnCommandResultsMap(@NonNull String subscriberId, @NonNull String reqJson) {
@@ -90,31 +94,7 @@ public class RelaySubscriptionsManager {
     return Objects.nonNull(sslBundles) ? new WebSocketClient(relayUri, sslBundles) : new WebSocketClient(relayUri);
   }
 
-  private final Function<List<String>, Optional<String>> eose = (events) ->
-      getTypeSpecificMessage(EoseMessage.class, events).stream().map(EoseMessage::getSubscriptionId).findFirst();
-
-  private final Function<List<String>, Optional<String>> newestEvent = (events) ->
-      getTypeSpecificMessage(EventMessage.class, events).stream()
-          .map(eventMessage -> (GenericEvent) eventMessage.getEvent())
-          .sorted(Comparator.comparing(GenericEvent::getCreatedAt))
-          .map(event -> new BaseEventEncoder<>(event).encode())
-          .reduce((first, second) -> second);
-
-  private final Function<List<String>, List<Object>> eventsAsStrings = (events) ->
-      getTypeSpecificMessage(EventMessage.class, events).stream()
-          .map(eventMessage -> (GenericEvent) eventMessage.getEvent())
-          .sorted(Comparator.comparing(GenericEvent::getCreatedAt))
-          .map(event -> new BaseEventEncoder<>(event).encode())
-          .map(Object.class::cast)
-          .toList();
-
-  private final Function<List<String>, List<GenericEvent>> eventsAsGenericEvents = (events) ->
-      getTypeSpecificMessage(EventMessage.class, events).stream()
-          .map(eventMessage -> (GenericEvent) eventMessage.getEvent())
-          .sorted(Comparator.comparing(GenericEvent::getCreatedAt))
-          .toList();
-
-  <V extends BaseMessage> List<V> getTypeSpecificMessage(Class<V> messageClass, List<String> messages) {
+  private <V extends BaseMessage> List<V> getTypeSpecificMessage(Class<V> messageClass, List<String> messages) {
     return Streams.failableStream(messages.stream()
         .map(msg -> {
           try {
@@ -152,4 +132,28 @@ public class RelaySubscriptionsManager {
   private void closeSessions(Collection<WebSocketClient> webSocketClients) {
     Streams.failableStream(webSocketClients.stream()).forEach(WebSocketClient::closeSession);
   }
+
+  private final Function<List<String>, Optional<String>> newestEvent = (events) ->
+      getTypeSpecificMessage(EventMessage.class, events).stream()
+          .map(eventMessage -> (GenericEvent) eventMessage.getEvent())
+          .sorted(Comparator.comparing(GenericEvent::getCreatedAt))
+          .map(event -> new BaseEventEncoder<>(event).encode())
+          .reduce((first, second) -> second);
+
+  private final Function<List<String>, List<Object>> eventsAsStrings = (events) ->
+      getTypeSpecificMessage(EventMessage.class, events).stream()
+          .map(eventMessage -> (GenericEvent) eventMessage.getEvent())
+          .sorted(Comparator.comparing(GenericEvent::getCreatedAt))
+          .map(event -> new BaseEventEncoder<>(event).encode())
+          .map(Object.class::cast)
+          .toList();
+
+  private final Function<List<String>, List<GenericEvent>> eventsAsGenericEvents = (events) ->
+      getTypeSpecificMessage(EventMessage.class, events).stream()
+          .map(eventMessage -> (GenericEvent) eventMessage.getEvent())
+          .sorted(Comparator.comparing(GenericEvent::getCreatedAt))
+          .toList();
+
+  private final Function<List<String>, Optional<String>> eose = (events) ->
+      getTypeSpecificMessage(EoseMessage.class, events).stream().map(EoseMessage::getSubscriptionId).findFirst();
 }
