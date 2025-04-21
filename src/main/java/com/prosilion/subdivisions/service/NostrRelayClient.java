@@ -18,17 +18,17 @@ import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
 
 @Slf4j
-public class NostrRelayService {
+public class NostrRelayClient {
   private final EventPublisher eventPublisher;
   private final RelaySubscriptionsManager relaySubscriptionsManager;
 
-  public NostrRelayService(@NonNull String relayUri) throws ExecutionException, InterruptedException {
+  public NostrRelayClient(@NonNull String relayUri) throws ExecutionException, InterruptedException {
     log.debug("relayUri: \n{}", relayUri);
     this.eventPublisher = new EventPublisher(relayUri);
     this.relaySubscriptionsManager = new RelaySubscriptionsManager(relayUri);
   }
 
-  public NostrRelayService(@NonNull String relayUri, SslBundles sslBundles
+  public NostrRelayClient(@NonNull String relayUri, SslBundles sslBundles
   ) throws ExecutionException, InterruptedException {
     log.debug("relayUri: \n{}", relayUri);
     log.debug("sslBundles: \n{}", sslBundles);

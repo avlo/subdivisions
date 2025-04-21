@@ -28,8 +28,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ExtendWith(SpringExtension.class)
 @TestPropertySource("classpath:application-test.properties")
 @ActiveProfiles("test")
-public class NostrRelayServiceTest {
-  private final NostrRelayService nostrRelayService;
+public class NostrRelayClientTest {
+  private final NostrRelayClient nostrRelayClient;
 
   private final static String authorPubKey = Factory.generateRandomHex64String();
   private final static String eventId = Factory.generateRandomHex64String();
@@ -37,14 +37,14 @@ public class NostrRelayServiceTest {
   private final String content;
 
   @Autowired
-  public NostrRelayServiceTest(@Value("${superconductor.relay.uri}") String relayUri) throws IOException, ExecutionException, InterruptedException {
-    this.nostrRelayService = new NostrRelayService(relayUri);
+  public NostrRelayClientTest(@Value("${superconductor.relay.uri}") String relayUri) throws IOException, ExecutionException, InterruptedException {
+    this.nostrRelayClient = new NostrRelayClient(relayUri);
     content = Factory.lorumIpsum(getClass());
 
     String globalEventJson = "[\"EVENT\",{\"id\":\"" + eventId + "\",\"kind\":1,\"content\":\"" + content + "\",\"pubkey\":\"" + authorPubKey + "\",\"created_at\":1717357053050,\"tags\":[],\"sig\":\"86f25c161fec51b9e441bdb2c09095d5f8b92fdce66cb80d9ef09fad6ce53eaa14c5e16787c42f5404905536e43ebec0e463aee819378a4acbe412c533e60546\"}]";
     log.debug("setup() send event:\n  {}", globalEventJson);
 
-    assertTrue(this.nostrRelayService.sendEvent(globalEventJson).getFlag());
+    assertTrue(this.nostrRelayClient.sendEvent(globalEventJson).getFlag());
   }
 
   @Test
@@ -55,7 +55,7 @@ public class NostrRelayServiceTest {
     AuthorFilter<PublicKey> authorFilter = new AuthorFilter<>(new PublicKey(authorPubKey));
 
     ReqMessage reqMessage = new ReqMessage(subscriberId, new Filters(eventFilter, authorFilter));
-    List<GenericEvent> returnedEvents = nostrRelayService.sendRequestReturnEvents(reqMessage);
+    List<GenericEvent> returnedEvents = nostrRelayClient.sendRequestReturnEvents(reqMessage);
 
     log.debug("okMessage to UniqueSubscriberId:");
     log.debug("  " + returnedEvents);
@@ -64,7 +64,7 @@ public class NostrRelayServiceTest {
     assertTrue(returnedEvents.stream().anyMatch(event -> event.getPubKey().toHexString().equals(authorPubKey)));
 
     ReqMessage reqMessage2 = new ReqMessage(globalSubscriberId, new Filters(eventFilter, authorFilter));
-    List<GenericEvent> returnedEvents2 = nostrRelayService.sendRequestReturnEvents(reqMessage2);
+    List<GenericEvent> returnedEvents2 = nostrRelayClient.sendRequestReturnEvents(reqMessage2);
 
     log.debug("okMessage:");
     log.debug("  " + returnedEvents2);
