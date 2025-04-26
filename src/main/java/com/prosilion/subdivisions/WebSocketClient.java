@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import lombok.Getter;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +23,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 @Slf4j
 public class WebSocketClient extends TextWebSocketHandler {
   private final WebSocketSession clientSession;
-  @Getter
+
   private final List<String> events = Collections.synchronizedList(new ArrayList<>());
   private final AtomicBoolean completed = new AtomicBoolean(false);
 
@@ -52,7 +51,10 @@ public class WebSocketClient extends TextWebSocketHandler {
 
   @Override
   protected void handleTextMessage(@NonNull WebSocketSession session, TextMessage message) {
+    log.debug("handleTextMessage WebSocketSession id: \n{}", session.getId());
     events.add(message.getPayload());
+    log.debug("handleTextMessage TextMessage events:");
+    events.forEach(event -> log.debug("  {}", event));
     completed.setRelease(true);
   }
 
@@ -68,7 +70,13 @@ public class WebSocketClient extends TextWebSocketHandler {
         .untilTrue(completed);
     completed.setRelease(false);
   }
-  
+
+  public List<String> getEvents() {
+    List<String> eventList = List.copyOf(events);
+    events.clear();
+    return eventList;
+  }
+
   public void closeSession() throws IOException {
     clientSession.close();
   }

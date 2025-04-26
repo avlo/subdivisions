@@ -49,6 +49,7 @@ public class RelaySubscriptionsManager {
   }
 
   public List<GenericEvent> sendRequestReturnEvents(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
+    log.debug("pre-encoded ReqMessage json: \n{}", reqMessage);
     return eventsAsGenericEvents.apply(
         getRequestResults(
             reqMessage.getSubscriptionId(),
@@ -80,6 +81,8 @@ public class RelaySubscriptionsManager {
   }
 
   private List<String> getRequestResults(String subscriberId, String reqJson) {
+    log.debug("subscriberId: [{}]", subscriberId);
+    log.debug("reqJson: \n{}", reqJson);
     return Optional.ofNullable(subscriberIdWebSocketClientMap.get(subscriberId))
         .orElseGet(() -> {
           subscriberIdWebSocketClientMap.put(subscriberId, getStandardWebSocketClient());
@@ -88,23 +91,20 @@ public class RelaySubscriptionsManager {
         }).getEvents();
   }
 
+  public List<GenericEvent> updateReqResults(@NonNull String subscriberId) {
+    log.debug("RelaySubscriptionsManagerg updateReqResults for subscriberId: [{}]", subscriberId);
+    return eventsAsGenericEvents.apply(getEvents(subscriberId));
+  }
+  
+  private List<String> getEvents(@NonNull String subscriberId) {
+    return Optional.ofNullable(subscriberIdWebSocketClientMap.get(subscriberId))
+        .orElseThrow().getEvents();
+  }
+
   //  TODO: cleanup sneaky
   @SneakyThrows
   private WebSocketClient getStandardWebSocketClient() {
     return Objects.nonNull(sslBundles) ? new WebSocketClient(relayUri, sslBundles) : new WebSocketClient(relayUri);
-  }
-
-  private <V extends BaseMessage> List<V> getTypeSpecificMessage(Class<V> messageClass, List<String> messages) {
-    return Streams.failableStream(messages.stream()
-        .map(msg -> {
-          try {
-            return new BaseMessageDecoder<V>().decode(msg);
-          } catch (JsonProcessingException e) {
-            return null;
-          }
-        })
-        .filter(Objects::nonNull)
-        .filter(messageClass::isInstance)).stream().toList();
   }
 
   public void closeSession(@NonNull String... subscriberIds) {
@@ -156,4 +156,17 @@ public class RelaySubscriptionsManager {
 
   private final Function<List<String>, Optional<String>> eose = (events) ->
       getTypeSpecificMessage(EoseMessage.class, events).stream().map(EoseMessage::getSubscriptionId).findFirst();
+
+  private <V extends BaseMessage> List<V> getTypeSpecificMessage(Class<V> messageClass, List<String> messages) {
+    return Streams.failableStream(messages.stream()
+        .map(msg -> {
+          try {
+            return new BaseMessageDecoder<V>().decode(msg);
+          } catch (JsonProcessingException e) {
+            return null;
+          }
+        })
+        .filter(Objects::nonNull)
+        .filter(messageClass::isInstance)).stream().toList();
+  }
 }

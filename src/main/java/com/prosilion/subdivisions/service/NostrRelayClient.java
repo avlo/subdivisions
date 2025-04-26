@@ -52,6 +52,11 @@ public class NostrRelayClient {
     return relaySubscriptionsManager.sendRequestReturnEvents(reqMessage);
   }
 
+  public List<GenericEvent> updateReqResults(@NonNull String subscriberId) {
+    log.debug("NostrRelayClient updateReqResults for subscriberId: [{}]", subscriberId);
+    return relaySubscriptionsManager.updateReqResults(subscriberId);
+  }
+
   public Map<Command, List<Object>> sendRequestReturnCommandResultsMap(@NonNull String subscriberId, @NonNull String reqJson) {
     return relaySubscriptionsManager.sendRequestReturnCommandResultsMap(subscriberId, reqJson);
   }
