@@ -12,7 +12,20 @@
 
 # SubDivisions.  A flexible java web-socket client & related utilities. #
 
-#### simple & comprehensive [nostr-relay event publisher](https://github.com/avlo/subdivisions/blob/master/src/main/java/com/prosilion/nostrclient/RelayEventPublisher.java) and multi-relay capable [nostr-event subscriptions manager](https://github.com/avlo/subdivisions/blob/master/src/main/java/com/prosilion/nostrclient/RelaySubscriptionsManager.java) ####
+1. a generalized, simple-yet-powerful and easy-to-use Spring [WebSocketClient](https://github.com/avlo/subdivisions/blob/master/src/main/java/com/prosilion/subdivisions/WebSocketClient.java)
+
+2. a nostr-relay [event publishing client](https://github.com/avlo/subdivisions/blob/master/src/main/java/com/prosilion/subdivisions/event/EventPublisher.java)  
+
+3. a multi-relay-capable [request/subscriptions manager](https://github.com/avlo/subdivisions/blob/master/src/main/java/com/prosilion/subdivisions/request/RelaySubscriptionsManager.java)
+
+4. a composite [NostrRelayClient](https://github.com/avlo/subdivisions/blob/master/src/main/java/com/prosilion/subdivisions/service/NostrRelayClient.java) client  comprised of both 2 and 3 above.
 
 
-###### built using [Spring Boot (currently v.3.x)](https://spring.io/projects/spring-boot) atop [Spring WebSocketClient](https://docs.spring.io/spring-boot/reference/messaging/websockets.html) ######
+advanced:  
+
+5. a [request consolidator](https://github.com/avlo/subdivisions/blob/master/src/main/java/com/prosilion/subdivisions/request/RequestConsolidator.java), useful for nostr-relay-mesh-networks (ex: [afterimage](https://github.com/avlo/afterimage) nostr-reputation authority)
+
+----
+
+
+###### built using [Spring Boot (v.3.4.3)](https://spring.io/projects/spring-boot) atop [Spring WebSocketClient](https://docs.spring.io/spring-boot/reference/messaging/websockets.html) ######
