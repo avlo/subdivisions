@@ -37,7 +37,7 @@ advanced:
 
 ### Build Tools Requirements
 
-```bash
+```sh
 $ java -version
 java version "21.0.5" 2024-10-15 LTS
 
@@ -50,7 +50,7 @@ Gradle 8.13
 ### Usage
 #### 1. check out and build nostr-java library
 
-```bash
+```sh
 $ cd <your_git_home_dir>
 $ git clone git@github.com:avlo/nostr-java-avlo-fork.git
 $ cd nostr-java-avlo-fork
@@ -61,7 +61,7 @@ $ ./gradlew publishToMavenLocal
 
 #### 2. check out and build SubDivisions
 
-```bash
+```sh
 $ cd <your_git_home_dir>
 $ git clone git@github.com:avlo/subdivisions.git
 $ cd subdivisions
