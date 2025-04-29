@@ -9,7 +9,7 @@ plugins {
 }
 
 group = 'com.prosilion'
-version = '0.0.1'
+version = '1.0.0'
 description = 'subdivisions'
 
 java {
@@ -42,7 +42,7 @@ publishing {
 }
 
 dependencies {
-    def nostrJavaVersion = '0.6.5-SNAPSHOT'
+    def nostrJavaVersion = '0.6.6-SNAPSHOT'
     def apacheCommonsLang3 = '3.17.0'
     def googleGuava = '33.2.1-jre'
     def awaitility = '4.2.0'

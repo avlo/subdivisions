@@ -10,22 +10,80 @@
 ```
 
 
-# SubDivisions.  A flexible java web-socket client & related utilities. #
+## SubDivisions.  A java web-socket client & related utilities: 
 
-1. a generalized, simple-yet-powerful and easy-to-use [WebSocketClient](https://github.com/avlo/subdivisions/blob/master/src/main/java/com/prosilion/subdivisions/WebSocketClient.java)
+1. an easy to use, generalized and extensible [WebSocketClient](https://github.com/avlo/subdivisions/blob/master/src/main/java/com/prosilion/subdivisions/WebSocketClient.java)
 
 2. a nostr-relay [event publishing client](https://github.com/avlo/subdivisions/blob/master/src/main/java/com/prosilion/subdivisions/event/EventPublisher.java)  
 
-3. a multi-relay-capable [request/subscriptions manager](https://github.com/avlo/subdivisions/blob/master/src/main/java/com/prosilion/subdivisions/request/RelaySubscriptionsManager.java)
+3. a multi-nostr-relay capable [request/subscriptions manager](https://github.com/avlo/subdivisions/blob/master/src/main/java/com/prosilion/subdivisions/request/RelaySubscriptionsManager.java)
 
-4. a composite [NostrRelayClient](https://github.com/avlo/subdivisions/blob/master/src/main/java/com/prosilion/subdivisions/service/NostrRelayClient.java) client  comprised of both 2 and 3 above.
+4. a [NostrRelayClient](https://github.com/avlo/subdivisions/blob/master/src/main/java/com/prosilion/subdivisions/service/NostrRelayClient.java) client composite of 2 & 3 above.
 
 
 advanced:  
 
-5. a [request consolidator](https://github.com/avlo/subdivisions/blob/master/src/main/java/com/prosilion/subdivisions/request/RequestConsolidator.java), useful for nostr-relay-mesh-networks (ex: [afterimage](https://github.com/avlo/afterimage) nostr-reputation authority)
+5. a [request consolidator](https://github.com/avlo/subdivisions/blob/master/src/main/java/com/prosilion/subdivisions/request/RequestConsolidator.java), useful for nostr-relay-mesh-networks (ref: [afterimage](https://github.com/avlo/afterimage) nostr-reputation authority)
 
 ----
 
+### Dependencies:
+- Java 21
+- Spring [Boot](https://spring.io/projects/spring-boot) 3.4.3
+- Spring [WebSocketSession](https://docs.spring.io/spring-session/reference/guides/boot-websocket.html)  3.4.3
+- Event/Message [nostr-java](https://github.com/avlo/nostr-java-avlo-fork/tree/develop) API/library
 
-###### built using [Spring Boot (v.3.4.3)](https://spring.io/projects/spring-boot) atop [Spring WebSocketClient](https://docs.spring.io/spring-boot/reference/messaging/websockets.html) ######
+----
+
+### Build Tools Requirements
+
+```bash
+$ java -version
+java version "21.0.5" 2024-10-15 LTS
+
+$ gradle -version
+Gradle 8.13
+```
+
+----
+
+### Usage
+#### 1. check out and build nostr-java library
+
+```bash
+$ cd <your_git_home_dir>
+$ git clone git@github.com:avlo/nostr-java-avlo-fork.git
+$ cd nostr-java-avlo-fork
+$ git checkout develop
+$ ./gradlew clean test
+$ ./gradlew publishToMavenLocal
+```
+
+#### 2. check out and build SubDivisions
+
+```bash
+$ cd <your_git_home_dir>
+$ git clone git@github.com:avlo/subdivisions.git
+$ cd subdivisions
+$ git checkout develop
+$ ./gradlew clean test
+$ ./gradlew publishToMavenLocal
+```
+
+#### 3. add SubDivisions dependency to your project
+
+<details>
+  <summary>maven</summary>
+
+    <dependency>
+      <groupId>com.prosilion</groupId>
+      <artifactId>subdivisions</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+</details>
+<details>
+  <summary>gradle</summary>
+
+    implementation 'com.prosilion:subdivisions:1.0.0'
+</details>
+
