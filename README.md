@@ -12,7 +12,7 @@
 
 # SubDivisions.  A flexible java web-socket client & related utilities. #
 
-1. a generalized, simple-yet-powerful and easy-to-use Spring [WebSocketClient](https://github.com/avlo/subdivisions/blob/master/src/main/java/com/prosilion/subdivisions/WebSocketClient.java)
+1. a generalized, simple-yet-powerful and easy-to-use [WebSocketClient](https://github.com/avlo/subdivisions/blob/master/src/main/java/com/prosilion/subdivisions/WebSocketClient.java)
 
 2. a nostr-relay [event publishing client](https://github.com/avlo/subdivisions/blob/master/src/main/java/com/prosilion/subdivisions/event/EventPublisher.java)  
 
