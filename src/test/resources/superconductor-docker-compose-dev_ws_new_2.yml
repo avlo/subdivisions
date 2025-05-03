@@ -1,0 +1,50 @@
+#services:
+#  superconductor-subdivisions-db:
+##    container_name: superconductor-subdivisions-mysqldb
+#    image: mysql:9.1.0
+#    ports:
+#      - "33316:3316"
+#    labels:
+#      org.springframework.boot.service-connection: mysql
+#    environment:
+#      MYSQL_DATABASE: superconductor-subdivisions
+#      #      set below db name and credentials as desired
+#      MYSQL_USER: mysqluser
+#      MYSQL_PASSWORD: mysqluserpass
+#      MYSQL_ROOT_PASSWORD: mysqlrootuserpass
+#      MYSQL_TCP_PORT: 33316
+#    networks:
+#      docker-network:
+#    healthcheck:
+#      test: ["CMD", "mysqladmin" ,"ping", "-h", "superconductor-subdivisions-mysqldb"]
+#      retries: 10
+#      interval: 3s
+#      timeout: 30s
+#  superconductor-subdivisions:
+##    container_name: superconductor-subdivisions-app
+#    image: avlo/superconductor:1.13.0
+#    ports:
+#      - "55555:5555"
+#    #      docker debug port, note: requires image re-build
+#    #      - '5005:5005'
+#    depends_on:
+#      superconductor-subdivisions-db:
+#        condition: service_healthy
+#    environment:
+#      #      docker VM debug option
+#      #      _JAVA_OPTIONS: >
+#      #        -Xdebug
+#      #        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+#      SPRING_PROFILES_ACTIVE: test
+#      SPRING_DATASOURCE_URL: jdbc:mysql://superconductor-subdivisions-mysqldb:33316/superconductor-subdivisions
+#      #      set below spring datasource parameters and credentials as desired
+#      SPRING_DATASOURCE_USERNAME: mysqluser
+#      SPRING_DATASOURCE_PASSWORD: mysqluserpass
+#    networks:
+#      docker-network:
+#volumes:
+#  superconductor-subdivisions-db:
+#    driver: local
+#networks:
+#  docker-network:
+#    driver: bridge

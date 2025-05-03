@@ -1,7 +1,7 @@
 package com.prosilion.subdivisions.request;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.prosilion.subdivisions.WebSocketClient;
+import com.prosilion.subdivisions.client.standard.StandardWebSocketClient;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -28,17 +28,17 @@ import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
 
 @Slf4j
-public class RelaySubscriptionsManager {
-  private final Map<String, WebSocketClient> subscriberIdWebSocketClientMap = new ConcurrentHashMap<>();
+public class StandardRelaySubscriptionsManager {
+  private final Map<String, StandardWebSocketClient> subscriberIdWebSocketClientMap = new ConcurrentHashMap<>();
   private final String relayUri;
   private SslBundles sslBundles;
 
-  public RelaySubscriptionsManager(@NonNull String relayUri) {
+  public StandardRelaySubscriptionsManager(@NonNull String relayUri) {
     this.relayUri = relayUri;
     log.debug("relayUri: \n{}", relayUri);
   }
 
-  public RelaySubscriptionsManager(@NonNull String relayUri, @NonNull SslBundles sslBundles) {
+  public StandardRelaySubscriptionsManager(@NonNull String relayUri, @NonNull SslBundles sslBundles) {
     this.relayUri = relayUri;
     this.sslBundles = sslBundles;
     log.debug("sslBundles: \n{}", sslBundles);
@@ -48,6 +48,7 @@ public class RelaySubscriptionsManager {
     log.debug("sslBundles protocol: \n{}", server.getProtocol());
   }
 
+//  TODO: need flux variant of below  
   public List<GenericEvent> sendRequestReturnEvents(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
     log.debug("pre-encoded ReqMessage json: \n{}", reqMessage);
     return eventsAsGenericEvents.apply(
@@ -62,6 +63,7 @@ public class RelaySubscriptionsManager {
         reqMessage.encode());
   }
 
+//  TODO: need flux variant of below
   public Map<Command, List<Object>> sendRequestReturnCommandResultsMap(@NonNull String subscriberId, @NonNull String reqJson) {
     List<String> returnedEvents = getRequestResults(subscriberId, reqJson);
 
@@ -103,8 +105,8 @@ public class RelaySubscriptionsManager {
 
   //  TODO: cleanup sneaky
   @SneakyThrows
-  private WebSocketClient getStandardWebSocketClient() {
-    return Objects.nonNull(sslBundles) ? new WebSocketClient(relayUri, sslBundles) : new WebSocketClient(relayUri);
+  private StandardWebSocketClient getStandardWebSocketClient() {
+    return Objects.nonNull(sslBundles) ? new StandardWebSocketClient(relayUri, sslBundles) : new StandardWebSocketClient(relayUri);
   }
 
   public void closeSession(@NonNull String... subscriberIds) {
@@ -121,16 +123,16 @@ public class RelaySubscriptionsManager {
     subscriberIdWebSocketClientMap.clear();
   }
 
-  private void closeSessions(Map<String, WebSocketClient> subscriberIdWebSocketClientMap) {
+  private void closeSessions(Map<String, StandardWebSocketClient> subscriberIdWebSocketClientMap) {
     closeSessions(subscriberIdWebSocketClientMap.values());
   }
 
-  private void closeSessions(WebSocketClient... webSocketClients) {
-    closeSessions(List.of(webSocketClients));
+  private void closeSessions(StandardWebSocketClient... standardWebSocketClients) {
+    closeSessions(List.of(standardWebSocketClients));
   }
 
-  private void closeSessions(Collection<WebSocketClient> webSocketClients) {
-    Streams.failableStream(webSocketClients.stream()).forEach(WebSocketClient::closeSession);
+  private void closeSessions(Collection<StandardWebSocketClient> standardWebSocketClients) {
+    Streams.failableStream(standardWebSocketClients.stream()).forEach(StandardWebSocketClient::closeSession);
   }
 
   private final Function<List<String>, Optional<String>> newestEvent = (events) ->

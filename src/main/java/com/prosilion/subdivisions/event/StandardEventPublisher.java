@@ -1,6 +1,6 @@
 package com.prosilion.subdivisions.event;
 
-import com.prosilion.subdivisions.WebSocketClient;
+import com.prosilion.subdivisions.client.standard.StandardWebSocketClient;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -16,21 +16,22 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class EventPublisher {
-  private final WebSocketClient eventSocketClient;
+public class StandardEventPublisher {
+  private final StandardWebSocketClient eventSocketClient;
 
-  public EventPublisher(@NonNull String relayUri) throws ExecutionException, InterruptedException {
+  public StandardEventPublisher(@NonNull String relayUri) throws ExecutionException, InterruptedException {
     log.debug("relayUri: \n{}", relayUri);
-    this.eventSocketClient = new WebSocketClient(relayUri);
+    this.eventSocketClient = new StandardWebSocketClient(relayUri);
+    log.debug("eventSocketClient: \n{}", this.eventSocketClient);
   }
 
-  public EventPublisher(@NonNull String relayUri, SslBundles sslBundles) throws ExecutionException, InterruptedException {
+  public StandardEventPublisher(@NonNull String relayUri, SslBundles sslBundles) throws ExecutionException, InterruptedException {
     log.debug("sslBundles: \n{}", sslBundles);
     final SslBundle server = sslBundles.getBundle("server");
     log.debug("sslBundles name: \n{}", server);
     log.debug("sslBundles key: \n{}", server.getKey());
     log.debug("sslBundles protocol: \n{}", server.getProtocol());
-    this.eventSocketClient = new WebSocketClient(relayUri, sslBundles);
+    this.eventSocketClient = new StandardWebSocketClient(relayUri, sslBundles);
   }
 
   public OkMessage sendEvent(@NonNull String eventJson) throws IOException {
@@ -46,7 +47,7 @@ public class EventPublisher {
   }
 
   private OkMessage getOkMessage(List<String> received) {
-    return received.stream().map(EventPublisher::getDecode).findFirst().orElseThrow();
+    return received.stream().map(StandardEventPublisher::getDecode).findFirst().orElseThrow();
   }
 
   private List<String> getEvents() {

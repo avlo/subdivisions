@@ -1,8 +1,8 @@
-package com.prosilion.subdivisions.service;
+package com.prosilion.subdivisions.client.standard;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.prosilion.subdivisions.event.EventPublisher;
-import com.prosilion.subdivisions.request.RelaySubscriptionsManager;
+import com.prosilion.subdivisions.event.StandardEventPublisher;
+import com.prosilion.subdivisions.request.StandardRelaySubscriptionsManager;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -18,17 +18,17 @@ import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
 
 @Slf4j
-public class NostrRelayClient {
-  private final EventPublisher eventPublisher;
-  private final RelaySubscriptionsManager relaySubscriptionsManager;
+public class StandardNostrRelayClient {
+  private final StandardEventPublisher standardEventPublisher;
+  private final StandardRelaySubscriptionsManager standardRelaySubscriptionsManager;
 
-  public NostrRelayClient(@NonNull String relayUri) throws ExecutionException, InterruptedException {
+  public StandardNostrRelayClient(@NonNull String relayUri) throws ExecutionException, InterruptedException {
     log.debug("relayUri: \n{}", relayUri);
-    this.eventPublisher = new EventPublisher(relayUri);
-    this.relaySubscriptionsManager = new RelaySubscriptionsManager(relayUri);
+    this.standardEventPublisher = new StandardEventPublisher(relayUri);
+    this.standardRelaySubscriptionsManager = new StandardRelaySubscriptionsManager(relayUri);
   }
 
-  public NostrRelayClient(@NonNull String relayUri, SslBundles sslBundles
+  public StandardNostrRelayClient(@NonNull String relayUri, SslBundles sslBundles
   ) throws ExecutionException, InterruptedException {
     log.debug("relayUri: \n{}", relayUri);
     log.debug("sslBundles: \n{}", sslBundles);
@@ -36,28 +36,28 @@ public class NostrRelayClient {
     log.debug("sslBundles name: \n{}", server);
     log.debug("sslBundles key: \n{}", server.getKey());
     log.debug("sslBundles protocol: \n{}", server.getProtocol());
-    this.eventPublisher = new EventPublisher(relayUri, sslBundles);
-    this.relaySubscriptionsManager = new RelaySubscriptionsManager(relayUri, sslBundles);
+    this.standardEventPublisher = new StandardEventPublisher(relayUri, sslBundles);
+    this.standardRelaySubscriptionsManager = new StandardRelaySubscriptionsManager(relayUri, sslBundles);
   }
 
   public OkMessage sendEvent(@NonNull String eventJson) throws IOException {
-    return eventPublisher.sendEvent(eventJson);
+    return standardEventPublisher.sendEvent(eventJson);
   }
 
   public OkMessage sendEvent(@NonNull EventMessage eventMessage) throws IOException {
-    return eventPublisher.sendEvent(eventMessage);
+    return standardEventPublisher.sendEvent(eventMessage);
   }
 
   public List<GenericEvent> sendRequestReturnEvents(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
-    return relaySubscriptionsManager.sendRequestReturnEvents(reqMessage);
+    return standardRelaySubscriptionsManager.sendRequestReturnEvents(reqMessage);
   }
 
   public List<GenericEvent> updateReqResults(@NonNull String subscriberId) {
-    log.debug("NostrRelayClient updateReqResults for subscriberId: [{}]", subscriberId);
-    return relaySubscriptionsManager.updateReqResults(subscriberId);
+    log.debug("StandardNostrRelayClient updateReqResults for subscriberId: [{}]", subscriberId);
+    return standardRelaySubscriptionsManager.updateReqResults(subscriberId);
   }
 
   public Map<Command, List<Object>> sendRequestReturnCommandResultsMap(@NonNull String subscriberId, @NonNull String reqJson) {
-    return relaySubscriptionsManager.sendRequestReturnCommandResultsMap(subscriberId, reqJson);
+    return standardRelaySubscriptionsManager.sendRequestReturnCommandResultsMap(subscriberId, reqJson);
   }
 }

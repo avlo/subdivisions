@@ -1,9 +1,12 @@
+import java.time.Duration
+
 plugins {
     id 'java'
     id 'java-library'
     id 'maven-publish'
-    id 'org.springframework.boot' version '3.4.3'
+    id 'org.springframework.boot' version '3.4.5'
     id 'io.spring.dependency-management' version '1.1.7'
+
     id 'io.freefair.lombok' version '8.12.2.1'
     id 'com.adarshr.test-logger' version '4.0.0'
 }
@@ -42,29 +45,68 @@ publishing {
 }
 
 dependencies {
+    def springBootVersion = '3.4.5'
     def nostrJavaVersion = '0.6.6-SNAPSHOT'
     def apacheCommonsLang3 = '3.17.0'
     def googleGuava = '33.2.1-jre'
     def awaitility = '4.2.0'
+    def reactorTestVersion = '3.7.5'
+    def testcontainers = '1.20.6'
 
     implementation 'xyz.tcheeric:nostr-java-api:' + nostrJavaVersion
 
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter:' + springBootVersion
+    implementation 'org.springframework.boot:spring-boot-devtools'
+    implementation 'org.springframework.boot:spring-boot-configuration-processor'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
     implementation 'org.apache.commons:commons-lang3:' + apacheCommonsLang3
     implementation 'com.google.guava:guava:' + googleGuava
     implementation 'org.awaitility:awaitility:' + awaitility
+    testImplementation 'org.springframework.boot:spring-boot-docker-compose'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.testcontainers:testcontainers:' + testcontainers
+    testImplementation 'org.testcontainers:junit-jupiter:' + testcontainers
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    testCompileOnly 'io.projectreactor:reactor-test:' + reactorTestVersion
 }
 
-test {
+tasks.named('test') {
     systemProperty("spring.profiles.active", "test")
     useJUnitPlatform()
 }
+
+test {
+    filter {
+        excludeTestsMatching("*IT");
+    }
+}
+
+tasks.register('integrationTest', Test) {
+    description = 'integration tests.'
+    group = 'verification'
+    systemProperty("spring.profiles.active", "test")
+    useJUnitPlatform()
+    filter {
+        excludeTestsMatching("*Test");
+        includeTestsMatching("*IT");
+    }
+}
+
+integrationTest {
+//    retry {
+//        failOnPassedAfterRetry = false
+//        maxRetries = 1
+//    }
+    setTimeout(Duration.ofSeconds(600))
+}
+
+check.dependsOn integrationTest
 
 tasks.bootJar {
     enabled = false

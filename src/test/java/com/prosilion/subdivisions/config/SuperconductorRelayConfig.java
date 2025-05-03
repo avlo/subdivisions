@@ -1,26 +1,37 @@
 package com.prosilion.subdivisions.config;
 
-import com.prosilion.subdivisions.request.RequestConsolidator;
-import java.util.Map;
-import java.util.ResourceBundle;
-import java.util.stream.Collectors;
+import java.io.File;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.Lazy;
+import org.testcontainers.containers.ComposeContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 
-@Configuration
-@PropertySource("classpath:superconductor-relays.properties")
+@Slf4j
+@TestConfiguration
 public class SuperconductorRelayConfig {
 
-  @Bean
-  public Map<String, String> superconductorRelays() {
-    ResourceBundle relaysBundle = ResourceBundle.getBundle("superconductor-relays");
-    return relaysBundle.keySet().stream()
-        .collect(Collectors.toMap(key -> key, relaysBundle::getString));
+  public SuperconductorRelayConfig() {
+    System.out.println("SuperconductorRelayConfig");
   }
 
+  @Lazy
   @Bean
-  public RequestConsolidator superconductorRelaysAggregate(Map<String, String> superconductorRelays) {
-    return new RequestConsolidator(superconductorRelays);
+//  @RestartScope
+  @ServiceConnection
+  public ComposeContainer superconductorContainer() {
+    try (
+        ComposeContainer composeContainer = new ComposeContainer(
+            new File("src/test/resources/superconductor-docker-compose-dev_ws_old.yml"))
+            .withExposedService("superconductor", 5555, Wait.forHealthcheck())) {
+      return composeContainer;
+    }
   }
+
+//  @Bean
+//  public RequestConsolidator superconductorRelaysAggregate(Map<String, String> superconductorRelays) {
+//    return new RequestConsolidator(superconductorRelays);
+//  }
 }

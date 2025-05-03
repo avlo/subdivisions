@@ -6,11 +6,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import nostr.base.Command;
+import nostr.event.impl.GenericEvent;
 import nostr.event.message.ReqMessage;
 import org.apache.commons.lang3.stream.Streams;
 
 public class RequestConsolidator {
-  private final Map<String, RelaySubscriptionsManager> map;
+  private final Map<String, StandardRelaySubscriptionsManager> map;
 
   public RequestConsolidator() {
     this(new HashMap<>());
@@ -21,11 +22,11 @@ public class RequestConsolidator {
         .collect(Collectors.toMap(
             Map.Entry::getKey,
             value ->
-                new RelaySubscriptionsManager(value.getValue())));
+                new StandardRelaySubscriptionsManager(value.getValue())));
   }
 
   public void addRelay(String name, String uri) {
-    this.map.put(name, new RelaySubscriptionsManager(uri));
+    this.map.put(name, new StandardRelaySubscriptionsManager(uri));
   }
 
   public void removeRelay(String name) {
@@ -38,9 +39,19 @@ public class RequestConsolidator {
 //		return eventsMatchingNipXXX.getPubKeys()
 
 
-  public List<Map<Command, List<Object>>> sendRequest(@NonNull ReqMessage reqMessage) {
+  public List<Map<Command, List<Object>>> sendRequestReturnMap(@NonNull ReqMessage reqMessage) {
     return Streams.failableStream(map.values().stream()).map(entry ->
         entry.sendRequestReturnCommandResultsMap(reqMessage)).stream().toList();
+  }
+
+  public List<GenericEvent> sendRequestReturnEvents(@NonNull ReqMessage reqMessage) {
+    return Streams.failableStream(map.values().stream()).map(entry ->
+            entry.sendRequestReturnEvents(reqMessage)).stream()
+//        .flatMap(List::stream)
+//        .distinct()
+//        .collect(Collectors.toList());
+        .distinct()
+        .flatMap(List::stream).toList();
   }
 }
 //  Map<PubKey, Map<Event<rep-tag (NIP-XXX)>, Relay>

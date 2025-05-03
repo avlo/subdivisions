@@ -1,4 +1,4 @@
-package com.prosilion.subdivisions;
+package com.prosilion.subdivisions.client.standard;
 
 import java.io.IOException;
 import java.net.URI;
@@ -17,30 +17,29 @@ import org.springframework.boot.ssl.SslBundles;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.WebSocketSession;
-import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 @Slf4j
-public class WebSocketClient extends TextWebSocketHandler {
+public class StandardWebSocketClient extends TextWebSocketHandler {
   private final WebSocketSession clientSession;
 
   private final List<String> events = Collections.synchronizedList(new ArrayList<>());
   private final AtomicBoolean completed = new AtomicBoolean(false);
 
-  public WebSocketClient(@NonNull String relayUri) throws ExecutionException, InterruptedException {
-    StandardWebSocketClient standardWebSocketClient = new StandardWebSocketClient();
+  public StandardWebSocketClient(@NonNull String relayUri) throws ExecutionException, InterruptedException {
+    org.springframework.web.socket.client.standard.StandardWebSocketClient standardWebSocketClient = new org.springframework.web.socket.client.standard.StandardWebSocketClient();
     this.clientSession = getClientSession(relayUri, standardWebSocketClient);
     log.debug("Non-Secure (WS) WebSocket subdivisions connected {}", clientSession.getId());
   }
 
-  public WebSocketClient(@NonNull String relayUri, @NonNull SslBundles sslBundles) throws ExecutionException, InterruptedException {
-    StandardWebSocketClient standardWebSocketClient = new StandardWebSocketClient();
+  public StandardWebSocketClient(@NonNull String relayUri, @NonNull SslBundles sslBundles) throws ExecutionException, InterruptedException {
+    org.springframework.web.socket.client.standard.StandardWebSocketClient standardWebSocketClient = new org.springframework.web.socket.client.standard.StandardWebSocketClient();
     standardWebSocketClient.setSslContext(sslBundles.getBundle("server").createSslContext());
     this.clientSession = getClientSession(relayUri, standardWebSocketClient);
     log.debug("Secure (WSS) WebSocket subdivisions connected {}", clientSession.getId());
   }
 
-  private WebSocketSession getClientSession(@NonNull String relayUri, StandardWebSocketClient standardWebSocketClient) throws ExecutionException, InterruptedException {
+  private WebSocketSession getClientSession(@NonNull String relayUri, org.springframework.web.socket.client.standard.StandardWebSocketClient standardWebSocketClient) throws ExecutionException, InterruptedException {
     return standardWebSocketClient
         .execute(
             this,
