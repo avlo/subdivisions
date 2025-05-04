@@ -17,7 +17,13 @@ import org.testcontainers.containers.wait.strategy.Wait;
 public class SuperconductorRelayConfig {
 
   public SuperconductorRelayConfig() {
-    System.out.println("SuperconductorRelayConfig");
+    log.debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+    log.debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+    log.debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+    log.debug("SuperconductorRelayConfig");
+    log.debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+    log.debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+    log.debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
   }
 
   @Bean

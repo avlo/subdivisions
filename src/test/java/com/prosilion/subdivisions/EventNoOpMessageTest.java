@@ -13,39 +13,30 @@ import nostr.event.message.EventMessage;
 import nostr.event.message.OkMessage;
 import nostr.id.Identity;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.test.context.ActiveProfiles;
-import org.testcontainers.containers.ComposeContainer;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Slf4j
-@Testcontainers
-@SpringBootTest(classes = SuperconductorRelayConfig.class)
-@PropertySource("classpath:application-test.properties")
+@ExtendWith(SpringExtension.class)
+@SpringJUnitConfig(SuperconductorRelayConfig.class)
+@TestPropertySource("classpath:application-test.properties")
 @ActiveProfiles("test")
-class EventNoOpMessageIT {
+class EventNoOpMessageTest {
 
   private final StandardEventPublisher standardEventPublisher;
 
   private final static Identity identity = Factory.createNewIdentity();
 
   @Autowired
-  public EventNoOpMessageIT(
-      ComposeContainer superconductorContainer,
+  public EventNoOpMessageTest(
       @NonNull @Value("${superconductor.relay.uri}") String relayUri) throws ExecutionException, InterruptedException {
-    String serviceHost = superconductorContainer.getServiceHost("superconductor-subdivisions", 5555);
-
-    log.debug("00000000000000000");
-    log.debug("00000000000000000");
-    log.debug("serviceHost: {}", serviceHost);
-    log.debug("00000000000000000");
-    log.debug("00000000000000000");
-
     this.standardEventPublisher = new StandardEventPublisher(relayUri);
   }
 
@@ -63,3 +54,4 @@ class EventNoOpMessageIT {
     assertEquals("success: request processed", okMessage.getMessage());
   }
 }
+
