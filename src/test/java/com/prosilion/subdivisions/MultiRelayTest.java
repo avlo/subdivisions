@@ -12,16 +12,19 @@ import nostr.event.message.OkMessage;
 import nostr.id.Identity;
 import org.apache.commons.lang3.stream.Streams;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
-@ActiveProfiles("test")
+@ExtendWith(SpringExtension.class)
 @SpringJUnitConfig(SuperconductorRelayConfig.class)
+@ActiveProfiles("test")
 public class MultiRelayTest {
   private final Map<String, String> superconductorRelays;
 

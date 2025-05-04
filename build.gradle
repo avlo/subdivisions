@@ -81,11 +81,15 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-//test {
+test {
 //    filter {
 //        excludeTestsMatching("*IT");
 //    }
-//}
+    testLogging {
+        showStandardStreams = true
+//        debug(true)
+    }
+}
 //
 //tasks.register('integrationTest', Test) {
 //    description = 'integration tests.'
