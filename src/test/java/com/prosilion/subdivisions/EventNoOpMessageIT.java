@@ -28,17 +28,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @SpringBootTest(classes = SuperconductorRelayConfig.class)
 @PropertySource("classpath:application-test.properties")
 @ActiveProfiles("test")
-class EventNoOpMessageRxRIT {
+class EventNoOpMessageIT {
 
   private final StandardEventPublisher standardEventPublisher;
 
   private final static Identity identity = Factory.createNewIdentity();
 
   @Autowired
-  public EventNoOpMessageRxRIT(
+  public EventNoOpMessageIT(
       ComposeContainer superconductorContainer,
       @NonNull @Value("${superconductor.relay.uri}") String relayUri) throws ExecutionException, InterruptedException {
-    String serviceHost = superconductorContainer.getServiceHost("superconductor", 5555);
+    String serviceHost = superconductorContainer.getServiceHost("superconductor-subdivisions", 5555);
 
     log.debug("00000000000000000");
     log.debug("00000000000000000");

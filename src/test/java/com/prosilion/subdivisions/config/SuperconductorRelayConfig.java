@@ -1,6 +1,9 @@
 package com.prosilion.subdivisions.config;
 
 import java.io.File;
+import java.util.Map;
+import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
@@ -15,6 +18,13 @@ public class SuperconductorRelayConfig {
 
   public SuperconductorRelayConfig() {
     System.out.println("SuperconductorRelayConfig");
+  }
+
+  @Bean
+  public Map<String, String> superconductorRelays() {
+    ResourceBundle relaysBundle = ResourceBundle.getBundle("superconductor-relays");
+    return relaysBundle.keySet().stream()
+        .collect(Collectors.toMap(key -> key, relaysBundle::getString));
   }
 
   @Lazy
