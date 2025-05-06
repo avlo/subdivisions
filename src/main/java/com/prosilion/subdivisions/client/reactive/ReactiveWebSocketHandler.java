@@ -20,15 +20,19 @@ public class ReactiveWebSocketHandler {
 
   public ReactiveWebSocketHandler() {
 //    TODO: revisit, possibly other options/approaches
-    this.sendBuffer = Sinks.many().unicast().onBackpressureBuffer();
-    this.receiveBuffer = Sinks.many().unicast().onBackpressureBuffer();
+    this.sendBuffer = Sinks.many().multicast().onBackpressureBuffer();
+    this.receiveBuffer = Sinks.many().multicast().onBackpressureBuffer();
   }
 
   protected void connect(@NonNull WebSocketClient webSocketClient, @NonNull URI uri) {
     subscription =
         webSocketClient
             .execute(uri, this::handleSession)
-            .then(Mono.fromRunnable(this::onClose))
+            .then(
+// below, Create Mono that completes empty once provided Runnable has been executed
+                Mono.fromRunnable(this::onClose))
+// or Create Mono, producing its value using the provided Supplier.
+//              fromSupplier(java.util.function.Supplier<? extends T> supplier)
             .subscribe();
   }
 
