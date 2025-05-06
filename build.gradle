@@ -73,7 +73,7 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter:' + testcontainers
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    testCompileOnly 'io.projectreactor:reactor-test:' + reactorTestVersion
+    testImplementation 'io.projectreactor:reactor-test:' + reactorTestVersion
 }
 
 tasks.named('test') {

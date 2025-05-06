@@ -22,6 +22,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import reactor.core.publisher.BaseSubscriber;
 import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -32,16 +33,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ActiveProfiles("test")
 class ReactiveWebSocketClientTest {
   private final ReactiveNostrRelayClient reactiveNostrRelayClient;
-  private final Identity identity = Factory.createNewIdentity();
-  private final String eventId = Factory.generateRandomHex64String();
   private final static String globalSubscriberId = Factory.generateRandomHex64String();
-  private final String content;
+  private final String relayUri;
 
-  public ReactiveWebSocketClientTest(@Value("${superconductor.relay.uri}") String relayUri) throws IOException {
+  public ReactiveWebSocketClientTest(@Value("${superconductor.relay.uri}") String relayUri) {
     reactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUri);
-    content = Factory.lorumIpsum(getClass());
+    this.relayUri = relayUri;
+  }
 
-    GenericEvent event = new NIP01<>(identity).createTextNoteEvent(content).sign().getEvent();
+  @Test
+  void testEventCreationAndSubscriptionUsingExplicitSubscriber() throws IOException {
+    Identity identity = Factory.createNewIdentity();
+    GenericEvent event = new NIP01<>(identity).createTextNoteEvent(Factory.lorumIpsum(getClass())).sign().getEvent();
     log.trace("setup() send event:\n  {}", event.toString());
 
     Flux<String> flux = reactiveNostrRelayClient.sendEvent(new EventMessage(event, event.getId()));
@@ -51,12 +54,71 @@ class ReactiveWebSocketClientTest {
 
     System.out.println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZz");
     System.out.println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZz");
-//    flux.subscribe(System.out::println);
+//   
     List<String> list3 = new ArrayList<>();
     flux.collectList().subscribe(list3::addAll);
-    list3.forEach(System.out::println);
+    list3.forEach(s -> System.out.println("BBBBBBBBBBBB " + s + "BBBBBBBBBBBB"));
+//
+//    String expected = "[\"OK\",\"" + event.getId() + "\",true,\"success: request processed\"]";
+////    assertEquals(1, list3.stream().filter(s -> s.contains(expected)).count());
+//    assertEquals(1, list3.size());
+
     System.out.println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZz");
     System.out.println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZz");
+  }
+
+  @Test
+  void testEventCreationAndSubscriptionUsingStepVerifier() throws IOException {
+    Identity identity = Factory.createNewIdentity();
+    GenericEvent event = new NIP01<>(identity).createTextNoteEvent(Factory.lorumIpsum(getClass()) + "diff").sign().getEvent();
+    log.trace("setup() send event:\n  {}", event.toString());
+
+    Flux<String> flux = reactiveNostrRelayClient.sendEvent(new EventMessage(event, event.getId()));
+
+    SampleSubscriber<String> eventSubscriber = new SampleSubscriber<>();
+    flux.subscribe(eventSubscriber);
+
+    String expected = "[\"OK\",\"" + event.getId() + "\",true,\"success: request processed\"]";
+    StepVerifier
+        .create(flux)
+        .expectSubscription()
+        .expectNext(expected)
+//        .expectNext("done") //        .expectErrorMessage("boom")
+//        .verifyComplete(); //        .expectComplete() //        .verify();
+    ;
+  }
+
+  @Test
+  void test2ndEventCreationAndSubscriptionUsingStepVerifier() throws IOException {
+    Identity identity = Factory.createNewIdentity();
+    GenericEvent event = new NIP01<>(identity).createTextNoteEvent(Factory.lorumIpsum(getClass()) + "2nd").sign().getEvent();
+    log.trace("setup() send event:\n  {}", event.toString());
+
+    Flux<String> flux = reactiveNostrRelayClient.sendEvent(new EventMessage(event, event.getId()));
+
+    SampleSubscriber<String> eventSubscriber = new SampleSubscriber<>();
+    flux.subscribe(eventSubscriber);
+
+    String expected = "[\"OK\",\"" + event.getId() + "\",true,\"success: request processed\"]";
+    StepVerifier.create(
+            reactiveNostrRelayClient.sendEvent(new EventMessage(event, event.getId())))
+        .expectSubscription()
+        .expectNext(expected)
+//        .expectNext("done")
+//        .expectNext("done") //        .expectErrorMessage("boom")
+//        .verifyComplete(); //        .expectComplete() //        .verify();
+    ;
+//    assertFalse(true);
+  }
+
+  @Test
+  void stepVerifierPOC() {
+    StepVerifier.create(Flux.just("foo", "bar"))
+        .expectNext("foo")
+        .expectNext("bar")
+//        .expectComplete()
+//        .verify();
+        .verifyComplete();
   }
 
   @Test
