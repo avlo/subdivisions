@@ -48,7 +48,30 @@ public class StandardRelaySubscriptionsManager {
     log.debug("sslBundles protocol: \n{}", server.getProtocol());
   }
 
-//  TODO: need flux variant of below  
+  private final Function<List<String>, Optional<String>> newestEvent = (events) ->
+      getTypeSpecificMessage(EventMessage.class, events).stream()
+          .map(eventMessage -> (GenericEvent) eventMessage.getEvent())
+          .sorted(Comparator.comparing(GenericEvent::getCreatedAt))
+          .map(event -> new BaseEventEncoder<>(event).encode())
+          .reduce((first, second) -> second);
+
+  private final Function<List<String>, List<Object>> eventsAsStrings = (events) ->
+      getTypeSpecificMessage(EventMessage.class, events).stream()
+          .map(eventMessage -> (GenericEvent) eventMessage.getEvent())
+          .sorted(Comparator.comparing(GenericEvent::getCreatedAt))
+          .map(event -> new BaseEventEncoder<>(event).encode())
+          .map(Object.class::cast)
+          .toList();
+
+  private final Function<List<String>, List<GenericEvent>> eventsAsGenericEvents = (events) ->
+      getTypeSpecificMessage(EventMessage.class, events).stream()
+          .map(eventMessage -> (GenericEvent) eventMessage.getEvent())
+          .sorted(Comparator.comparing(GenericEvent::getCreatedAt))
+          .toList();
+
+  private final Function<List<String>, Optional<String>> eose = (events) ->
+      getTypeSpecificMessage(EoseMessage.class, events).stream().map(EoseMessage::getSubscriptionId).findFirst();
+
   public List<GenericEvent> sendRequestReturnEvents(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
     log.debug("pre-encoded ReqMessage json: \n{}", reqMessage);
     return eventsAsGenericEvents.apply(
@@ -63,7 +86,6 @@ public class StandardRelaySubscriptionsManager {
         reqMessage.encode());
   }
 
-//  TODO: need flux variant of below
   public Map<Command, List<Object>> sendRequestReturnCommandResultsMap(@NonNull String subscriberId, @NonNull String reqJson) {
     List<String> returnedEvents = getRequestResults(subscriberId, reqJson);
 
@@ -97,12 +119,12 @@ public class StandardRelaySubscriptionsManager {
     log.debug("RelaySubscriptionsManagerg updateReqResults for subscriberId: [{}]", subscriberId);
     return eventsAsGenericEvents.apply(getEvents(subscriberId));
   }
-  
+
   private List<String> getEvents(@NonNull String subscriberId) {
     return Optional.ofNullable(subscriberIdWebSocketClientMap.get(subscriberId))
         .orElseThrow().getEvents();
   }
-
+  
   //  TODO: cleanup sneaky
   @SneakyThrows
   private StandardWebSocketClient getStandardWebSocketClient() {
@@ -134,30 +156,6 @@ public class StandardRelaySubscriptionsManager {
   private void closeSessions(Collection<StandardWebSocketClient> standardWebSocketClients) {
     Streams.failableStream(standardWebSocketClients.stream()).forEach(StandardWebSocketClient::closeSession);
   }
-
-  private final Function<List<String>, Optional<String>> newestEvent = (events) ->
-      getTypeSpecificMessage(EventMessage.class, events).stream()
-          .map(eventMessage -> (GenericEvent) eventMessage.getEvent())
-          .sorted(Comparator.comparing(GenericEvent::getCreatedAt))
-          .map(event -> new BaseEventEncoder<>(event).encode())
-          .reduce((first, second) -> second);
-
-  private final Function<List<String>, List<Object>> eventsAsStrings = (events) ->
-      getTypeSpecificMessage(EventMessage.class, events).stream()
-          .map(eventMessage -> (GenericEvent) eventMessage.getEvent())
-          .sorted(Comparator.comparing(GenericEvent::getCreatedAt))
-          .map(event -> new BaseEventEncoder<>(event).encode())
-          .map(Object.class::cast)
-          .toList();
-
-  private final Function<List<String>, List<GenericEvent>> eventsAsGenericEvents = (events) ->
-      getTypeSpecificMessage(EventMessage.class, events).stream()
-          .map(eventMessage -> (GenericEvent) eventMessage.getEvent())
-          .sorted(Comparator.comparing(GenericEvent::getCreatedAt))
-          .toList();
-
-  private final Function<List<String>, Optional<String>> eose = (events) ->
-      getTypeSpecificMessage(EoseMessage.class, events).stream().map(EoseMessage::getSubscriptionId).findFirst();
 
   private <V extends BaseMessage> List<V> getTypeSpecificMessage(Class<V> messageClass, List<String> messages) {
     return Streams.failableStream(messages.stream()

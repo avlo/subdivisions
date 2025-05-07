@@ -28,6 +28,15 @@ public class ReactiveRelaySubscriptionsManager {
   private final String relayUri;
   private SslBundles sslBundles;
 
+  private final Function<Flux<String>, Flux<String>> eventsAsStrings = (events) ->
+      getTypeSpecificMessage(EventMessage.class, events)
+          .map(eventMessage -> (GenericEvent) eventMessage.getEvent())
+          .map(event -> new BaseEventEncoder<>(event).encode());
+
+  private final Function<Flux<String>, Flux<GenericEvent>> eventsAsGenericEvents = (events) ->
+      getTypeSpecificMessage(EventMessage.class, events)
+          .map(eventMessage -> (GenericEvent) eventMessage.getEvent());
+
   public ReactiveRelaySubscriptionsManager(@NonNull String relayUri) {
     this.relayUri = relayUri;
     log.debug("relayUri: \n{}", relayUri);
@@ -43,13 +52,24 @@ public class ReactiveRelaySubscriptionsManager {
     log.debug("sslBundles protocol: \n{}", server.getProtocol());
   }
 
-  //  TODO: need flux variant of below  
   public Flux<GenericEvent> send(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
     log.debug("pre-encoded ReqMessage json: \n{}", reqMessage);
     return eventsAsGenericEvents.apply(getRequestResults(reqMessage));
   }
 
-//  public Map<Command, List<Object>> sendRequestReturnCommandResultsMap(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
+  private Flux<String> getRequestResults(ReqMessage reqMessage) throws JsonProcessingException {
+    String subscriberId = reqMessage.getSubscriptionId();
+    log.debug("subscriberId: [{}]", subscriberId);
+    String reqJson = reqMessage.encode();
+    log.debug("reqJson: \n{}", reqJson);
+    return Optional.ofNullable(subscriberIdWebSocketClientMap.get(subscriberId))
+        .orElseGet(() -> {
+          subscriberIdWebSocketClientMap.put(subscriberId, getReactiveWebSocketClient());
+          return subscriberIdWebSocketClientMap.get(subscriberId);
+        }).send(reqMessage);
+  }
+
+  //  public Map<Command, List<Object>> sendRequestReturnCommandResultsMap(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
 //    return sendRequestReturnCommandResultsMap(
 //        reqMessage.getSubscriptionId(),
 //        reqMessage.encode());
@@ -73,22 +93,10 @@ public class ReactiveRelaySubscriptionsManager {
 //
 //    return results;
 //  }
-
-  private Flux<String> getRequestResults(ReqMessage reqMessage) throws JsonProcessingException {
-    String subscriberId = reqMessage.getSubscriptionId();
-    log.debug("subscriberId: [{}]", subscriberId);
-    String reqJson = reqMessage.encode();
-    log.debug("reqJson: \n{}", reqJson);
-    return Optional.ofNullable(subscriberIdWebSocketClientMap.get(subscriberId))
-        .orElseGet(() -> {
-          subscriberIdWebSocketClientMap.put(subscriberId, getStandardWebSocketClient());
-          return subscriberIdWebSocketClientMap.get(subscriberId);
-        }).send(reqMessage);
-  }
-
+  
   //  TODO: cleanup sneaky
   @SneakyThrows
-  private ReactiveWebSocketClient getStandardWebSocketClient() {
+  private ReactiveWebSocketClient getReactiveWebSocketClient() {
 //    return Objects.nonNull(sslBundles) ? new ReactiveWebSocketClient(relayUri) : new ReactiveWebSocketClient(relayUri);
     return new ReactiveWebSocketClient(relayUri);
   }
@@ -118,15 +126,6 @@ public class ReactiveRelaySubscriptionsManager {
   private void closeSessions(Collection<ReactiveWebSocketClient> reactiveWebSocketClients) {
     reactiveWebSocketClients.forEach(ReactiveWebSocketClient::closeSocket);
   }
-
-  private final Function<Flux<String>, Flux<String>> eventsAsStrings = (events) ->
-      getTypeSpecificMessage(EventMessage.class, events)
-          .map(eventMessage -> (GenericEvent) eventMessage.getEvent())
-          .map(event -> new BaseEventEncoder<>(event).encode());
-
-  private final Function<Flux<String>, Flux<GenericEvent>> eventsAsGenericEvents = (events) ->
-      getTypeSpecificMessage(EventMessage.class, events)
-          .map(eventMessage -> (GenericEvent) eventMessage.getEvent());
 
 //  private final Function<Flux<String>, Optional<String>> eose = (events) ->
 //      getTypeSpecificMessage(EoseMessage.class, events).map(EoseMessage::getSubscriptionId);
