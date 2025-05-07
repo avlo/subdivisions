@@ -1,6 +1,5 @@
-package com.prosilion.subdivisions;
+package com.prosilion.subdivisions.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.subdivisions.client.reactive.ReactiveNostrRelayClient;
 import com.prosilion.subdivisions.config.SuperconductorRelayConfig;
 import com.prosilion.subdivisions.util.Factory;
@@ -10,8 +9,13 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import nostr.api.NIP01;
+import nostr.base.PublicKey;
+import nostr.event.filter.AuthorFilter;
+import nostr.event.filter.EventFilter;
+import nostr.event.filter.Filters;
 import nostr.event.impl.GenericEvent;
 import nostr.event.message.EventMessage;
+import nostr.event.message.ReqMessage;
 import nostr.id.Identity;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
@@ -26,12 +30,14 @@ import reactor.core.publisher.BaseSubscriber;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 @Slf4j
 @ExtendWith(SpringExtension.class)
 @SpringJUnitConfig(SuperconductorRelayConfig.class)
 @TestPropertySource("classpath:application-test.properties")
 @ActiveProfiles("test")
-class ReactiveWebSocketClientTest {
+class NostrRelayReactiveClientTest {
   public static final String ANSI_YELLOW = "\033[1;93m";
   ;
   public static final String ANSI_RESET = "\u001B[0m";
@@ -42,7 +48,7 @@ class ReactiveWebSocketClientTest {
   private final ReactiveNostrRelayClient reactiveNostrRelayClient;
   private final static String globalSubscriberId = Factory.generateRandomHex64String();
 
-  public ReactiveWebSocketClientTest(@Value("${superconductor.relay.uri}") String relayUri) {
+  public NostrRelayReactiveClientTest(@Value("${superconductor.relay.uri}") String relayUri) {
     reactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUri);
   }
 
@@ -70,8 +76,6 @@ class ReactiveWebSocketClientTest {
     List<String> list3 = new ArrayList<>();
     flux.collectList().subscribe(list3::addAll);
 //  3) ******* if both above SampleSubscriber and collectList are active, OnNext will register 2 EVENTS w/ same ID
-
-//    list3.forEach(s -> System.out.println("BBBBBBBBBBBB " + s + "BBBBBBBBBBBB")); <---- is never printed in any case
 
 //    String expected = "[\"OK\",\"" + event.getId() + "\",true,\"success: request processed\"]";
 ////    assertEquals(1, list3.stream().filter(s -> s.contains(expected)).count());
@@ -137,47 +141,56 @@ class ReactiveWebSocketClientTest {
 
 //    List<String> durationBlock = flux.collectList().block(Duration.ofMillis(250)); // hangs
 //    List<String> durationBlock = flux.toStream().toList(); // voids reactive and hangs 
-
     TimeUnit.MILLISECONDS.sleep(250);
+  }
+
+  @Test
+  void testReqFilteredByEventAndAuthorViaReqMessage() throws IOException {
+    Identity identity = Factory.createNewIdentity();
+    GenericEvent event = new NIP01<>(identity).createTextNoteEvent(Factory.lorumIpsum()).sign().getEvent();
+
+    Flux<String> eventFlux = reactiveNostrRelayClient.sendEvent(new EventMessage(event, event.getId()));
+    SampleSubscriber<String> eventSubscriber = new SampleSubscriber<>();
+    eventFlux.subscribe(eventSubscriber);
+
+    String expected = "[\"OK\",\"" + event.getId() + "\",true,\"success: request processed\"]";
+    StepVerifier
+        .create(eventFlux)
+        .expectSubscription()
+        .expectNext(expected);
+    
+    EventFilter<GenericEvent> eventFilter = new EventFilter<>(event);
+    AuthorFilter<PublicKey> authorFilter = new AuthorFilter<>(new PublicKey(identity.getPublicKey().toHexString()));
+
+    ReqMessage reqMessage = new ReqMessage(identity.getPublicKey().toHexString(), new Filters(eventFilter, authorFilter));
+    Flux<GenericEvent> returnedEventsToMethodSubscriberIdFlux = reactiveNostrRelayClient.sendRequestReturnEvents(reqMessage);
+
+    SampleSubscriber<GenericEvent> localMethodRequestSubscriber = new SampleSubscriber<>();
+    returnedEventsToMethodSubscriberIdFlux.subscribe(localMethodRequestSubscriber);
+
+    log.trace("okMessage to method subscriberId:");
+    log.trace("  " + returnedEventsToMethodSubscriberIdFlux);
+    GenericEvent genericEvent1 = returnedEventsToMethodSubscriberIdFlux.blockFirst();
+    assertEquals(event.getId(), genericEvent1.getId());
+    assertEquals(event.getContent(), genericEvent1.getContent());
+    assertEquals(event.getPubKey().toHexString(), genericEvent1.getPubKey().toHexString());
+
+    ReqMessage reqMessage2 = new ReqMessage(globalSubscriberId, new Filters(eventFilter, authorFilter));
+    Flux<GenericEvent> returnedEventsToGlobalSubscriberIdFlux = reactiveNostrRelayClient.sendRequestReturnEvents(reqMessage2);
+
+    SampleSubscriber<GenericEvent> globalRequestSubscriber = new SampleSubscriber<>();
+    returnedEventsToGlobalSubscriberIdFlux.subscribe(globalRequestSubscriber);
+
+    log.trace("okMessage to global subscriberId:");
+    log.trace("  " + returnedEventsToGlobalSubscriberIdFlux);
+    GenericEvent genericEvent2 = returnedEventsToGlobalSubscriberIdFlux.blockFirst();
+    assertEquals(event.getId(), genericEvent2.getId());
+    assertEquals(event.getContent(), genericEvent2.getContent());
+    assertEquals(event.getPubKey().toHexString(), genericEvent2.getPubKey().toHexString());
   }
 
   final void printConsole(int i) {
     System.out.println(" flux hashcode: [ " + ANSI_YELLOW + i + ANSI_RESET + " ]");
-  }
-
-  //  @Test
-  void testReqFilteredByEventAndAuthorViaReqMessage() throws JsonProcessingException {
-//    System.out.println("reached");
-//    assertTrue(true);
-
-//    final String subscriberId = Factory.generateRandomHex64String();
-//
-//    EventFilter<GenericEvent> eventFilter = new EventFilter<>(new GenericEvent(eventId));
-//    AuthorFilter<PublicKey> authorFilter = new AuthorFilter<>(new PublicKey(identity.getPublicKey().toHexString()));
-//
-//    ReqMessage reqMessage = new ReqMessage(subscriberId, new Filters(eventFilter, authorFilter));
-//    Flux<GenericEvent> localSubscriberIdFlux = reactiveNostrRelayClient.sendRequestReturnEvents(reqMessage);
-//
-//    SampleSubscriber<GenericEvent> localMethodRequestSubscriber = new SampleSubscriber<>();
-//    localSubscriberIdFlux.subscribe(localMethodRequestSubscriber);
-//
-//    log.trace("okMessage to local subscriberId:");
-//    log.trace("  " + localSubscriberIdFlux);
-//    assertTrue(localSubscriberIdFlux.toStream().anyMatch(event -> event.getId().equals(eventId)));
-//    assertTrue(localSubscriberIdFlux.toStream().anyMatch(event -> event.getContent().equals(content)));
-//    assertTrue(localSubscriberIdFlux.toStream().anyMatch(event -> event.getPubKey().toHexString().equals(identity.getPublicKey().toHexString())));
-//
-//    ReqMessage reqMessage2 = new ReqMessage(globalSubscriberId, new Filters(eventFilter, authorFilter));
-//    Flux<GenericEvent> returnedEventsGlobalSubscriberId = reactiveNostrRelayClient.sendRequestReturnEvents(reqMessage2);
-//
-//    SampleSubscriber<GenericEvent> globalRequestSubscriber = new SampleSubscriber<>();
-//    returnedEventsGlobalSubscriberId.subscribe(globalRequestSubscriber);
-//
-//    log.trace("okMessage to global subscriberId:");
-//    log.trace("  " + returnedEventsGlobalSubscriberId);
-//    assertTrue(returnedEventsGlobalSubscriberId.toStream().anyMatch(event -> event.getId().equals(eventId)));
-//    assertTrue(returnedEventsGlobalSubscriberId.toStream().anyMatch(event -> event.getContent().equals(content)));
-//    assertTrue(returnedEventsGlobalSubscriberId.toStream().anyMatch(event -> event.getPubKey().toHexString().equals(identity.getPublicKey().toHexString())));
   }
 
   static void parseJson(String value) {

@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringJUnitConfig(SuperconductorRelayConfig.class)
 @TestPropertySource("classpath:application-test.properties")
 @ActiveProfiles("test")
-public class StandardNostrRelayClientTest {
+public class NostrRelayStandardClientTest {
   private final StandardNostrRelayClient standardNostrRelayClient;
 
   private final static String authorPubKey = Factory.generateRandomHex64String();
@@ -39,7 +39,7 @@ public class StandardNostrRelayClientTest {
   private final String content;
 
   @Autowired
-  public StandardNostrRelayClientTest(@Value("${superconductor.relay.uri}") String relayUri) throws IOException, ExecutionException, InterruptedException {
+  public NostrRelayStandardClientTest(@Value("${superconductor.relay.uri}") String relayUri) throws IOException, ExecutionException, InterruptedException {
     this.standardNostrRelayClient = new StandardNostrRelayClient(relayUri);
     content = Factory.lorumIpsum(getClass());
 
