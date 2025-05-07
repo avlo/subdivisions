@@ -7,11 +7,13 @@ import com.prosilion.subdivisions.util.Factory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import nostr.api.NIP01;
 import nostr.event.impl.GenericEvent;
 import nostr.event.message.EventMessage;
 import nostr.id.Identity;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.reactivestreams.Subscription;
@@ -24,57 +26,74 @@ import reactor.core.publisher.BaseSubscriber;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 @Slf4j
 @ExtendWith(SpringExtension.class)
 @SpringJUnitConfig(SuperconductorRelayConfig.class)
 @TestPropertySource("classpath:application-test.properties")
 @ActiveProfiles("test")
 class ReactiveWebSocketClientTest {
+  public static final String ANSI_YELLOW = "\033[1;93m";
+  ;
+  public static final String ANSI_RESET = "\u001B[0m";
+  public static final String ANSI_BLUE = "\033[1;34m";
+  public static final String ANSI_RED = "\033[1;36m";
+  public static final String ANSI_35 = "\033[1;35m";
+  //  public static final String ANSI_RED = "\033[0;36m";
   private final ReactiveNostrRelayClient reactiveNostrRelayClient;
   private final static String globalSubscriberId = Factory.generateRandomHex64String();
-  private final String relayUri;
 
   public ReactiveWebSocketClientTest(@Value("${superconductor.relay.uri}") String relayUri) {
     reactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUri);
-    this.relayUri = relayUri;
   }
 
+  /*
+   * notes:
+   *  SampleSubscriber registers subscription event, the latter of which also registers subscription event on collectList()
+   */
   @Test
-  void testEventCreationAndSubscriptionUsingExplicitSubscriber() throws IOException {
+  void testEventCreationAndSubscriptionUsingExplicitSubscriber() throws IOException, InterruptedException {
     Identity identity = Factory.createNewIdentity();
-    GenericEvent event = new NIP01<>(identity).createTextNoteEvent(Factory.lorumIpsum(getClass())).sign().getEvent();
+    GenericEvent event = new NIP01<>(identity).createTextNoteEvent(Factory.lorumIpsum()).sign().getEvent();
     log.trace("setup() send event:\n  {}", event.toString());
 
     Flux<String> flux = reactiveNostrRelayClient.sendEvent(new EventMessage(event, event.getId()));
 
+    System.out.println("AAAAAAAAAAAAAAAAAAAAAAA");
+    printConsole(flux.hashCode());
+    System.out.println("AAAAAAAAAAAAAAAAAAAAAAA");
+
+//  1) ******* if only below SampleSubscriber is active, OnNext will register 1 EVENT
     SampleSubscriber<String> eventSubscriber = new SampleSubscriber<>();
     flux.subscribe(eventSubscriber);
 
-    System.out.println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZz");
-    System.out.println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZz");
-//   
+//  2) ******* if only below collectList() is active, OnNext will register 0 EVENTS
     List<String> list3 = new ArrayList<>();
     flux.collectList().subscribe(list3::addAll);
-    list3.forEach(s -> System.out.println("BBBBBBBBBBBB " + s + "BBBBBBBBBBBB"));
-//
+//  3) ******* if both above SampleSubscriber and collectList are active, OnNext will register 2 EVENTS w/ same ID
+
+//    list3.forEach(s -> System.out.println("BBBBBBBBBBBB " + s + "BBBBBBBBBBBB")); <---- is never printed in any case
+
 //    String expected = "[\"OK\",\"" + event.getId() + "\",true,\"success: request processed\"]";
 ////    assertEquals(1, list3.stream().filter(s -> s.contains(expected)).count());
 //    assertEquals(1, list3.size());
-
-    System.out.println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZz");
-    System.out.println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZz");
+    TimeUnit.MILLISECONDS.sleep(250);
   }
 
+  /*
+   * notes:
+   *  StepVerifier does not register subscription event
+   */
   @Test
-  void testEventCreationAndSubscriptionUsingStepVerifier() throws IOException {
+  void testEventCreationAndSubscriptionUsingStepVerifier() throws IOException, InterruptedException {
     Identity identity = Factory.createNewIdentity();
-    GenericEvent event = new NIP01<>(identity).createTextNoteEvent(Factory.lorumIpsum(getClass()) + "diff").sign().getEvent();
+    GenericEvent event = new NIP01<>(identity).createTextNoteEvent(Factory.lorumIpsum()).sign().getEvent();
     log.trace("setup() send event:\n  {}", event.toString());
 
     Flux<String> flux = reactiveNostrRelayClient.sendEvent(new EventMessage(event, event.getId()));
 
+    System.out.println("BBBBBBBBBBBBBBBBBBBBBBB");
+    printConsole(flux.hashCode());
+    System.out.println("BBBBBBBBBBBBBBBBBBBBBBB");
     SampleSubscriber<String> eventSubscriber = new SampleSubscriber<>();
     flux.subscribe(eventSubscriber);
 
@@ -86,45 +105,50 @@ class ReactiveWebSocketClientTest {
 //        .expectNext("done") //        .expectErrorMessage("boom")
 //        .verifyComplete(); //        .expectComplete() //        .verify();
     ;
+    TimeUnit.MILLISECONDS.sleep(250);
   }
 
+  /*
+   * notes:
+   *  collectList() neither used nor registers subscription event, however
+   *    its System.out.println("BBBBBBBBBBBB " + s + "BBBBBBBBBBBB") doesn't print either, needs investigate
+   */
   @Test
-  void test2ndEventCreationAndSubscriptionUsingStepVerifier() throws IOException {
+  void testEventCreationUsingCollectList() throws IOException, InterruptedException {
     Identity identity = Factory.createNewIdentity();
-    GenericEvent event = new NIP01<>(identity).createTextNoteEvent(Factory.lorumIpsum(getClass()) + "2nd").sign().getEvent();
+    GenericEvent event = new NIP01<>(identity).createTextNoteEvent(Factory.lorumIpsum()).sign().getEvent();
     log.trace("setup() send event:\n  {}", event.toString());
 
     Flux<String> flux = reactiveNostrRelayClient.sendEvent(new EventMessage(event, event.getId()));
 
-    SampleSubscriber<String> eventSubscriber = new SampleSubscriber<>();
-    flux.subscribe(eventSubscriber);
+    System.out.println("CCCCCCCCCCCCCCCCCCCCCCC");
+    printConsole(flux.hashCode());
+    System.out.println("-----------------------");
+    String blockedFirst = flux.blockFirst();
+    parseJson(blockedFirst);
+    System.out.println("CCCCCCCCCCCCCCCCCCCCCCC");
 
-    String expected = "[\"OK\",\"" + event.getId() + "\",true,\"success: request processed\"]";
-    StepVerifier.create(
-            reactiveNostrRelayClient.sendEvent(new EventMessage(event, event.getId())))
-        .expectSubscription()
-        .expectNext(expected)
-//        .expectNext("done")
-//        .expectNext("done") //        .expectErrorMessage("boom")
-//        .verifyComplete(); //        .expectComplete() //        .verify();
-    ;
-//    assertFalse(true);
+// below kept as notes for what doesn't work    
+//    List<String> listNoBlock = new ArrayList<>();
+//    flux.collectList().subscribe(listNoBlock::addAll);  // <------  subscribe() on infinite flux won't return anything
+
+//    List<String> listBlock = flux.collectList().block();  // <------  subscribe() on infinite flux won't return anything
+//    listBlock.forEach(s -> System.out.println("BBBBBBBBBBBB " + s + "BBBBBBBBBBBB"));
+
+//    List<String> durationBlock = flux.collectList().block(Duration.ofMillis(250)); // hangs
+//    List<String> durationBlock = flux.toStream().toList(); // voids reactive and hangs 
+
+    TimeUnit.MILLISECONDS.sleep(250);
   }
 
-  @Test
-  void stepVerifierPOC() {
-    StepVerifier.create(Flux.just("foo", "bar"))
-        .expectNext("foo")
-        .expectNext("bar")
-//        .expectComplete()
-//        .verify();
-        .verifyComplete();
+  final void printConsole(int i) {
+    System.out.println(" flux hashcode: [ " + ANSI_YELLOW + i + ANSI_RESET + " ]");
   }
 
-  @Test
+  //  @Test
   void testReqFilteredByEventAndAuthorViaReqMessage() throws JsonProcessingException {
-    System.out.println("reached");
-    assertTrue(true);
+//    System.out.println("reached");
+//    assertTrue(true);
 
 //    final String subscriberId = Factory.generateRandomHex64String();
 //
@@ -156,23 +180,30 @@ class ReactiveWebSocketClientTest {
 //    assertTrue(returnedEventsGlobalSubscriberId.toStream().anyMatch(event -> event.getPubKey().toHexString().equals(identity.getPublicKey().toHexString())));
   }
 
+  static void parseJson(String value) {
+    String subscriberId = value.split(",")[1];
+    String strippedStart = StringUtils.stripStart(subscriberId, "\"");
+    System.out.println(" " + ANSI_35 + StringUtils.stripEnd(strippedStart, "\"") + ANSI_RESET + " " + value.hashCode());
+  }
+
   private class SampleSubscriber<T> extends BaseSubscriber<T> {
     public void hookOnSubscribe(Subscription subscription) {
+      System.out.println();
       System.out.println("0000000000000000000000");
+      System.out.println(" Subscription object hashCode: [ " + ANSI_BLUE + subscription.hashCode() + ANSI_RESET + " ]");
       System.out.println("0000000000000000000000");
-      System.out.println("Subscribed");
-      System.out.println("0000000000000000000000");
-      System.out.println("0000000000000000000000");
+      System.out.println();
       request(1);
     }
 
     public void hookOnNext(T value) {
       System.out.println("111111111111111111111");
-      System.out.println("111111111111111111111");
-      System.out.println(value);
+      String subscriberId = value.toString().split(",")[1];
+      String strippedStart = StringUtils.stripStart(subscriberId, "\"");
+      System.out.println(" On Next: " + ANSI_RED + StringUtils.stripEnd(strippedStart, "\"") + ANSI_RESET + " " + value.hashCode());
       request(1);
       System.out.println("111111111111111111111");
-      System.out.println("111111111111111111111");
+      System.out.println();
     }
   }
 }
