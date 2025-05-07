@@ -49,16 +49,16 @@ public class StandardWebSocketClient extends TextWebSocketHandler {
   }
 
   @Override
-  protected void handleTextMessage(@NonNull WebSocketSession session, TextMessage message) {
+  protected void handleTextMessage(@NonNull WebSocketSession session, TextMessage textMessage) {
     log.debug("handleTextMessage WebSocketSession id: \n{}", session.getId());
-    events.add(message.getPayload());
+    events.add(textMessage.getPayload());
     log.debug("handleTextMessage TextMessage events:");
     events.forEach(event -> log.debug("  {}", event));
     completed.setRelease(true);
   }
 
-  public <T extends BaseMessage> void send(T eventMessage) throws IOException {
-    send(eventMessage.encode());
+  public <T extends BaseMessage> void send(T message) throws IOException {
+    send(message.encode());
   }
 
   @SneakyThrows
