@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.subdivisions.client.reactive.ReactiveWebSocketClient;
 import java.io.IOException;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +25,7 @@ public class ReactiveEventPublisher {
     this.eventSocketClient = new ReactiveWebSocketClient(relayUri);
   }
 
-  public ReactiveEventPublisher(@NonNull String relayUri, SslBundles sslBundles) throws ExecutionException, InterruptedException {
+  public ReactiveEventPublisher(@NonNull String relayUri, SslBundles sslBundles) {
     log.debug("sslBundles: \n{}", sslBundles);
     final SslBundle server = sslBundles.getBundle("server");
     log.debug("sslBundles name: \n{}", server);

@@ -16,8 +16,12 @@ public class ReactiveWebSocketClient {
   private final ReactiveWebSocketHandler reactiveWebSocketHandler;
 
   public ReactiveWebSocketClient(@NonNull String relayUrl) {
-    this.reactiveWebSocketHandler = new ReactiveWebSocketHandler();
-    this.reactiveWebSocketHandler.connect(new ReactorNettyWebSocketClient(), getURI(relayUrl));
+    final ReactiveWebSocketHandler reactiveWebSocketHandler = new ReactiveWebSocketHandler();
+    System.out.println("call new ReactiveWebSocketHandler hashCode: [ " + reactiveWebSocketHandler.hashCode() + " ]");
+    final ReactorNettyWebSocketClient webSocketClient = new ReactorNettyWebSocketClient();
+    System.out.println("call new ReactiveWebSocketClient hashCode: [ " + webSocketClient.hashCode() + " ]");
+    reactiveWebSocketHandler.connect(webSocketClient, getURI(relayUrl));
+    this.reactiveWebSocketHandler = reactiveWebSocketHandler;
   }
 
   public <T extends BaseMessage> Flux<String> send(T message) throws JsonProcessingException {
@@ -25,6 +29,7 @@ public class ReactiveWebSocketClient {
     log.debug("111111111111111111111111");
     System.out.println("111111111111111111111111");
     System.out.println("111111111111111111111111");
+    System.out.println("ReactiveWebSocketClient hashCode: [" + this.hashCode() + "]");
     log.debug("ReactiveWebSocketClient reactiveWebSocketHandler.hashCode: [{}]", reactiveWebSocketHandler.hashCode());
     System.out.println("ReactiveWebSocketClient reactiveWebSocketHandler.hashCode: [" + reactiveWebSocketHandler.hashCode() + "]");
     String encodedMessage = message.encode();

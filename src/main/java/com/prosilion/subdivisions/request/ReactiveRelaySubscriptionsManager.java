@@ -68,13 +68,13 @@ public class ReactiveRelaySubscriptionsManager {
     String reqJson = reqMessage.encode();
     log.debug("reqJson: \n{}", reqJson);
     System.out.println("reqJson: \n" + reqJson);
-    ReactiveWebSocketClient reactiveWebSocketClient = Optional.ofNullable(subscriberIdWebSocketClientMap.get(subscriberId))
+    final ReactiveWebSocketClient reactiveWebSocketClient = Optional.ofNullable(subscriberIdWebSocketClientMap.get(subscriberId))
         .orElseGet(() -> {
           subscriberIdWebSocketClientMap.put(subscriberId, getReactiveWebSocketClient());
           return subscriberIdWebSocketClientMap.get(subscriberId);
         });
     log.debug("ReactiveWebSocketClient hashCode: [{}]", reactiveWebSocketClient.hashCode());
-    System.out.println("ReactiveWebSocketClient hashCode: [" + reactiveWebSocketClient.hashCode() + "]");
+    System.out.println("ReactiveRelaySubscriptionsManager ReactiveWebSocketClient. hashCode: [" + reactiveWebSocketClient.hashCode() + "]");
     System.out.println("000000000000000000000000");
     System.out.println("000000000000000000000000");
     log.debug("ReqMessage: \n{}", reqMessage);

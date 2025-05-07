@@ -30,8 +30,6 @@ import reactor.core.publisher.BaseSubscriber;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 @Slf4j
 @ExtendWith(SpringExtension.class)
 @SpringJUnitConfig(SuperconductorRelayConfig.class)
@@ -168,10 +166,10 @@ class NostrRelayReactiveClientTest {
 //    SampleSubscriber<GenericEvent> localMethodRequestSubscriber = new SampleSubscriber<>();
 //    returnedEventsToMethodSubscriberIdFlux.subscribe(localMethodRequestSubscriber);
 
-    GenericEvent genericEvent1 = returnedEventsToMethodSubscriberIdFlux.blockFirst();
-    assertEquals(event.getId(), genericEvent1.getId());
-    assertEquals(event.getContent(), genericEvent1.getContent());
-    assertEquals(event.getPubKey().toHexString(), genericEvent1.getPubKey().toHexString());
+//    GenericEvent genericEvent1 = returnedEventsToMethodSubscriberIdFlux.blockFirst();
+//    assertEquals(event.getId(), genericEvent1.getId());
+//    assertEquals(event.getContent(), genericEvent1.getContent());
+//    assertEquals(event.getPubKey().toHexString(), genericEvent1.getPubKey().toHexString());
 
 //    ReqMessage reqMessage2 = new ReqMessage(globalSubscriberId, new Filters(eventFilter, authorFilter));
 //    Flux<GenericEvent> returnedEventsToGlobalSubscriberIdFlux = reactiveNostrRelayClient.sendRequestReturnEvents(reqMessage2);

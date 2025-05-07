@@ -27,7 +27,8 @@ public class ReactiveWebSocketHandler {
   protected void connect(@NonNull WebSocketClient webSocketClient, @NonNull URI uri) {
     subscription =
         webSocketClient
-            .execute(uri, this::handleSession)
+            .execute(
+                uri, this::handleSession)
             .then(
 // below, Create Mono that completes empty once provided Runnable has been executed
                 Mono.fromRunnable(this::onClose))
@@ -36,24 +37,8 @@ public class ReactiveWebSocketHandler {
             .subscribe();
   }
 
-  protected void disconnect() {
-    if (subscription != null && !subscription.isDisposed()) {
-      subscription.dispose();
-      subscription = null;
-      onClose();
-    }
-  }
-
   protected void send(@NonNull String message) {
     sendBuffer.tryEmitNext(message);
-  }
-
-  protected Flux<String> receive() {
-    return receiveBuffer.asFlux();
-  }
-
-  protected Optional<WebSocketSession> session() {
-    return Optional.ofNullable(session);
   }
 
   private Mono<Void> handleSession(WebSocketSession session) {
@@ -78,6 +63,22 @@ public class ReactiveWebSocketHandler {
         Mono
             .zip(input, output)
             .then();
+  }
+
+  protected Flux<String> receive() {
+    return receiveBuffer.asFlux();
+  }
+
+  protected void disconnect() {
+    if (subscription != null && !subscription.isDisposed()) {
+      subscription.dispose();
+      subscription = null;
+      onClose();
+    }
+  }
+
+  protected Optional<WebSocketSession> session() {
+    return Optional.ofNullable(session);
   }
 
   private void onOpen(WebSocketSession session) {
