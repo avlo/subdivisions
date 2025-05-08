@@ -18,7 +18,7 @@
 #      interval: 3s
 #      timeout: 30s
 #  superconductor-subdivisions:
-#    image: avlo/superconductor:1.13.0
+#    image: avlo/superconductor:1.13.1
 #    ports:
 #      - "5555:5555"
 #    depends_on:

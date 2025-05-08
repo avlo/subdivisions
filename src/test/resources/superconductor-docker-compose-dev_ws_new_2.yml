@@ -22,7 +22,7 @@
 #      timeout: 30s
 #  superconductor-subdivisions:
 ##    container_name: superconductor-subdivisions-app
-#    image: avlo/superconductor:1.13.0
+#    image: avlo/superconductor:1.13.1
 #    ports:
 #      - "55555:5555"
 #    #      docker debug port, note: requires image re-build
