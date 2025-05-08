@@ -32,9 +32,17 @@ public class ReactiveWebSocketClient {
     System.out.println("ReactiveWebSocketClient hashCode: [" + this.hashCode() + "]");
     log.debug("ReactiveWebSocketClient reactiveWebSocketHandler.hashCode: [{}]", reactiveWebSocketHandler.hashCode());
     System.out.println("ReactiveWebSocketClient reactiveWebSocketHandler.hashCode: [" + reactiveWebSocketHandler.hashCode() + "]");
+
+    System.out.println("++++++++++++++++++++++++");
+    System.out.println("message: [" + message + "]");
+    System.out.println("------------------------");
+    System.out.println("message.getArrayNode(): [" + message.getArrayNode() + "]");
+    System.out.println("------------------------");
+
     String encodedMessage = message.encode();
     log.debug("ReactiveWebSocketClient send().message: \n{}", encodedMessage);
     System.out.println("ReactiveWebSocketClient send().message: \n" + encodedMessage);
+    System.out.println("++++++++++++++++++++++++");
     System.out.println("111111111111111111111111");
     System.out.println("111111111111111111111111");
     log.debug("111111111111111111111111");

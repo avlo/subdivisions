@@ -163,6 +163,14 @@ class NostrRelayReactiveClientTest {
     ReqMessage reqMessage = new ReqMessage(identity.getPublicKey().toHexString(), new Filters(eventFilter, authorFilter));
     Flux<GenericEvent> returnedEventsToMethodSubscriberIdFlux = reactiveNostrRelayClient.sendRequestReturnEvents(reqMessage);
 
+    List<GenericEvent> result = new ArrayList<>();
+    returnedEventsToMethodSubscriberIdFlux.take(1).subscribe(result::add);
+    System.out.println("DDDDDDDDDDDDDDDDDDDDDDD");
+    System.out.println("DDDDDDDDDDDDDDDDDDDDDDD");
+    result.forEach(System.out::println);
+    System.out.println("DDDDDDDDDDDDDDDDDDDDDDD");
+    System.out.println("DDDDDDDDDDDDDDDDDDDDDDD");
+
 //    SampleSubscriber<GenericEvent> localMethodRequestSubscriber = new SampleSubscriber<>();
 //    returnedEventsToMethodSubscriberIdFlux.subscribe(localMethodRequestSubscriber);
 

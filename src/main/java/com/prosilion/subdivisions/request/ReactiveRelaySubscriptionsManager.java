@@ -107,7 +107,19 @@ public class ReactiveRelaySubscriptionsManager {
 //
 //    return results;
 //  }
-  
+
+  private <V extends BaseMessage> Flux<V> getTypeSpecificMessage(Class<V> messageClass, Flux<String> messages) {
+    return messages.map(msg -> {
+          try {
+            return new BaseMessageDecoder<V>().decode(msg);
+          } catch (JsonProcessingException e) {
+            return null;
+          }
+        })
+        .filter(Objects::nonNull)
+        .filter(messageClass::isInstance);
+  }
+
   //  TODO: cleanup sneaky
   @SneakyThrows
   private ReactiveWebSocketClient getReactiveWebSocketClient() {
@@ -140,19 +152,7 @@ public class ReactiveRelaySubscriptionsManager {
   private void closeSessions(Collection<ReactiveWebSocketClient> reactiveWebSocketClients) {
     reactiveWebSocketClients.forEach(ReactiveWebSocketClient::closeSocket);
   }
+  //  private final Function<Flux<String>, Optional<String>> eose = (events) ->
 
-//  private final Function<Flux<String>, Optional<String>> eose = (events) ->
 //      getTypeSpecificMessage(EoseMessage.class, events).map(EoseMessage::getSubscriptionId);
-
-  private <V extends BaseMessage> Flux<V> getTypeSpecificMessage(Class<V> messageClass, Flux<String> messages) {
-    return messages.map(msg -> {
-          try {
-            return new BaseMessageDecoder<V>().decode(msg);
-          } catch (JsonProcessingException e) {
-            return null;
-          }
-        })
-        .filter(Objects::nonNull)
-        .filter(messageClass::isInstance);
-  }
 }
