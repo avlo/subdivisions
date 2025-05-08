@@ -123,8 +123,9 @@ public class ReactiveRelaySubscriptionsManager {
   //  TODO: cleanup sneaky
   @SneakyThrows
   private ReactiveWebSocketClient getReactiveWebSocketClient() {
-//    return Objects.nonNull(sslBundles) ? new ReactiveWebSocketClient(relayUri) : new ReactiveWebSocketClient(relayUri);
-    return new ReactiveWebSocketClient(relayUri);
+    return Objects.isNull(sslBundles) ? 
+        new ReactiveWebSocketClient(relayUri) : 
+        new ReactiveWebSocketClient(relayUri, sslBundles);
   }
 
   public void closeSession(@NonNull String... subscriberIds) {

@@ -7,6 +7,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import nostr.event.BaseMessage;
 import nostr.event.message.CloseMessage;
+import org.springframework.boot.ssl.SslBundles;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -16,12 +17,19 @@ public class ReactiveWebSocketClient {
   private final ReactiveWebSocketHandler reactiveWebSocketHandler;
 
   public ReactiveWebSocketClient(@NonNull String relayUrl) {
-    final ReactiveWebSocketHandler reactiveWebSocketHandler = new ReactiveWebSocketHandler();
+    this.reactiveWebSocketHandler = new ReactiveWebSocketHandler();
     System.out.println("call new ReactiveWebSocketHandler hashCode: [ " + reactiveWebSocketHandler.hashCode() + " ]");
-    final ReactorNettyWebSocketClient webSocketClient = new ReactorNettyWebSocketClient();
-    System.out.println("call new ReactiveWebSocketClient hashCode: [ " + webSocketClient.hashCode() + " ]");
-    reactiveWebSocketHandler.connect(webSocketClient, getURI(relayUrl));
-    this.reactiveWebSocketHandler = reactiveWebSocketHandler;
+    reactiveWebSocketHandler.connect(new ReactorNettyWebSocketClient(), getURI(relayUrl));
+  }
+
+  public ReactiveWebSocketClient(@NonNull String relayUri, @NonNull SslBundles sslBundles) {
+    this.reactiveWebSocketHandler = new ReactiveWebSocketHandler();
+    final ReactorNettyWebSocketClient reactorNettyWebSocketClient = new ReactorNettyWebSocketClient();
+//    TODO: Secure (WSS) WebSocket needs impl
+    log.info("WARNING: **** Secure (WSS) WebSocket implementation is incomplete, currently+ NOT using wss ****");
+//    reactorNettyWebSocketClient.setSslContext(sslBundles.getBundle("server").createSslContext());
+    reactiveWebSocketHandler.connect(reactorNettyWebSocketClient, getURI(relayUri));
+    log.debug("Secure (WSS) WebSocket subdivisions connected {}", reactiveWebSocketHandler.session().orElseThrow().getId());
   }
 
   public <T extends BaseMessage> Flux<String> send(T message) throws JsonProcessingException {
@@ -35,8 +43,6 @@ public class ReactiveWebSocketClient {
 
     System.out.println("++++++++++++++++++++++++");
     System.out.println("message: [" + message + "]");
-    System.out.println("------------------------");
-    System.out.println("message.getArrayNode(): [" + message.getArrayNode() + "]");
     System.out.println("------------------------");
 
     String encodedMessage = message.encode();

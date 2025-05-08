@@ -148,8 +148,6 @@ class NostrRelayReactiveClientTest {
     GenericEvent event = new NIP01<>(identity).createTextNoteEvent(Factory.lorumIpsum()).sign().getEvent();
 
     Flux<String> eventFlux = reactiveNostrRelayClient.sendEvent(new EventMessage(event, event.getId()));
-//    SampleSubscriber<String> eventSubscriber = new SampleSubscriber<>();
-//    eventFlux.subscribe(eventSubscriber);
 
     String expected = "[\"OK\",\"" + event.getId() + "\",true,\"success: request processed\"]";
     StepVerifier
