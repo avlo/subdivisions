@@ -33,26 +33,26 @@ public class ReactiveWebSocketClient {
   }
 
   public <T extends BaseMessage> Flux<String> send(T message) throws JsonProcessingException {
-    log.debug("111111111111111111111111");
-    log.debug("111111111111111111111111");
-    System.out.println("111111111111111111111111");
-    System.out.println("111111111111111111111111");
-    System.out.println("ReactiveWebSocketClient hashCode: [" + this.hashCode() + "]");
-    log.debug("ReactiveWebSocketClient reactiveWebSocketHandler.hashCode: [{}]", reactiveWebSocketHandler.hashCode());
-    System.out.println("ReactiveWebSocketClient reactiveWebSocketHandler.hashCode: [" + reactiveWebSocketHandler.hashCode() + "]");
-
-    System.out.println("++++++++++++++++++++++++");
-    System.out.println("message: [" + message + "]");
-    System.out.println("------------------------");
-
+//    log.debug("111111111111111111111111");
+//    log.debug("111111111111111111111111");
+//    System.out.println("111111111111111111111111");
+//    System.out.println("111111111111111111111111");
+//    System.out.println("ReactiveWebSocketClient hashCode: [" + this.hashCode() + "]");
+//    log.debug("ReactiveWebSocketClient reactiveWebSocketHandler.hashCode: [{}]", reactiveWebSocketHandler.hashCode());
+//    System.out.println("ReactiveWebSocketClient reactiveWebSocketHandler.hashCode: [" + reactiveWebSocketHandler.hashCode() + "]");
+//
+//    System.out.println("++++++++++++++++++++++++");
+//    System.out.println("message: [" + message + "]");
+//    System.out.println("------------------------");
+//
     String encodedMessage = message.encode();
-    log.debug("ReactiveWebSocketClient send().message: \n{}", encodedMessage);
-    System.out.println("ReactiveWebSocketClient send().message: \n" + encodedMessage);
-    System.out.println("++++++++++++++++++++++++");
-    System.out.println("111111111111111111111111");
-    System.out.println("111111111111111111111111");
-    log.debug("111111111111111111111111");
-    log.debug("111111111111111111111111");
+//    log.debug("ReactiveWebSocketClient send().message: \n{}", encodedMessage);
+//    System.out.println("ReactiveWebSocketClient send().message: \n" + encodedMessage);
+//    System.out.println("++++++++++++++++++++++++");
+//    System.out.println("111111111111111111111111");
+//    System.out.println("111111111111111111111111");
+//    log.debug("111111111111111111111111");
+//    log.debug("111111111111111111111111");
     return Mono
         .fromRunnable(
             () -> reactiveWebSocketHandler.send(encodedMessage))
