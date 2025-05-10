@@ -16,10 +16,8 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nostr.base.Command;
-import nostr.event.BaseMessage;
 import nostr.event.impl.GenericEvent;
 import nostr.event.json.codec.BaseEventEncoder;
-import nostr.event.json.codec.BaseMessageDecoder;
 import nostr.event.message.EoseMessage;
 import nostr.event.message.EventMessage;
 import nostr.event.message.ReqMessage;
@@ -124,7 +122,7 @@ public class StandardRelaySubscriptionsManager implements MessageTypeFilterable 
     return Optional.ofNullable(subscriberIdWebSocketClientMap.get(subscriberId))
         .orElseThrow().getEvents();
   }
-  
+
   //  TODO: cleanup sneaky
   @SneakyThrows
   private StandardWebSocketClient getStandardWebSocketClient() {
