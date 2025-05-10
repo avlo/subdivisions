@@ -5,7 +5,7 @@
 #    ports:
 #      - "33316:3316"
 #    labels:
-#      org.springframework.boot.service-connection: mysql
+#      org.springframework.boot.client-connection: mysql
 #    environment:
 #      MYSQL_DATABASE: superconductor-subdivisions
 #      #      set below db name and credentials as desired

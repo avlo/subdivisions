@@ -1,4 +1,4 @@
-package com.prosilion.subdivisions.service;
+package com.prosilion.subdivisions.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.subdivisions.client.standard.StandardNostrRelayClient;
