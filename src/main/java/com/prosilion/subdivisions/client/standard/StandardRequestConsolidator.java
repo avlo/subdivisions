@@ -10,14 +10,14 @@ import nostr.event.impl.GenericEvent;
 import nostr.event.message.ReqMessage;
 import org.apache.commons.lang3.stream.Streams;
 
-public class RequestConsolidator {
+public class StandardRequestConsolidator {
   private final Map<String, StandardRelaySubscriptionsManager> map;
 
-  public RequestConsolidator() {
+  public StandardRequestConsolidator() {
     this(new HashMap<>());
   }
 
-  public RequestConsolidator(Map<String, String> relayNameUriMap) {
+  public StandardRequestConsolidator(Map<String, String> relayNameUriMap) {
     this.map = relayNameUriMap.entrySet().stream()
         .collect(Collectors.toMap(
             Map.Entry::getKey,

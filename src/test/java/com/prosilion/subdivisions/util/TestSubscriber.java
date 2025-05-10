@@ -7,7 +7,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.awaitility.Awaitility;
 import org.reactivestreams.Subscription;
 import reactor.core.publisher.BaseSubscriber;
@@ -39,17 +38,11 @@ public class TestSubscriber<T> extends BaseSubscriber<T> {
   public void hookOnNext(@NonNull T value) {
     requestUnbounded();
 
-    log.debug("111111111111111111111");
-    String subscriberId = value.toString().split(",")[1];
-    String strippedStart = StringUtils.stripStart(subscriberId, "\"");
-    log.debug(" On Next: " + ANSI_RED + StringUtils.stripEnd(strippedStart, "\"") + ANSI_RESET + " " + value.hashCode());
-    log.debug("---------------------");
     completed.setRelease(false);
     items.add(value);
     completed.setRelease(true);
-    log.debug("item list:");
+    log.debug("TestSubscriber item list:");
     items.forEach(item -> log.debug("  " + item.toString()));
-    log.debug("111111111111111111111");
   }
 
   public List<T> getItems() {

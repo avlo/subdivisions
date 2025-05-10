@@ -47,7 +47,7 @@ public class SuperconductorRelayConfig {
   }
 
 //  @Bean
-//  public RequestConsolidator superconductorRelaysAggregate(Map<String, String> superconductorRelays) {
-//    return new RequestConsolidator(superconductorRelays);
+//  public StandardRequestConsolidator superconductorRelaysAggregate(Map<String, String> superconductorRelays) {
+//    return new StandardRequestConsolidator(superconductorRelays);
 //  }
 }

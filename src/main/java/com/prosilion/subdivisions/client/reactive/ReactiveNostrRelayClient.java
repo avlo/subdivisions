@@ -7,6 +7,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import nostr.event.impl.GenericEvent;
 import nostr.event.message.EventMessage;
+import nostr.event.message.OkMessage;
 import nostr.event.message.ReqMessage;
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
@@ -35,7 +36,7 @@ public class ReactiveNostrRelayClient {
     this.reactiveRelaySubscriptionsManager = new ReactiveRelaySubscriptionsManager(relayUri, sslBundles);
   }
 
-  public Flux<String> sendEvent(@NonNull EventMessage eventMessage) throws IOException {
+  public Flux<OkMessage> sendEvent(@NonNull EventMessage eventMessage) throws IOException {
     return reactiveEventPublisher.send(eventMessage);
   }
 

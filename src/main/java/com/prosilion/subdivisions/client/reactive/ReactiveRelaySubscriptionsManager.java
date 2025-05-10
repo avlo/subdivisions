@@ -13,7 +13,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nostr.event.BaseMessage;
 import nostr.event.impl.GenericEvent;
-import nostr.event.json.codec.BaseEventEncoder;
 import nostr.event.json.codec.BaseMessageDecoder;
 import nostr.event.message.EventMessage;
 import nostr.event.message.ReqMessage;
@@ -26,11 +25,6 @@ public class ReactiveRelaySubscriptionsManager {
   private final Map<String, ReactiveWebSocketClient> subscriberIdWebSocketClientMap = new ConcurrentHashMap<>();
   private final String relayUri;
   private SslBundles sslBundles;
-
-  private final Function<Flux<String>, Flux<String>> eventsAsStrings = (events) ->
-      getTypeSpecificMessage(EventMessage.class, events)
-          .map(eventMessage -> (GenericEvent) eventMessage.getEvent())
-          .map(event -> new BaseEventEncoder<>(event).encode());
 
   private final Function<Flux<String>, Flux<GenericEvent>> eventsAsGenericEvents = (events) ->
       getTypeSpecificMessage(EventMessage.class, events)
@@ -58,27 +52,11 @@ public class ReactiveRelaySubscriptionsManager {
 
   private Flux<String> getRequestResults(ReqMessage reqMessage) throws JsonProcessingException {
     String subscriberId = reqMessage.getSubscriptionId();
-//    log.debug("000000000000000000000000");
-//    log.debug("000000000000000000000000");
-//    System.out.println("000000000000000000000000");
-//    System.out.println("000000000000000000000000");
-//    log.debug("subscriberId: [{}]", subscriberId);
-//    System.out.println("subscriberId: [{" + subscriberId + "}]");
-//    String reqJson = reqMessage.encode();
-//    log.debug("reqJson: \n{}", reqJson);
-//    System.out.println("reqJson: \n" + reqJson);
     final ReactiveWebSocketClient reactiveWebSocketClient = Optional.ofNullable(subscriberIdWebSocketClientMap.get(subscriberId))
         .orElseGet(() -> {
           subscriberIdWebSocketClientMap.put(subscriberId, getReactiveWebSocketClient());
           return subscriberIdWebSocketClientMap.get(subscriberId);
         });
-//    log.debug("ReactiveWebSocketClient hashCode: [{}]", reactiveWebSocketClient.hashCode());
-//    System.out.println("ReactiveRelaySubscriptionsManager ReactiveWebSocketClient. hashCode: [" + reactiveWebSocketClient.hashCode() + "]");
-//    System.out.println("000000000000000000000000");
-//    System.out.println("000000000000000000000000");
-//    log.debug("ReqMessage: \n{}", reqMessage);
-//    log.debug("000000000000000000000000");
-//    log.debug("000000000000000000000000");
     return reactiveWebSocketClient.send(reqMessage);
   }
 

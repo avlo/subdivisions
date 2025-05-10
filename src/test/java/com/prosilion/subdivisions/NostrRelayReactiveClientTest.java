@@ -14,6 +14,7 @@ import nostr.event.filter.EventFilter;
 import nostr.event.filter.Filters;
 import nostr.event.impl.GenericEvent;
 import nostr.event.message.EventMessage;
+import nostr.event.message.OkMessage;
 import nostr.event.message.ReqMessage;
 import nostr.id.Identity;
 import org.apache.commons.lang3.StringUtils;
@@ -47,7 +48,7 @@ class NostrRelayReactiveClientTest {
   }
 
   @Test
-  void testEventCreationUsingExplicitSubscriber() throws IOException, InterruptedException {
+  void testEventCreationUsingExplicitSubscriber() throws IOException {
     log.debug("AAAAAAAAAAAAAAAAAAAAAAA");
     log.debug("AAAAAAAAAAAAAAAAAAAAAAA");
 
@@ -55,18 +56,16 @@ class NostrRelayReactiveClientTest {
     GenericEvent event = new NIP01<>(identity).createTextNoteEvent(Factory.lorumIpsum()).sign().getEvent();
     log.trace("setup() send event:\n  {}", event.toString());
 
-    Flux<String> flux = reactiveNostrRelayClient.sendEvent(new EventMessage(event, event.getId()));
+    Flux<OkMessage> okMessageMono = reactiveNostrRelayClient.sendEvent(new EventMessage(event, event.getId()));
 
-    printConsole(flux.hashCode());
+    printConsole(okMessageMono.hashCode());
 
 //  1) ******* if only below TestSubscriber is active, OnNext will register 1 EVENT
-    TestSubscriber<String> eventSubscriber = new TestSubscriber<>();
-    flux.subscribe(eventSubscriber);
-//    eventSubscriber.dispose();
+    TestSubscriber<OkMessage> okMessageSubscriber = new TestSubscriber<>();
+    okMessageMono.subscribe(okMessageSubscriber);
 
-    List<String> items = eventSubscriber.getItems();
-    String expected = "[\"OK\",\"" + event.getId() + "\",true,\"success: request processed\"]";
-    assertEquals(expected, items.getFirst());
+    OkMessage okMessage = new OkMessage(event.getId(), true, "success: request processed");
+    assertEquals(okMessage.encode(), okMessageSubscriber.getItems().getFirst().encode());
 
 //  2) ******* if only below collectList() is active, OnNext will register 0 EVENTS
 //     note: including below with above subscriber causes sending of TWO EVENTs
@@ -79,21 +78,20 @@ class NostrRelayReactiveClientTest {
   }
 
   @Test
-  void testEventCreationUsingBlockFirst() throws IOException, InterruptedException {
+  void testEventCreationUsingBlockFirst() throws IOException {
     log.debug("\nBBBBBBBBBBBBBBBBBBBBBBB");
     log.debug("BBBBBBBBBBBBBBBBBBBBBBB");
     Identity identity = Factory.createNewIdentity();
     GenericEvent event = new NIP01<>(identity).createTextNoteEvent(Factory.lorumIpsum()).sign().getEvent();
     log.trace("setup() send event:\n  {}", event.toString());
 
-    Flux<String> flux = reactiveNostrRelayClient.sendEvent(new EventMessage(event, event.getId()));
-    printConsole(flux.hashCode());
+    Flux<OkMessage> okMessageMono = reactiveNostrRelayClient.sendEvent(new EventMessage(event, event.getId()));
+    printConsole(okMessageMono.hashCode());
 
 //    example of blockFirst directly on a flux
-    String returnedEventReq = flux.blockFirst();
-
-    String expected = "[\"OK\",\"" + event.getId() + "\",true,\"success: request processed\"]";
-    assertEquals(expected, returnedEventReq);
+    OkMessage actualOkMessage = okMessageMono.blockFirst();
+    OkMessage expectedOkMessage = new OkMessage(event.getId(), true, "success: request processed");
+    assertEquals(expectedOkMessage.encode(), actualOkMessage.encode());
 
     log.debug("BBBBBBBBBBBBBBBBBBBBBBB");
     log.debug("BBBBBBBBBBBBBBBBBBBBBBB\n");
@@ -108,11 +106,12 @@ class NostrRelayReactiveClientTest {
     GenericEvent event = new NIP01<>(identity).createTextNoteEvent(content).sign().getEvent();
 
     ReactiveNostrRelayClient methodReactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUri);
-    Flux<String> eventFlux = methodReactiveNostrRelayClient.sendEvent(new EventMessage(event));
+    Flux<OkMessage> okMessageMono = methodReactiveNostrRelayClient.sendEvent(new EventMessage(event));
 
-    String eventResponse = eventFlux.blockFirst();
-    log.debug("genericEvent: " + eventResponse);
-    assertEquals("[\"OK\",\"" + event.getId() + "\",true,\"success: request processed\"]", eventResponse);
+    OkMessage actualOkMessage = okMessageMono.blockFirst();
+    OkMessage expectedOkMessage = new OkMessage(event.getId(), true, "success: request processed");
+    assertEquals(expectedOkMessage.encode(), actualOkMessage.encode());
+
     log.debug("-------------------------");
 
 //  #--------------------- REQ -------------------------
@@ -149,14 +148,14 @@ class NostrRelayReactiveClientTest {
     GenericEvent event = new NIP01<>(identity).createTextNoteEvent(content).sign().getEvent();
 
     ReactiveNostrRelayClient methodReactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUri);
-    Flux<String> eventFlux = methodReactiveNostrRelayClient.sendEvent(new EventMessage(event));//, event.getId()));
+    Flux<OkMessage> okMessageMono = methodReactiveNostrRelayClient.sendEvent(new EventMessage(event));//, event.getId()));
 
-    TestSubscriber<String> eventSubscriber = new TestSubscriber<>();
-    eventFlux.subscribe(eventSubscriber);  //  subscriber, causing EVENT emission
+    TestSubscriber<OkMessage> eventSubscriber = new TestSubscriber<>();
+    okMessageMono.subscribe(eventSubscriber);  //  subscriber, causing EVENT emission
 
-    List<String> eventRespose = eventSubscriber.getItems();
-    String expected = "[\"OK\",\"" + event.getId() + "\",true,\"success: request processed\"]";
-    assertEquals(expected, eventRespose.getFirst());
+    List<OkMessage> items = eventSubscriber.getItems();
+    OkMessage okMessage = new OkMessage(event.getId(), true, "success: request processed");
+    assertEquals(okMessage.encode(), items.getFirst().encode());
 
 //  #--------------------- REQ -------------------------
     EventFilter<GenericEvent> eventFilter = new EventFilter<>(event);
@@ -191,10 +190,12 @@ class NostrRelayReactiveClientTest {
     String content = Factory.lorumIpsum();
     GenericEvent event = new NIP01<>(identity).createTextNoteEvent(content).sign().getEvent();
 
-    Flux<String> eventFlux = reactiveNostrRelayClient.sendEvent(new EventMessage(event));//, event.getId()));
-    String eventResponse = eventFlux.blockFirst();
-    log.debug("genericEvent: " + eventResponse);
-    assertEquals("[\"OK\",\"" + event.getId() + "\",true,\"success: request processed\"]", eventResponse);
+    Flux<OkMessage> okMessageMono = reactiveNostrRelayClient.sendEvent(new EventMessage(event));//, event.getId()));
+
+    OkMessage actualOkMessage = okMessageMono.blockFirst();
+    OkMessage expectedOkMessage = new OkMessage(event.getId(), true, "success: request processed");
+    assertEquals(expectedOkMessage.encode(), actualOkMessage.encode());
+
     log.debug("-------------------------");
 
 //    #--------------------- REQ -------------------------
