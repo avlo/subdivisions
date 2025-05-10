@@ -1,7 +1,6 @@
-package com.prosilion.subdivisions.request;
+package com.prosilion.subdivisions.client.reactive;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.prosilion.subdivisions.client.reactive.ReactiveWebSocketClient;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;

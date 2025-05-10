@@ -1,4 +1,4 @@
-package com.prosilion.subdivisions.request;
+package com.prosilion.subdivisions.client.standard;
 
 import java.util.HashMap;
 import java.util.List;

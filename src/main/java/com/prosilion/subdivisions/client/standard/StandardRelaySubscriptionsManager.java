@@ -1,7 +1,6 @@
-package com.prosilion.subdivisions.request;
+package com.prosilion.subdivisions.client.standard;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.prosilion.subdivisions.client.standard.StandardWebSocketClient;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;

@@ -1,6 +1,5 @@
-package com.prosilion.subdivisions.event;
+package com.prosilion.subdivisions.client.standard;
 
-import com.prosilion.subdivisions.client.standard.StandardWebSocketClient;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;

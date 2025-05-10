@@ -1,4 +1,4 @@
-package com.prosilion.subdivisions.client;
+package com.prosilion.subdivisions.client.reactive;
 
 import com.prosilion.subdivisions.client.reactive.ReactiveNostrRelayClient;
 import com.prosilion.subdivisions.config.SuperconductorRelayConfig;

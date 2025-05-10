@@ -13,16 +13,16 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Slf4j
-public class ReactiveWebSocketClient {
+class ReactiveWebSocketClient {
   private final ReactiveWebSocketHandler reactiveWebSocketHandler;
 
-  public ReactiveWebSocketClient(@NonNull String relayUrl) {
+  protected ReactiveWebSocketClient(@NonNull String relayUrl) {
     this.reactiveWebSocketHandler = new ReactiveWebSocketHandler();
     System.out.println("call new ReactiveWebSocketHandler hashCode: [ " + reactiveWebSocketHandler.hashCode() + " ]");
     reactiveWebSocketHandler.connect(new ReactorNettyWebSocketClient(), getURI(relayUrl));
   }
 
-  public ReactiveWebSocketClient(@NonNull String relayUri, @NonNull SslBundles sslBundles) {
+  protected ReactiveWebSocketClient(@NonNull String relayUri, @NonNull SslBundles sslBundles) {
     this.reactiveWebSocketHandler = new ReactiveWebSocketHandler();
     final ReactorNettyWebSocketClient reactorNettyWebSocketClient = new ReactorNettyWebSocketClient();
 //    TODO: Secure (WSS) WebSocket needs impl
@@ -32,27 +32,8 @@ public class ReactiveWebSocketClient {
     log.debug("Secure (WSS) WebSocket subdivisions connected {}", reactiveWebSocketHandler.session().orElseThrow().getId());
   }
 
-  public <T extends BaseMessage> Flux<String> send(T message) throws JsonProcessingException {
-//    log.debug("111111111111111111111111");
-//    log.debug("111111111111111111111111");
-//    System.out.println("111111111111111111111111");
-//    System.out.println("111111111111111111111111");
-//    System.out.println("ReactiveWebSocketClient hashCode: [" + this.hashCode() + "]");
-//    log.debug("ReactiveWebSocketClient reactiveWebSocketHandler.hashCode: [{}]", reactiveWebSocketHandler.hashCode());
-//    System.out.println("ReactiveWebSocketClient reactiveWebSocketHandler.hashCode: [" + reactiveWebSocketHandler.hashCode() + "]");
-//
-//    System.out.println("++++++++++++++++++++++++");
-//    System.out.println("message: [" + message + "]");
-//    System.out.println("------------------------");
-//
-    String encodedMessage = message.encode();
-//    log.debug("ReactiveWebSocketClient send().message: \n{}", encodedMessage);
-//    System.out.println("ReactiveWebSocketClient send().message: \n" + encodedMessage);
-//    System.out.println("++++++++++++++++++++++++");
-//    System.out.println("111111111111111111111111");
-//    System.out.println("111111111111111111111111");
-//    log.debug("111111111111111111111111");
-//    log.debug("111111111111111111111111");
+  protected <T extends BaseMessage> Flux<String> send(T message) throws JsonProcessingException {
+    String encodedMessage = message.encode();  // explicitly put here for throws
     return Mono
         .fromRunnable(
             () -> reactiveWebSocketHandler.send(encodedMessage))
@@ -60,11 +41,11 @@ public class ReactiveWebSocketClient {
             reactiveWebSocketHandler.receive().map(String::trim));
   }
 
-  public void closeSocket() {
+  protected void closeSocket() {
     reactiveWebSocketHandler.disconnect();
   }
 
-  public Flux<String> disconnect(@NonNull String subscriptionId) throws JsonProcessingException {
+  protected Flux<String> disconnect(@NonNull String subscriptionId) throws JsonProcessingException {
     Flux<String> stringFlux = send(new CloseMessage(subscriptionId));
     closeSocket();
     return stringFlux;

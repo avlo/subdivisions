@@ -1,7 +1,7 @@
 package com.prosilion.subdivisions;
 
 import com.prosilion.subdivisions.config.SuperconductorRelayConfig;
-import com.prosilion.subdivisions.event.StandardEventPublisher;
+import com.prosilion.subdivisions.client.standard.StandardEventPublisher;
 import com.prosilion.subdivisions.util.Factory;
 import java.io.IOException;
 import java.util.List;

@@ -12,13 +12,13 @@ import reactor.core.publisher.Sinks;
 import java.net.URI;
 import java.util.Optional;
 
-public class ReactiveWebSocketHandler {
+class ReactiveWebSocketHandler {
   private final Sinks.Many<String> sendBuffer;
   private final Sinks.Many<String> receiveBuffer;
   private Disposable subscription;
   private WebSocketSession session;
 
-  public ReactiveWebSocketHandler() {
+  protected ReactiveWebSocketHandler() {
 //    TODO: revisit, possibly other options/approaches
     this.sendBuffer = Sinks.many().multicast().onBackpressureBuffer();
     this.receiveBuffer = Sinks.many().multicast().onBackpressureBuffer();
