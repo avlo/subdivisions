@@ -7,15 +7,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import nostr.event.BaseMessage;
 import nostr.event.impl.GenericEvent;
-import nostr.event.json.codec.BaseMessageDecoder;
 import nostr.event.message.EventMessage;
 import nostr.event.message.ReqMessage;
+import org.apache.commons.lang3.stream.Streams;
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
 import reactor.core.publisher.Flux;
@@ -25,10 +23,6 @@ public class ReactiveRelaySubscriptionsManager {
   private final Map<String, ReactiveWebSocketClient> subscriberIdWebSocketClientMap = new ConcurrentHashMap<>();
   private final String relayUri;
   private SslBundles sslBundles;
-
-  private final Function<Flux<String>, Flux<GenericEvent>> eventsAsGenericEvents = (events) ->
-      getTypeSpecificMessage(EventMessage.class, events)
-          .map(eventMessage -> (GenericEvent) eventMessage.getEvent());
 
   public ReactiveRelaySubscriptionsManager(@NonNull String relayUri) {
     this.relayUri = relayUri;
@@ -47,7 +41,13 @@ public class ReactiveRelaySubscriptionsManager {
 
   public Flux<GenericEvent> send(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
     log.debug("pre-encoded ReqMessage json: \n{}", reqMessage);
-    return eventsAsGenericEvents.apply(getRequestResults(reqMessage));
+
+    List<GenericEvent> map = Streams.failableStream(
+            getRequestResults(reqMessage).toStream()
+                .map(s -> (EventMessage) EventMessage.decode(s)))
+        .map(eventMessage -> (GenericEvent) eventMessage.getEvent()).stream().toList();
+
+    return Flux.fromIterable(map);
   }
 
   private Flux<String> getRequestResults(ReqMessage reqMessage) throws JsonProcessingException {
@@ -85,23 +85,11 @@ public class ReactiveRelaySubscriptionsManager {
 //    return results;
 //  }
 
-  private <V extends BaseMessage> Flux<V> getTypeSpecificMessage(Class<V> messageClass, Flux<String> messages) {
-    return messages.map(msg -> {
-          try {
-            return new BaseMessageDecoder<V>().decode(msg);
-          } catch (JsonProcessingException e) {
-            return null;
-          }
-        })
-        .filter(Objects::nonNull)
-        .filter(messageClass::isInstance);
-  }
-
   //  TODO: cleanup sneaky
   @SneakyThrows
   private ReactiveWebSocketClient getReactiveWebSocketClient() {
-    return Objects.isNull(sslBundles) ? 
-        new ReactiveWebSocketClient(relayUri) : 
+    return Objects.isNull(sslBundles) ?
+        new ReactiveWebSocketClient(relayUri) :
         new ReactiveWebSocketClient(relayUri, sslBundles);
   }
 
@@ -130,7 +118,4 @@ public class ReactiveRelaySubscriptionsManager {
   private void closeSessions(Collection<ReactiveWebSocketClient> reactiveWebSocketClients) {
     reactiveWebSocketClients.forEach(ReactiveWebSocketClient::closeSocket);
   }
-  //  private final Function<Flux<String>, Optional<String>> eose = (events) ->
-
-//      getTypeSpecificMessage(EoseMessage.class, events).map(EoseMessage::getSubscriptionId);
 }
