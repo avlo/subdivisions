@@ -36,11 +36,11 @@ public class ReactiveNostrRelayClient {
     this.reactiveRelaySubscriptionsManager = new ReactiveRelaySubscriptionsManager(relayUri, sslBundles);
   }
 
-  public Flux<OkMessage> sendEvent(@NonNull EventMessage eventMessage) throws IOException {
+  public Flux<OkMessage> send(@NonNull EventMessage eventMessage) throws IOException {
     return reactiveEventPublisher.send(eventMessage);
   }
 
-  public Flux<GenericEvent> sendRequestReturnEvents(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
+  public Flux<GenericEvent> send(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
     return reactiveRelaySubscriptionsManager.send(reqMessage);
   }
 }

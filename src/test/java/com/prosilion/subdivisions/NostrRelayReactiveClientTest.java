@@ -56,7 +56,7 @@ class NostrRelayReactiveClientTest {
     GenericEvent event = new NIP01<>(identity).createTextNoteEvent(Factory.lorumIpsum()).sign().getEvent();
     log.trace("setup() send event:\n  {}", event.toString());
 
-    Flux<OkMessage> okMessageMono = reactiveNostrRelayClient.sendEvent(new EventMessage(event, event.getId()));
+    Flux<OkMessage> okMessageMono = reactiveNostrRelayClient.send(new EventMessage(event, event.getId()));
 
     printConsole(okMessageMono.hashCode());
 
@@ -85,7 +85,7 @@ class NostrRelayReactiveClientTest {
     GenericEvent event = new NIP01<>(identity).createTextNoteEvent(Factory.lorumIpsum()).sign().getEvent();
     log.trace("setup() send event:\n  {}", event.toString());
 
-    Flux<OkMessage> okMessageMono = reactiveNostrRelayClient.sendEvent(new EventMessage(event, event.getId()));
+    Flux<OkMessage> okMessageMono = reactiveNostrRelayClient.send(new EventMessage(event, event.getId()));
     printConsole(okMessageMono.hashCode());
 
 //    example of blockFirst directly on a flux
@@ -106,7 +106,7 @@ class NostrRelayReactiveClientTest {
     GenericEvent event = new NIP01<>(identity).createTextNoteEvent(content).sign().getEvent();
 
     ReactiveNostrRelayClient methodReactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUri);
-    Flux<OkMessage> okMessageMono = methodReactiveNostrRelayClient.sendEvent(new EventMessage(event));
+    Flux<OkMessage> okMessageMono = methodReactiveNostrRelayClient.send(new EventMessage(event));
 
     OkMessage actualOkMessage = okMessageMono.blockFirst();
     OkMessage expectedOkMessage = new OkMessage(event.getId(), true, "success: request processed");
@@ -121,7 +121,7 @@ class NostrRelayReactiveClientTest {
     final String subscriberId = Factory.generateRandomHex64String();
 
     ReqMessage reqMessage = new ReqMessage(subscriberId, new Filters(eventFilter, authorFilter));
-    Flux<GenericEvent> returnedEventsToMethodSubscriberIdFlux = methodReactiveNostrRelayClient.sendRequestReturnEvents(reqMessage);
+    Flux<GenericEvent> returnedEventsToMethodSubscriberIdFlux = methodReactiveNostrRelayClient.send(reqMessage);
 
     GenericEvent returnedReqGenericEvent = returnedEventsToMethodSubscriberIdFlux.blockFirst();
 
@@ -148,7 +148,7 @@ class NostrRelayReactiveClientTest {
     GenericEvent event = new NIP01<>(identity).createTextNoteEvent(content).sign().getEvent();
 
     ReactiveNostrRelayClient methodReactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUri);
-    Flux<OkMessage> okMessageMono = methodReactiveNostrRelayClient.sendEvent(new EventMessage(event));//, event.getId()));
+    Flux<OkMessage> okMessageMono = methodReactiveNostrRelayClient.send(new EventMessage(event));//, event.getId()));
 
     TestSubscriber<OkMessage> eventSubscriber = new TestSubscriber<>();
     okMessageMono.subscribe(eventSubscriber);  //  subscriber, causing EVENT emission
@@ -164,7 +164,7 @@ class NostrRelayReactiveClientTest {
     final String subscriberId = Factory.generateRandomHex64String();
 
     ReqMessage reqMessage = new ReqMessage(subscriberId, new Filters(eventFilter, authorFilter));
-    Flux<GenericEvent> returnedEventsToMethodSubscriberIdFlux = methodReactiveNostrRelayClient.sendRequestReturnEvents(reqMessage);
+    Flux<GenericEvent> returnedEventsToMethodSubscriberIdFlux = methodReactiveNostrRelayClient.send(reqMessage);
 
     TestSubscriber<GenericEvent> reqSubscriber = new TestSubscriber<>();
     returnedEventsToMethodSubscriberIdFlux.subscribe(reqSubscriber);  //  subscriber, causing REQ emission
@@ -190,7 +190,7 @@ class NostrRelayReactiveClientTest {
     String content = Factory.lorumIpsum();
     GenericEvent event = new NIP01<>(identity).createTextNoteEvent(content).sign().getEvent();
 
-    Flux<OkMessage> okMessageMono = reactiveNostrRelayClient.sendEvent(new EventMessage(event));//, event.getId()));
+    Flux<OkMessage> okMessageMono = reactiveNostrRelayClient.send(new EventMessage(event));//, event.getId()));
 
     OkMessage actualOkMessage = okMessageMono.blockFirst();
     OkMessage expectedOkMessage = new OkMessage(event.getId(), true, "success: request processed");
@@ -205,7 +205,7 @@ class NostrRelayReactiveClientTest {
     final String subscriberId = Factory.generateRandomHex64String();
 
     ReqMessage reqMessage = new ReqMessage(subscriberId, new Filters(eventFilter, authorFilter));
-    Flux<GenericEvent> returnedEventsToMethodSubscriberIdFlux = reactiveNostrRelayClient.sendRequestReturnEvents(reqMessage);
+    Flux<GenericEvent> returnedEventsToMethodSubscriberIdFlux = reactiveNostrRelayClient.send(reqMessage);
 
     GenericEvent returnedReqGenericEvent = returnedEventsToMethodSubscriberIdFlux.blockFirst();
 
