@@ -76,8 +76,9 @@ class NostrRelayReactiveClientTest {
     flux.subscribe(eventSubscriber);
 
 //  2) ******* if only below collectList() is active, OnNext will register 0 EVENTS
-    List<String> list3 = new ArrayList<>();
-    flux.collectList().subscribe(list3::addAll);
+//     note: including below with above subscriber causes TWO EVENTs to become sent
+//    List<String> list3 = new ArrayList<>();
+//    flux.collectList().subscribe(list3::addAll);
 //  3) ******* if both above SampleSubscriber and collectList are active, OnNext will register 2 EVENTS w/ same ID
 
 //    String expected = "[\"OK\",\"" + event.getId() + "\",true,\"success: request processed\"]";
@@ -155,7 +156,7 @@ class NostrRelayReactiveClientTest {
     String content = Factory.lorumIpsum();
     GenericEvent event = new NIP01<>(identity).createTextNoteEvent(content).sign().getEvent();
 
-    ReactiveNostrRelayClient methodReactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUri); 
+    ReactiveNostrRelayClient methodReactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUri);
     Flux<String> eventFlux = methodReactiveNostrRelayClient.sendEvent(new EventMessage(event));//, event.getId()));
 
 //    SampleSubscriber<String> eventSubscriber = new SampleSubscriber<>();
@@ -165,7 +166,7 @@ class NostrRelayReactiveClientTest {
     log.debug("genericEvent: " + eventResponse);
     assertEquals("[\"OK\",\"" + event.getId() + "\",true,\"success: request processed\"]", eventResponse);
     log.debug("-------------------------");
-    
+
 //    eventSubscriber.dispose();
 
 //    #--------------------- REQ -------------------------
@@ -181,9 +182,9 @@ class NostrRelayReactiveClientTest {
 //    returnedEventsToMethodSubscriberIdFlux.subscribe(reqSubscriber);  //  subscriber, causing REQ emission
 
     GenericEvent returnedReqGenericEvent = returnedEventsToMethodSubscriberIdFlux.blockFirst();  //  acts as another subscriber, causing another REQ to be emitted, dunno why
-    
+
 //    reqSubscriber.dispose();
-    
+
     log.debug("+++++++++++++++++++++++++");
     assertNotNull(returnedReqGenericEvent);
     String encode = new EventMessage(returnedReqGenericEvent).encode();
@@ -215,6 +216,45 @@ class NostrRelayReactiveClientTest {
 //    assertEquals(event.getId(), genericEvent2.getId());
 //    assertEquals(event.getContent(), genericEvent2.getContent());
 //    assertEquals(event.getPubKey().toHexString(), genericEvent2.getPubKey().toHexString());
+  }
+
+  @Test
+  void testReqFilteredByEventAndAuthorViaReqMessageUsingGlobalClient() throws IOException {
+    log.debug("\nEEEEEEEEEEEEEEEEEEEEEEEE");
+    log.debug("EEEEEEEEEEEEEEEEEEEEEEEE");
+    Identity identity = Factory.createNewIdentity();
+    String content = Factory.lorumIpsum();
+    GenericEvent event = new NIP01<>(identity).createTextNoteEvent(content).sign().getEvent();
+
+    Flux<String> eventFlux = reactiveNostrRelayClient.sendEvent(new EventMessage(event));//, event.getId()));
+
+    String eventResponse = eventFlux.blockFirst(); //  acts as another subscriber, causing another EVENT to be emitted, dunno why
+    log.debug("genericEvent: " + eventResponse);
+    assertEquals("[\"OK\",\"" + event.getId() + "\",true,\"success: request processed\"]", eventResponse);
+    log.debug("-------------------------");
+
+//    #--------------------- REQ -------------------------
+    EventFilter<GenericEvent> eventFilter = new EventFilter<>(event);
+    AuthorFilter<PublicKey> authorFilter = new AuthorFilter<>(identity.getPublicKey());
+
+    final String subscriberId = Factory.generateRandomHex64String();
+
+    ReqMessage reqMessage = new ReqMessage(subscriberId, new Filters(eventFilter, authorFilter));
+    Flux<GenericEvent> returnedEventsToMethodSubscriberIdFlux = reactiveNostrRelayClient.sendRequestReturnEvents(reqMessage);
+
+    GenericEvent returnedReqGenericEvent = returnedEventsToMethodSubscriberIdFlux.blockFirst();  //  acts as another subscriber, causing another REQ to be emitted, dunno why
+
+    log.debug("+++++++++++++++++++++++++");
+    assertNotNull(returnedReqGenericEvent);
+    String encode = new EventMessage(returnedReqGenericEvent).encode();
+    log.debug(encode);
+    log.debug("+++++++++++++++++++++++++");
+
+    assertEquals(returnedReqGenericEvent.getId(), event.getId());
+    assertEquals(returnedReqGenericEvent.getContent(), event.getContent());
+    assertEquals(returnedReqGenericEvent.getPubKey().toHexString(), event.getPubKey().toHexString());
+    log.debug("DDDDDDDDDDDDDDDDDDDDDDD");
+    log.debug("DDDDDDDDDDDDDDDDDDDDDDD\n");
   }
 
   final void printConsole(int i) {
