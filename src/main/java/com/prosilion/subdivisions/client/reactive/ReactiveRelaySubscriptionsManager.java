@@ -21,7 +21,7 @@ import org.springframework.boot.ssl.SslBundles;
 import reactor.core.publisher.Flux;
 
 @Slf4j
-public class ReactiveRelaySubscriptionsManager {
+public class ReactiveRelaySubscriptionsManager implements MessageTypeFilterable {
   private final Map<String, ReactiveWebSocketClient> subscriberIdWebSocketClientMap = new ConcurrentHashMap<>();
   private final String relayUri;
   private SslBundles sslBundles;
@@ -49,18 +49,6 @@ public class ReactiveRelaySubscriptionsManager {
   private final Function<Flux<String>, Flux<GenericEvent>> eventsAsGenericEvents = (events) ->
       getTypeSpecificMessage(EventMessage.class, events)
           .map(eventMessage -> (GenericEvent) eventMessage.getEvent());
-
-  private <V extends BaseMessage> Flux<V> getTypeSpecificMessage(Class<V> messageClass, Flux<String> messages) {
-    return messages.map(msg -> {
-          try {
-            return new BaseMessageDecoder<V>().decode(msg);
-          } catch (JsonProcessingException e) {
-            return null;
-          }
-        })
-        .filter(Objects::nonNull)
-        .filter(messageClass::isInstance);
-  }
 
   private Flux<String> getRequestResults(ReqMessage reqMessage) throws JsonProcessingException {
     String subscriberId = reqMessage.getSubscriptionId();

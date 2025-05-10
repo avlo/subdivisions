@@ -1,6 +1,7 @@
 package com.prosilion.subdivisions.client.standard;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.prosilion.subdivisions.client.reactive.MessageTypeFilterable;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -27,7 +28,7 @@ import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
 
 @Slf4j
-public class StandardRelaySubscriptionsManager {
+public class StandardRelaySubscriptionsManager implements MessageTypeFilterable {
   private final Map<String, StandardWebSocketClient> subscriberIdWebSocketClientMap = new ConcurrentHashMap<>();
   private final String relayUri;
   private SslBundles sslBundles;
@@ -154,18 +155,5 @@ public class StandardRelaySubscriptionsManager {
 
   private void closeSessions(Collection<StandardWebSocketClient> standardWebSocketClients) {
     Streams.failableStream(standardWebSocketClients.stream()).forEach(StandardWebSocketClient::closeSession);
-  }
-
-  private <V extends BaseMessage> List<V> getTypeSpecificMessage(Class<V> messageClass, List<String> messages) {
-    return Streams.failableStream(messages.stream()
-        .map(msg -> {
-          try {
-            return new BaseMessageDecoder<V>().decode(msg);
-          } catch (JsonProcessingException e) {
-            return null;
-          }
-        })
-        .filter(Objects::nonNull)
-        .filter(messageClass::isInstance)).stream().toList();
   }
 }
