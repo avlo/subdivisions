@@ -29,6 +29,13 @@ public class ReactiveEventPublisher {
 
   public Flux<OkMessage> send(@NonNull EventMessage eventMessage) throws IOException {
     log.debug("socket send EventMessage content\n  {}", eventMessage.getEvent());
-    return eventSocketClient.send(eventMessage).map(OkMessage::decode);
+    try {
+      return eventSocketClient
+          .send(eventMessage) // sending an event...
+          .take(1) // ... assumes at least one response...
+          .map(OkMessage::decode);  // ... of type OkMessage, and ignores any others (i.e., EOSE message)
+    } catch (Exception e) {
+      return Flux.just(new OkMessage(eventMessage.getEvent().getId(), false, "error: server returned unknown response"));
+    }
   }
 }

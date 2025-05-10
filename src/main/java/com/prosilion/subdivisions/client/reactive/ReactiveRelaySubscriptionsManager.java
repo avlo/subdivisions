@@ -7,13 +7,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import nostr.event.BaseMessage;
 import nostr.event.impl.GenericEvent;
+import nostr.event.json.codec.BaseMessageDecoder;
 import nostr.event.message.EventMessage;
 import nostr.event.message.ReqMessage;
-import org.apache.commons.lang3.stream.Streams;
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
 import reactor.core.publisher.Flux;
@@ -41,13 +43,23 @@ public class ReactiveRelaySubscriptionsManager {
 
   public Flux<GenericEvent> send(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
     log.debug("pre-encoded ReqMessage json: \n{}", reqMessage);
+    return eventsAsGenericEvents.apply(getRequestResults(reqMessage));
+  }
 
-    List<GenericEvent> map = Streams.failableStream(
-            getRequestResults(reqMessage).toStream()
-                .map(s -> (EventMessage) EventMessage.decode(s)))
-        .map(eventMessage -> (GenericEvent) eventMessage.getEvent()).stream().toList();
+  private final Function<Flux<String>, Flux<GenericEvent>> eventsAsGenericEvents = (events) ->
+      getTypeSpecificMessage(EventMessage.class, events)
+          .map(eventMessage -> (GenericEvent) eventMessage.getEvent());
 
-    return Flux.fromIterable(map);
+  private <V extends BaseMessage> Flux<V> getTypeSpecificMessage(Class<V> messageClass, Flux<String> messages) {
+    return messages.map(msg -> {
+          try {
+            return new BaseMessageDecoder<V>().decode(msg);
+          } catch (JsonProcessingException e) {
+            return null;
+          }
+        })
+        .filter(Objects::nonNull)
+        .filter(messageClass::isInstance);
   }
 
   private Flux<String> getRequestResults(ReqMessage reqMessage) throws JsonProcessingException {
@@ -61,29 +73,29 @@ public class ReactiveRelaySubscriptionsManager {
   }
 
   //  public Map<Command, List<Object>> sendRequestReturnCommandResultsMap(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
-//    return sendRequestReturnCommandResultsMap(
-//        reqMessage.getSubscriptionId(),
-//        reqMessage.encode());
-//  }
+  //    return sendRequestReturnCommandResultsMap(
+  //        reqMessage.getSubscriptionId(),
+  //        reqMessage.encode());
+  //  }
 
   //  TODO: need flux variant of below
-//  public Map<Command, List<Object>> sendRequestReturnCommandResultsMap(@NonNull String subscriberId, @NonNull String reqJson) {
-//    List<String> returnedEvents = getRequestResults(subscriberId, reqJson);
-//
-//    log.debug("55555555555555555");
-//    log.debug("after REQUEST:");
-//    log.debug("key/subscriberId:\n  [{}]\n", subscriberId);
-//    log.debug("-----------------");
-//    log.debug("returnedEvents:");
-//    log.debug(returnedEvents.stream().map(event -> String.format("  %s\n", event)).collect(Collectors.joining()));
-//    log.debug("55555555555555555");
-//
-//    Map<Command, List<Object>> results = new HashMap<>();
-//    eose.apply(returnedEvents).ifPresent(eoses -> results.put(Command.EOSE, List.of(eoses)));
-//    results.put(Command.EVENT, eventsAsStrings.apply(returnedEvents));
-//
-//    return results;
-//  }
+  //  public Map<Command, List<Object>> sendRequestReturnCommandResultsMap(@NonNull String subscriberId, @NonNull String reqJson) {
+  //    List<String> returnedEvents = getRequestResults(subscriberId, reqJson);
+  //
+  //    log.debug("55555555555555555");
+  //    log.debug("after REQUEST:");
+  //    log.debug("key/subscriberId:\n  [{}]\n", subscriberId);
+  //    log.debug("-----------------");
+  //    log.debug("returnedEvents:");
+  //    log.debug(returnedEvents.stream().map(event -> String.format("  %s\n", event)).collect(Collectors.joining()));
+  //    log.debug("55555555555555555");
+  //
+  //    Map<Command, List<Object>> results = new HashMap<>();
+  //    eose.apply(returnedEvents).ifPresent(eoses -> results.put(Command.EOSE, List.of(eoses)));
+  //    results.put(Command.EVENT, eventsAsStrings.apply(returnedEvents));
+  //
+  //    return results;
+  //  }
 
   //  TODO: cleanup sneaky
   @SneakyThrows
