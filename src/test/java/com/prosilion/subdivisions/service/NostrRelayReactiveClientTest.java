@@ -149,6 +149,8 @@ class NostrRelayReactiveClientTest {
 
   @Test
   void testReqFilteredByEventAndAuthorViaReqMessage() throws IOException {
+    log.debug("\nDDDDDDDDDDDDDDDDDDDDDDD");
+    log.debug("DDDDDDDDDDDDDDDDDDDDDDD");
     Identity identity = Factory.createNewIdentity();
     String content = Factory.lorumIpsum();
     GenericEvent event = new NIP01<>(identity).createTextNoteEvent(content).sign().getEvent();
@@ -156,17 +158,15 @@ class NostrRelayReactiveClientTest {
     ReactiveNostrRelayClient methodReactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUri); 
     Flux<String> eventFlux = methodReactiveNostrRelayClient.sendEvent(new EventMessage(event));//, event.getId()));
 
-    log.debug("\nDDDDDDDDDDDDDDDDDDDDDDD");
-    log.debug("DDDDDDDDDDDDDDDDDDDDDDD");
+//    SampleSubscriber<String> eventSubscriber = new SampleSubscriber<>();
+//    eventFlux.subscribe(eventSubscriber);  //  subscriber, causing EVENT emission
 
-    SampleSubscriber<String> eventSubscriber = new SampleSubscriber<>();
-    eventFlux.subscribe(eventSubscriber);
-
-    String eventResponse = eventFlux.blockFirst();
+    String eventResponse = eventFlux.blockFirst(); //  acts as another subscriber, causing another EVENT to be emitted, dunno why
     log.debug("genericEvent: " + eventResponse);
     assertEquals("[\"OK\",\"" + event.getId() + "\",true,\"success: request processed\"]", eventResponse);
     log.debug("-------------------------");
-    eventSubscriber.dispose();
+    
+//    eventSubscriber.dispose();
 
 //    #--------------------- REQ -------------------------
     EventFilter<GenericEvent> eventFilter = new EventFilter<>(event);
@@ -177,11 +177,13 @@ class NostrRelayReactiveClientTest {
     ReqMessage reqMessage = new ReqMessage(subscriberId, new Filters(eventFilter, authorFilter));
     Flux<GenericEvent> returnedEventsToMethodSubscriberIdFlux = methodReactiveNostrRelayClient.sendRequestReturnEvents(reqMessage);
 
-    SampleSubscriber<GenericEvent> reqSubscriber = new SampleSubscriber<>();
-    returnedEventsToMethodSubscriberIdFlux.subscribe(reqSubscriber);
+//    SampleSubscriber<GenericEvent> reqSubscriber = new SampleSubscriber<>();
+//    returnedEventsToMethodSubscriberIdFlux.subscribe(reqSubscriber);  //  subscriber, causing REQ emission
 
-    GenericEvent returnedReqGenericEvent = returnedEventsToMethodSubscriberIdFlux.blockFirst();
-    reqSubscriber.dispose();
+    GenericEvent returnedReqGenericEvent = returnedEventsToMethodSubscriberIdFlux.blockFirst();  //  acts as another subscriber, causing another REQ to be emitted, dunno why
+    
+//    reqSubscriber.dispose();
+    
     log.debug("+++++++++++++++++++++++++");
     assertNotNull(returnedReqGenericEvent);
     String encode = new EventMessage(returnedReqGenericEvent).encode();
