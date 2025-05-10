@@ -1,4 +1,4 @@
-package com.prosilion.subdivisions.client.standard;
+package com.prosilion.subdivisions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.subdivisions.config.SuperconductorRelayConfig;
