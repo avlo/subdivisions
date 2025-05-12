@@ -12,17 +12,16 @@ import nostr.event.message.ReqMessage;
 import org.reactivestreams.Subscriber;
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
-import reactor.core.publisher.Flux;
 
 @Slf4j
 public class ReactiveNostrRelayClient {
   private final ReactiveEventPublisher<OkMessage> reactiveEventPublisher;
-  private final ReactiveRelaySubscriptionsManager reactiveRelaySubscriptionsManager;
+  private final ReactiveRelaySubscriptionsManager<GenericEvent> reactiveRelaySubscriptionsManager;
 
   public ReactiveNostrRelayClient(@NonNull String relayUri) {
     log.debug("relayUri: \n{}", relayUri);
     this.reactiveEventPublisher = new ReactiveEventPublisher<>(relayUri);
-    this.reactiveRelaySubscriptionsManager = new ReactiveRelaySubscriptionsManager(relayUri);
+    this.reactiveRelaySubscriptionsManager = new ReactiveRelaySubscriptionsManager<>(relayUri);
   }
 
   public ReactiveNostrRelayClient(@NonNull String relayUri, SslBundles sslBundles
@@ -34,14 +33,14 @@ public class ReactiveNostrRelayClient {
     log.debug("sslBundles key: \n{}", server.getKey());
     log.debug("sslBundles protocol: \n{}", server.getProtocol());
     this.reactiveEventPublisher = new ReactiveEventPublisher<>(relayUri, sslBundles);
-    this.reactiveRelaySubscriptionsManager = new ReactiveRelaySubscriptionsManager(relayUri, sslBundles);
+    this.reactiveRelaySubscriptionsManager = new ReactiveRelaySubscriptionsManager<>(relayUri, sslBundles);
   }
 
   public void send(@NonNull EventMessage eventMessage, @NonNull Subscriber<OkMessage> subscriber) throws IOException {
     reactiveEventPublisher.send(eventMessage, subscriber);
   }
 
-  public Flux<GenericEvent> send(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
-    return reactiveRelaySubscriptionsManager.send(reqMessage);
+  public void send(@NonNull ReqMessage reqMessage, @NonNull Subscriber<GenericEvent> subscriber) throws JsonProcessingException {
+    reactiveRelaySubscriptionsManager.send(reqMessage, subscriber);
   }
 }

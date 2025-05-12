@@ -34,9 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestPropertySource("classpath:application-test.properties")
 @ActiveProfiles("test")
 class NostrRelayReactiveClientTest {
-  public static final String ANSI_YELLOW = "\033[1;93m";
-  public static final String ANSI_RESET = "\u001B[0m";
-  public static final String ANSI_35 = "\033[1;35m";
   private final String relayUri;
 
   public NostrRelayReactiveClientTest(@Value("${superconductor.relay.uri}") String relayUri) {
@@ -78,7 +75,7 @@ class NostrRelayReactiveClientTest {
 
     ReqMessage reqMessage = new ReqMessage(subscriberId, new Filters(eventFilter, authorFilter));
     TestSubscriber<GenericEvent> reqSubscriber = new TestSubscriber<>();
-    methodReactiveNostrRelayClient.send(reqMessage).subscribe(reqSubscriber);
+    methodReactiveNostrRelayClient.send(reqMessage, reqSubscriber);
 
     GenericEvent returnedReqGenericEvent = reqSubscriber.getItems().getFirst();
     String encode = new EventMessage(returnedReqGenericEvent).encode();
@@ -142,7 +139,7 @@ class NostrRelayReactiveClientTest {
     ReqMessage reqMessage = new ReqMessage(subscriberId, new Filters(event1Filter, event2Filter, authorFilter));
 
     TestSubscriber<GenericEvent> reqSubscriber = new TestSubscriber<>();
-    methodReactiveNostrRelayClient.send(reqMessage).subscribe(reqSubscriber);
+    methodReactiveNostrRelayClient.send(reqMessage, reqSubscriber);
 
     List<GenericEvent> items = reqSubscriber.getItems();
     log.debug("size: [{}]", items.size());

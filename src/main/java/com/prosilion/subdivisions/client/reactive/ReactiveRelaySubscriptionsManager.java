@@ -14,12 +14,13 @@ import lombok.extern.slf4j.Slf4j;
 import nostr.event.impl.GenericEvent;
 import nostr.event.message.EventMessage;
 import nostr.event.message.ReqMessage;
+import org.reactivestreams.Subscriber;
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
 import reactor.core.publisher.Flux;
 
 @Slf4j
-public class ReactiveRelaySubscriptionsManager implements MessageTypeFilterable {
+public class ReactiveRelaySubscriptionsManager<T extends GenericEvent> implements MessageTypeFilterable {
   private final Map<String, ReactiveWebSocketClient> subscriberIdWebSocketClientMap = new ConcurrentHashMap<>();
   private final String relayUri;
   private SslBundles sslBundles;
@@ -39,14 +40,15 @@ public class ReactiveRelaySubscriptionsManager implements MessageTypeFilterable 
     log.debug("sslBundles protocol: \n{}", server.getProtocol());
   }
 
-  public Flux<GenericEvent> send(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
+  public void send(@NonNull ReqMessage reqMessage, @NonNull Subscriber<T> subscriber) throws JsonProcessingException {
     log.debug("pre-encoded ReqMessage json: \n{}", reqMessage);
-    return eventsAsGenericEvents.apply(getRequestResults(reqMessage));
+    Flux<T> apply = eventsAsGenericEvents.apply(getRequestResults(reqMessage));
+    apply.subscribe(subscriber);
   }
 
-  private final Function<Flux<String>, Flux<GenericEvent>> eventsAsGenericEvents = (events) ->
+  private final Function<Flux<String>, Flux<T>> eventsAsGenericEvents = (events) ->
       getTypeSpecificMessage(EventMessage.class, events)
-          .map(eventMessage -> (GenericEvent) eventMessage.getEvent());
+          .map(eventMessage -> (T) eventMessage.getEvent());
 
   private Flux<String> getRequestResults(ReqMessage reqMessage) throws JsonProcessingException {
     String subscriberId = reqMessage.getSubscriptionId();

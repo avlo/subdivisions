@@ -46,13 +46,6 @@ public class StandardRelaySubscriptionsManager implements MessageTypeFilterable 
     log.debug("sslBundles protocol: \n{}", server.getProtocol());
   }
 
-  private final Function<List<String>, Optional<String>> newestEvent = (events) ->
-      getTypeSpecificMessage(EventMessage.class, events).stream()
-          .map(eventMessage -> (GenericEvent) eventMessage.getEvent())
-          .sorted(Comparator.comparing(GenericEvent::getCreatedAt))
-          .map(event -> new BaseEventEncoder<>(event).encode())
-          .reduce((first, second) -> second);
-
   private final Function<List<String>, List<Object>> eventsAsStrings = (events) ->
       getTypeSpecificMessage(EventMessage.class, events).stream()
           .map(eventMessage -> (GenericEvent) eventMessage.getEvent())
