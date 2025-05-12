@@ -26,6 +26,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 @ExtendWith(SpringExtension.class)
@@ -48,11 +49,11 @@ class NostrRelayReactiveClientTest {
     GenericEvent event = new NIP01<>(identity).createTextNoteEvent(Factory.lorumIpsum()).sign().getEvent();
 
     TestSubscriber<OkMessage> okMessageSubscriber = new TestSubscriber<>();
-    ReactiveNostrRelayClient reactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUri);
-    reactiveNostrRelayClient.send(new EventMessage(event, event.getId()), okMessageSubscriber);
+    new ReactiveNostrRelayClient(relayUri).send(new EventMessage(event), okMessageSubscriber);
 
-    OkMessage okMessage = new OkMessage(event.getId(), true, "success: request processed");
-    assertEquals(okMessage.encode(), okMessageSubscriber.getItems().getFirst().encode());
+    assertEquals(
+        new OkMessage(event.getId(), true, "success: request processed").encode(),
+        okMessageSubscriber.getItems().getFirst().encode());
   }
 
   @Test
@@ -129,18 +130,25 @@ class NostrRelayReactiveClientTest {
     EventFilter<GenericEvent> event1Filter = new EventFilter<>(event1);
     AuthorFilter<PublicKey> authorFilter = new AuthorFilter<>(identity.getPublicKey());
 
+    EventFilter<GenericEvent> event2Filter = new EventFilter<>(event2);
+
     final String subscriberId = Factory.generateRandomHex64String();
 
-    ReqMessage reqMessage = new ReqMessage(subscriberId, new Filters(event1Filter, authorFilter));
+//    ReqMessage reqMessage = new ReqMessage(subscriberId,
+//        List.of(
+//            new Filters(event1Filter, authorFilter),
+//            new Filters(event2Filter, authorFilter)));
+
+    ReqMessage reqMessage = new ReqMessage(subscriberId, new Filters(event1Filter, event2Filter, authorFilter));
+
     TestSubscriber<GenericEvent> reqSubscriber = new TestSubscriber<>();
     methodReactiveNostrRelayClient.send(reqMessage).subscribe(reqSubscriber);
 
     List<GenericEvent> items = reqSubscriber.getItems();
-    GenericEvent returnedReqGenericEvent = items.getFirst();
     log.debug("size: [{}]", items.size());
 
-    assertEquals(returnedReqGenericEvent.getId(), event1.getId());
-    assertEquals(returnedReqGenericEvent.getContent(), event1.getContent());
-    assertEquals(returnedReqGenericEvent.getPubKey().toHexString(), event1.getPubKey().toHexString());
+    assertTrue(items.stream().anyMatch(event -> event.getId().equals(event1.getId())));
+    assertTrue(items.stream().anyMatch(event -> event.getContent().equals(event1.getContent())));
+    assertTrue(items.stream().anyMatch(event -> event.getPubKey().toHexString().equals(event1.getPubKey().toHexString())));
   }
 }
