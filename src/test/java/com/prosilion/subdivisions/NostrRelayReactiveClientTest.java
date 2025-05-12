@@ -1,5 +1,6 @@
 package com.prosilion.subdivisions;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.subdivisions.client.reactive.ReactiveNostrRelayClient;
 import com.prosilion.subdivisions.config.SuperconductorRelayConfig;
 import com.prosilion.subdivisions.util.Factory;
@@ -41,7 +42,23 @@ class NostrRelayReactiveClientTest {
   }
 
   @Test
-  void testEventCreationUsingExplicitSubscriber() throws IOException {
+  void testQueryNonExistantEventReturnsEmptyList() throws JsonProcessingException {
+    ReactiveNostrRelayClient methodReactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUri);
+    
+    EventFilter<GenericEvent> eventFilter = new EventFilter<>(Factory.createGenericEvent());
+    AuthorFilter<PublicKey> authorFilter = new AuthorFilter<>(Factory.createNewIdentity().getPublicKey());
+
+    final String subscriberId = Factory.generateRandomHex64String();
+
+    ReqMessage reqMessage = new ReqMessage(subscriberId, new Filters(eventFilter, authorFilter));
+    TestSubscriber<GenericEvent> reqSubscriber = new TestSubscriber<>();
+    methodReactiveNostrRelayClient.send(reqMessage, reqSubscriber);
+
+    log.debug(reqSubscriber.getItems().getFirst().getContent());
+  }
+  
+  @Test
+  void testEventCreation() throws IOException {
     Identity identity = Factory.createNewIdentity();
     GenericEvent event = new NIP01<>(identity).createTextNoteEvent(Factory.lorumIpsum()).sign().getEvent();
 
@@ -54,7 +71,7 @@ class NostrRelayReactiveClientTest {
   }
 
   @Test
-  void testReqFilteredByEventAndAuthorUsingSubscriber() throws IOException {
+  void testReqFilteredByEventAndAuthor() throws IOException {
     Identity identity = Factory.createNewIdentity();
     String content = Factory.lorumIpsum();
     GenericEvent event = new NIP01<>(identity).createTextNoteEvent(content).sign().getEvent();
@@ -78,7 +95,6 @@ class NostrRelayReactiveClientTest {
     methodReactiveNostrRelayClient.send(reqMessage, reqSubscriber);
 
     GenericEvent returnedReqGenericEvent = reqSubscriber.getItems().getFirst();
-    String encode = new EventMessage(returnedReqGenericEvent).encode();
 
     assertEquals(returnedReqGenericEvent.getId(), event.getId());
     assertEquals(returnedReqGenericEvent.getContent(), event.getContent());
