@@ -19,57 +19,115 @@ public class TestSubscriber<T> extends BaseSubscriber<T> {
   public static final String ANSI_BLUE = "\033[1;34m";
   public static final String ANSI_RED = "\033[1;36m";
 
-  private List<T> items;
-  private AtomicBoolean completed;
+  private final List<T> items = Collections.synchronizedList(new ArrayList<>());
+  private final AtomicBoolean completed = new AtomicBoolean(false);
+  private Subscription subscription;
 
   @Override
   public void hookOnSubscribe(@NonNull Subscription subscription) {
-    this.items = Collections.synchronizedList(new ArrayList<>());
-    this.completed = new AtomicBoolean(false);
-
-    requestUnbounded();
-
     log.debug("0000000000000000000000");
+    log.debug("0000000000000000000000");
+    this.subscription = subscription;
+    requestUnbounded();
+    //    request(1);
+    subscription.request(1);
+
     log.debug(" Subscription object hashCode: [ " + ANSI_BLUE + subscription.hashCode() + ANSI_RESET + " ]");
+    log.debug("0000000000000000000000");
     log.debug("0000000000000000000000");
   }
 
   @Override
   public void hookOnNext(@NonNull T value) {
+    log.debug("1111111111111111111111");
+    log.debug("1111111111111111111111");
     requestUnbounded();
+    //    request(1);
+    subscription.request(1);
 
     completed.setRelease(false);
     items.add(value);
     completed.setRelease(true);
     log.debug("TestSubscriber item list:");
     items.forEach(item -> log.debug("  " + item.toString()));
+    log.debug("1111111111111111111111");
+    log.debug("1111111111111111111111");
   }
 
   public List<T> getItems() {
+    subscription.request(Long.MAX_VALUE);
+    log.debug("2222222222222222222222");
+    log.debug("2222222222222222222222");
     Awaitility.await()
         .timeout(1, TimeUnit.MINUTES)
         .untilTrue(completed);
-//      completed.setRelease(false);
+    //      completed.setRelease(false);
+    //    subscription.cancel();
     List<T> eventList = List.copyOf(items);
     items.clear();
+    log.debug("2222222222222222222222");
+    log.debug("2222222222222222222222");
     return eventList;
   }
 
   //    below included only informatively / as reminder of their existence
   @Override
-  protected void hookOnCancel() { super.hookOnCancel(); }
+  protected void hookOnCancel() {
+    log.debug("3333333333333333333333");
+    log.debug("3333333333333333333333");
+    super.hookOnCancel();
+    log.debug("3333333333333333333333");
+    log.debug("3333333333333333333333");
+  }
+
   @Override
-  protected void hookOnComplete() { super.hookOnComplete(); }
+  protected void hookOnComplete() {
+    log.debug("4444444444444444444444");
+    log.debug("4444444444444444444444");
+    super.hookOnComplete();
+    log.debug("4444444444444444444444");
+    log.debug("4444444444444444444444");
+  }
+
   @Override
-  protected void hookOnError(@NonNull Throwable throwable) { super.hookOnError(throwable); }
+  protected void hookOnError(@NonNull Throwable throwable) {
+    log.debug("5555555555555555555555");
+    log.debug("5555555555555555555555");
+    super.hookOnError(throwable);
+    log.debug("5555555555555555555555");
+    log.debug("5555555555555555555555");
+  }
+
   @Override
-  protected void hookFinally(@NonNull SignalType type) { super.hookFinally(type); }
+  protected void hookFinally(@NonNull SignalType type) {
+    log.debug("6666666666666666666666");
+    log.debug("6666666666666666666666");
+    super.hookFinally(type);
+    log.debug("6666666666666666666666");
+    log.debug("6666666666666666666666");
+  }
+
   @Override
-  public void dispose() { super.dispose(); }
+  public void dispose() {
+    log.debug("7777777777777777777777");
+    log.debug("7777777777777777777777");
+    super.dispose();
+    log.debug("7777777777777777777777");
+    log.debug("7777777777777777777777");
+  }
+
   @Override
-  public boolean isDisposed() { return super.isDisposed(); }
+  public boolean isDisposed() {
+    return super.isDisposed();
+  }
+
   @Override
-  protected @NonNull Subscription upstream() { return super.upstream(); }
+  protected @NonNull Subscription upstream() {
+    return super.upstream();
+  }
+
   @Override
-  public @NonNull Context currentContext() { return super.currentContext(); }
+  public @NonNull Context currentContext() {
+    return super.currentContext();
+  }
 }
