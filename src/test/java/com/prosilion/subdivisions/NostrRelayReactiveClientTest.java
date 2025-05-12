@@ -17,7 +17,6 @@ import nostr.event.message.EventMessage;
 import nostr.event.message.OkMessage;
 import nostr.event.message.ReqMessage;
 import nostr.id.Identity;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,10 +24,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import reactor.core.publisher.Flux;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @Slf4j
 @ExtendWith(SpringExtension.class)
@@ -39,119 +36,34 @@ class NostrRelayReactiveClientTest {
   public static final String ANSI_YELLOW = "\033[1;93m";
   public static final String ANSI_RESET = "\u001B[0m";
   public static final String ANSI_35 = "\033[1;35m";
-  private final ReactiveNostrRelayClient reactiveNostrRelayClient;
   private final String relayUri;
 
   public NostrRelayReactiveClientTest(@Value("${superconductor.relay.uri}") String relayUri) {
-    this.reactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUri);
     this.relayUri = relayUri;
   }
 
   @Test
   void testEventCreationUsingExplicitSubscriber() throws IOException {
-    log.debug("AAAAAAAAAAAAAAAAAAAAAAA");
-    log.debug("AAAAAAAAAAAAAAAAAAAAAAA");
-
     Identity identity = Factory.createNewIdentity();
     GenericEvent event = new NIP01<>(identity).createTextNoteEvent(Factory.lorumIpsum()).sign().getEvent();
-    log.trace("setup() send event:\n  {}", event.toString());
 
-    Flux<OkMessage> okMessageMono = reactiveNostrRelayClient.send(new EventMessage(event, event.getId()));
-
-    printConsole(okMessageMono.hashCode());
-
-//  1) ******* if only below TestSubscriber is active, OnNext will register 1 EVENT
     TestSubscriber<OkMessage> okMessageSubscriber = new TestSubscriber<>();
-    okMessageMono.subscribe(okMessageSubscriber);
+    ReactiveNostrRelayClient reactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUri);
+    reactiveNostrRelayClient.send(new EventMessage(event, event.getId()), okMessageSubscriber);
 
     OkMessage okMessage = new OkMessage(event.getId(), true, "success: request processed");
     assertEquals(okMessage.encode(), okMessageSubscriber.getItems().getFirst().encode());
-
-//  2) ******* if only below collectList() is active, OnNext will register 0 EVENTS
-//     note: including below with above subscriber causes sending of TWO EVENTs
-//    List<String> list3 = new ArrayList<>();
-//    flux.collectList().subscribe(list3::addAll);
-//  3) ******* if both above TestSubscriber and collectList are active, OnNext will register 2 EVENTS w/ same ID
-
-    log.debug("AAAAAAAAAAAAAAAAAAAAAAA");
-    log.debug("AAAAAAAAAAAAAAAAAAAAAAA");
-  }
-
-  @Test
-  void testEventCreationUsingBlockFirst() throws IOException {
-    log.debug("\nBBBBBBBBBBBBBBBBBBBBBBB");
-    log.debug("BBBBBBBBBBBBBBBBBBBBBBB");
-    Identity identity = Factory.createNewIdentity();
-    GenericEvent event = new NIP01<>(identity).createTextNoteEvent(Factory.lorumIpsum()).sign().getEvent();
-    log.trace("setup() send event:\n  {}", event.toString());
-
-    Flux<OkMessage> okMessageMono = reactiveNostrRelayClient.send(new EventMessage(event, event.getId()));
-    printConsole(okMessageMono.hashCode());
-
-//    example of blockFirst directly on a flux
-    OkMessage actualOkMessage = okMessageMono.blockFirst();
-    OkMessage expectedOkMessage = new OkMessage(event.getId(), true, "success: request processed");
-    assertEquals(expectedOkMessage.encode(), actualOkMessage.encode());
-
-    log.debug("BBBBBBBBBBBBBBBBBBBBBBB");
-    log.debug("BBBBBBBBBBBBBBBBBBBBBBB\n");
-  }
-
-  @Test
-  void testReqFilteredByEventAndAuthorViaUsingBlockFirst() throws IOException {
-    log.debug("\nDDDDDDDDDDDDDDDDDDDDDDD");
-    log.debug("DDDDDDDDDDDDDDDDDDDDDDD");
-    Identity identity = Factory.createNewIdentity();
-    String content = Factory.lorumIpsum();
-    GenericEvent event = new NIP01<>(identity).createTextNoteEvent(content).sign().getEvent();
-
-    ReactiveNostrRelayClient methodReactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUri);
-    Flux<OkMessage> okMessageMono = methodReactiveNostrRelayClient.send(new EventMessage(event));
-
-    OkMessage actualOkMessage = okMessageMono.blockFirst();
-    OkMessage expectedOkMessage = new OkMessage(event.getId(), true, "success: request processed");
-    assertEquals(expectedOkMessage.encode(), actualOkMessage.encode());
-
-    log.debug("-------------------------");
-
-//  #--------------------- REQ -------------------------
-    EventFilter<GenericEvent> eventFilter = new EventFilter<>(event);
-    AuthorFilter<PublicKey> authorFilter = new AuthorFilter<>(identity.getPublicKey());
-
-    final String subscriberId = Factory.generateRandomHex64String();
-
-    ReqMessage reqMessage = new ReqMessage(subscriberId, new Filters(eventFilter, authorFilter));
-    Flux<GenericEvent> returnedEventsToMethodSubscriberIdFlux = methodReactiveNostrRelayClient.send(reqMessage);
-
-    GenericEvent returnedReqGenericEvent = returnedEventsToMethodSubscriberIdFlux.blockFirst();
-
-    log.debug("+++++++++++++++++++++++++");
-    assertNotNull(returnedReqGenericEvent);
-    String encode = new EventMessage(returnedReqGenericEvent).encode();
-    log.debug(encode);
-    log.debug("+++++++++++++++++++++++++");
-
-    assertEquals(returnedReqGenericEvent.getId(), event.getId());
-    assertEquals(returnedReqGenericEvent.getContent(), event.getContent());
-    assertEquals(returnedReqGenericEvent.getPubKey().toHexString(), event.getPubKey().toHexString());
-    log.debug("DDDDDDDDDDDDDDDDDDDDDDD");
-    log.debug("DDDDDDDDDDDDDDDDDDDDDDD\n");
   }
 
   @Test
   void testReqFilteredByEventAndAuthorUsingSubscriber() throws IOException {
-    log.debug("\nEEEEEEEEEEEEEEEEEEEEEEEE");
-    log.debug("EEEEEEEEEEEEEEEEEEEEEEEE");
-
     Identity identity = Factory.createNewIdentity();
     String content = Factory.lorumIpsum();
     GenericEvent event = new NIP01<>(identity).createTextNoteEvent(content).sign().getEvent();
 
     ReactiveNostrRelayClient methodReactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUri);
-    Flux<OkMessage> okMessageMono = methodReactiveNostrRelayClient.send(new EventMessage(event));//, event.getId()));
-
     TestSubscriber<OkMessage> eventSubscriber = new TestSubscriber<>();
-    okMessageMono.subscribe(eventSubscriber);  //  subscriber, causing EVENT emission
+    methodReactiveNostrRelayClient.send(new EventMessage(event), eventSubscriber);//, event.getId()));
 
     List<OkMessage> items = eventSubscriber.getItems();
     OkMessage okMessage = new OkMessage(event.getId(), true, "success: request processed");
@@ -164,108 +76,71 @@ class NostrRelayReactiveClientTest {
     final String subscriberId = Factory.generateRandomHex64String();
 
     ReqMessage reqMessage = new ReqMessage(subscriberId, new Filters(eventFilter, authorFilter));
-    Flux<GenericEvent> returnedEventsToMethodSubscriberIdFlux = methodReactiveNostrRelayClient.send(reqMessage);
-
     TestSubscriber<GenericEvent> reqSubscriber = new TestSubscriber<>();
-    returnedEventsToMethodSubscriberIdFlux.subscribe(reqSubscriber);  //  subscriber, causing REQ emission
+    methodReactiveNostrRelayClient.send(reqMessage).subscribe(reqSubscriber);
 
     GenericEvent returnedReqGenericEvent = reqSubscriber.getItems().getFirst();
     String encode = new EventMessage(returnedReqGenericEvent).encode();
-    log.debug(encode);
-    log.debug("+++++++++++++++++++++++++");
 
     assertEquals(returnedReqGenericEvent.getId(), event.getId());
     assertEquals(returnedReqGenericEvent.getContent(), event.getContent());
     assertEquals(returnedReqGenericEvent.getPubKey().toHexString(), event.getPubKey().toHexString());
-    log.debug("EEEEEEEEEEEEEEEEEEEEEEEE");
-    log.debug("EEEEEEEEEEEEEEEEEEEEEEEE\n");
   }
 
   @Test
-  void testReqFilteredByEventAndAuthorViaReqMessageUsingGlobalClient() throws IOException {
-    log.debug("\nFFFFFFFFFFFFFFFFFFFFFFF");
-    log.debug("FFFFFFFFFFFFFFFFFFFFFFFF");
-
+  void testTwoEventsFilteredByEventAndAuthorUsingTwoEventSubscribers() throws IOException {
     Identity identity = Factory.createNewIdentity();
-    String content = Factory.lorumIpsum();
-    GenericEvent event = new NIP01<>(identity).createTextNoteEvent(content).sign().getEvent();
+    String content1 = Factory.lorumIpsum();
+    ReactiveNostrRelayClient methodReactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUri);
 
-    Flux<OkMessage> okMessageMono = reactiveNostrRelayClient.send(new EventMessage(event));//, event.getId()));
+//    # -------------- EVENT 1 of 3 -------------------
+    GenericEvent event1 = new NIP01<>(identity).createTextNoteEvent(content1).sign().getEvent();
 
-    OkMessage actualOkMessage = okMessageMono.blockFirst();
-    OkMessage expectedOkMessage = new OkMessage(event.getId(), true, "success: request processed");
-    assertEquals(expectedOkMessage.encode(), actualOkMessage.encode());
+    TestSubscriber<OkMessage> event1Subscriber = new TestSubscriber<>();
+    methodReactiveNostrRelayClient.send(new EventMessage(event1), event1Subscriber);//, event.getId()));
 
-    log.debug("-------------------------");
+    List<OkMessage> event1SubscriberItems = event1Subscriber.getItems();
+    OkMessage okMessage1 = new OkMessage(event1.getId(), true, "success: request processed");
+    assertEquals(okMessage1.encode(), event1SubscriberItems.getFirst().encode());
 
-//    #--------------------- REQ -------------------------
-    EventFilter<GenericEvent> eventFilter = new EventFilter<>(event);
+//    # -------------- EVENT 2 of 3 -------------------
+    String content2 = Factory.lorumIpsum();
+    GenericEvent event2 = new NIP01<>(identity).createTextNoteEvent(content2).sign().getEvent();
+
+    TestSubscriber<OkMessage> event2Subscriber = new TestSubscriber<>();
+    methodReactiveNostrRelayClient.send(new EventMessage(event2), event2Subscriber);//, event.getId()));
+
+    List<OkMessage> event2SubscriberItems = event2Subscriber.getItems();
+    OkMessage okMessage2 = new OkMessage(event2.getId(), true, "success: request processed");
+    assertEquals(okMessage2.encode(), event2SubscriberItems.getFirst().encode());
+
+//    # -------------- EVENT 3 of 3 -------------------
+    String content3 = Factory.lorumIpsum();
+    GenericEvent event3 = new NIP01<>(identity).createTextNoteEvent(content3).sign().getEvent();
+
+    TestSubscriber<OkMessage> event3Subscriber = new TestSubscriber<>();
+    methodReactiveNostrRelayClient.send(new EventMessage(event3), event3Subscriber);//, event.getId()));
+
+    List<OkMessage> event3SubscriberItems = event3Subscriber.getItems();
+    OkMessage okMessage3 = new OkMessage(event3.getId(), true, "success: request processed");
+    assertEquals(okMessage3.encode(), event3SubscriberItems.getFirst().encode());
+
+//  #--------------------- REQ -------------------------
+    EventFilter<GenericEvent> event1Filter = new EventFilter<>(event1);
     AuthorFilter<PublicKey> authorFilter = new AuthorFilter<>(identity.getPublicKey());
 
     final String subscriberId = Factory.generateRandomHex64String();
 
-    ReqMessage reqMessage = new ReqMessage(subscriberId, new Filters(eventFilter, authorFilter));
-    Flux<GenericEvent> returnedEventsToMethodSubscriberIdFlux = reactiveNostrRelayClient.send(reqMessage);
+    ReqMessage reqMessage = new ReqMessage(subscriberId, new Filters(event1Filter, authorFilter));
+    TestSubscriber<GenericEvent> reqSubscriber = new TestSubscriber<>();
+    methodReactiveNostrRelayClient.send(reqMessage).subscribe(reqSubscriber);
 
-    GenericEvent returnedReqGenericEvent = returnedEventsToMethodSubscriberIdFlux.blockFirst();
+    List<GenericEvent> items = reqSubscriber.getItems();
+    GenericEvent returnedReqGenericEvent = items.getFirst();
+    log.debug("size: [{}]", items.size());
 
-    log.debug("+++++++++++++++++++++++++");
-    assertNotNull(returnedReqGenericEvent);
-    String encode = new EventMessage(returnedReqGenericEvent).encode();
-    log.debug(encode);
-    log.debug("+++++++++++++++++++++++++");
-
-    assertEquals(returnedReqGenericEvent.getId(), event.getId());
-    assertEquals(returnedReqGenericEvent.getContent(), event.getContent());
-    assertEquals(returnedReqGenericEvent.getPubKey().toHexString(), event.getPubKey().toHexString());
-    log.debug("FFFFFFFFFFFFFFFFFFFFFFF");
-    log.debug("FFFFFFFFFFFFFFFFFFFFFFFF\n");
-  }
-
-  /*
-   * notes:
-   *  below method kept as notes for what doesn't work
-   *  subscribe() on infinite flux won't return anything
-   *
-   *  collectList() neither used nor registers subscription event, however
-   *    its log.debug("BBBBBBBBBBBB " + s + "BBBBBBBBBBBB") doesn't print either, needs investigate
-   */
-//  @Test
-  void testEventCreationUsingCollectList() {
-//    log.debug("\nCCCCCCCCCCCCCCCCCCCCCCC");
-//    log.debug("CCCCCCCCCCCCCCCCCCCCCCC");
-
-//    Identity identity = Factory.createNewIdentity();
-//    GenericEvent event = new NIP01<>(identity).createTextNoteEvent(Factory.lorumIpsum()).sign().getEvent();
-//    log.trace("setup() send event:\n  {}", event.toString());
-
-//    Flux<String> flux = reactiveNostrRelayClient.sendEvent(new EventMessage(event, event.getId()));
-
-//    List<String> listNoBlock = flux.toStream().toList();
-//    log.debug("returned events:");
-//    listNoBlock.forEach(s -> log.debug("  " + s));
-
-// below kept as notes for what doesn't work    
-//    List<String> listNoBlock = new ArrayList<>();
-//    flux.collectList().subscribe(listNoBlock::addAll);  // <------  subscribe() on infinite flux won't return anything
-
-//    List<String> listBlock = flux.collectList().block();  // <------  subscribe() on infinite flux won't return anything
-//    listBlock.forEach(s -> log.debug("BBBBBBBBBBBB " + s + "BBBBBBBBBBBB"));
-
-//    List<String> durationBlock = flux.collectList().block(Duration.ofMillis(100)); // hangs
-//    List<String> durationBlock = flux.toStream().toList(); // voids reactive and hangs 
-
-//    log.debug("CCCCCCCCCCCCCCCCCCCCCCC");
-//    log.debug("CCCCCCCCCCCCCCCCCCCCCCC\n");
-  }
-
-  final void printConsole(int i) {
-    log.debug(" flux hashcode: [ " + ANSI_YELLOW + i + ANSI_RESET + " ]");
-  }
-
-  static void parseJson(String value) {
-    String subscriberId = value.split(",")[1];
-    String strippedStart = StringUtils.stripStart(subscriberId, "\"");
-    log.debug(" " + ANSI_35 + StringUtils.stripEnd(strippedStart, "\"") + ANSI_RESET + " " + value.hashCode());
+    assertEquals(returnedReqGenericEvent.getId(), event1.getId());
+    assertEquals(returnedReqGenericEvent.getContent(), event1.getContent());
+    assertEquals(returnedReqGenericEvent.getPubKey().toHexString(), event1.getPubKey().toHexString());
   }
 }

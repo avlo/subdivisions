@@ -28,8 +28,6 @@ public class TestSubscriber<T> extends BaseSubscriber<T> {
     log.debug("0000000000000000000000");
     log.debug("0000000000000000000000");
     this.subscription = subscription;
-    requestUnbounded();
-    //    request(1);
     subscription.request(1);
 
     log.debug(" Subscription object hashCode: [ " + ANSI_BLUE + subscription.hashCode() + ANSI_RESET + " ]");
@@ -41,13 +39,10 @@ public class TestSubscriber<T> extends BaseSubscriber<T> {
   public void hookOnNext(@NonNull T value) {
     log.debug("1111111111111111111111");
     log.debug("1111111111111111111111");
-    requestUnbounded();
-    //    request(1);
-    subscription.request(1);
-
     completed.setRelease(false);
-    items.add(value);
+    subscription.request(1);
     completed.setRelease(true);
+    items.add(value);
     log.debug("TestSubscriber item list:");
     items.forEach(item -> log.debug("  " + item.toString()));
     log.debug("1111111111111111111111");
@@ -55,11 +50,10 @@ public class TestSubscriber<T> extends BaseSubscriber<T> {
   }
 
   public List<T> getItems() {
-    subscription.request(Long.MAX_VALUE);
     log.debug("2222222222222222222222");
     log.debug("2222222222222222222222");
     Awaitility.await()
-        .timeout(1, TimeUnit.MINUTES)
+        .timeout(5, TimeUnit.SECONDS)
         .untilTrue(completed);
     //      completed.setRelease(false);
     //    subscription.cancel();
@@ -75,16 +69,13 @@ public class TestSubscriber<T> extends BaseSubscriber<T> {
   protected void hookOnCancel() {
     log.debug("3333333333333333333333");
     log.debug("3333333333333333333333");
-    super.hookOnCancel();
-    log.debug("3333333333333333333333");
-    log.debug("3333333333333333333333");
   }
 
   @Override
   protected void hookOnComplete() {
     log.debug("4444444444444444444444");
     log.debug("4444444444444444444444");
-    super.hookOnComplete();
+    completed.setRelease(true);
     log.debug("4444444444444444444444");
     log.debug("4444444444444444444444");
   }
@@ -93,25 +84,16 @@ public class TestSubscriber<T> extends BaseSubscriber<T> {
   protected void hookOnError(@NonNull Throwable throwable) {
     log.debug("5555555555555555555555");
     log.debug("5555555555555555555555");
-    super.hookOnError(throwable);
-    log.debug("5555555555555555555555");
-    log.debug("5555555555555555555555");
   }
 
   @Override
   protected void hookFinally(@NonNull SignalType type) {
     log.debug("6666666666666666666666");
     log.debug("6666666666666666666666");
-    super.hookFinally(type);
-    log.debug("6666666666666666666666");
-    log.debug("6666666666666666666666");
   }
 
   @Override
   public void dispose() {
-    log.debug("7777777777777777777777");
-    log.debug("7777777777777777777777");
-    super.dispose();
     log.debug("7777777777777777777777");
     log.debug("7777777777777777777777");
   }

@@ -5,12 +5,13 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import nostr.event.message.EventMessage;
 import nostr.event.message.OkMessage;
+import org.reactivestreams.Subscriber;
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
 import reactor.core.publisher.Flux;
 
 @Slf4j
-public class ReactiveEventPublisher {
+public class ReactiveEventPublisher<T extends OkMessage> {
   private final ReactiveWebSocketClient eventSocketClient;
 
   public ReactiveEventPublisher(@NonNull String relayUri) {
@@ -27,15 +28,17 @@ public class ReactiveEventPublisher {
     this.eventSocketClient = new ReactiveWebSocketClient(relayUri);
   }
 
-  public Flux<OkMessage> send(@NonNull EventMessage eventMessage) throws IOException {
+  public Flux<T> send(@NonNull EventMessage eventMessage, @NonNull Subscriber<T> subscriber) throws IOException {
     log.debug("socket send EventMessage content\n  {}", eventMessage.getEvent());
     try {
-      return eventSocketClient
+      Flux<T> map = eventSocketClient
           .send(eventMessage) // sending an event...
-          .take(1) // ... assumes at least one response...
-          .map(OkMessage::decode);  // ... of type OkMessage, and ignores any others (i.e., EOSE message)
+          .take(2) // ... assumes at least N responses...
+          .map(OkMessage::decode); // ... of type OkMessage, and ignores any others (i.e., EOSE message)
+      map.subscribe(subscriber);
+      return map;
     } catch (Exception e) {
-      return Flux.just(new OkMessage(eventMessage.getEvent().getId(), false, "error: server returned unknown response"));
+      return Flux.just((T) new OkMessage(eventMessage.getEvent().getId(), false, "error: server returned unknown response"));
     }
   }
 }
