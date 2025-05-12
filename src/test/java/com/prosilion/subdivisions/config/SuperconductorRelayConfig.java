@@ -17,20 +17,16 @@ import org.testcontainers.containers.wait.strategy.Wait;
 public class SuperconductorRelayConfig {
 
   public SuperconductorRelayConfig() {
-    log.debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-    log.debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-    log.debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-    log.debug("SuperconductorRelayConfig");
-    log.debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-    log.debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-    log.debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+    log.debug("SuperconductorRelayConfig instantiated");
   }
 
   @Bean
   public Map<String, String> superconductorRelays() {
     ResourceBundle relaysBundle = ResourceBundle.getBundle("superconductor-relays");
-    return relaysBundle.keySet().stream()
+    Map<String, String> collect = relaysBundle.keySet().stream()
         .collect(Collectors.toMap(key -> key, relaysBundle::getString));
+    log.debug("loaded SuperconductorRelayConfig relays = {}", collect);
+    return collect;
   }
 
   @Lazy
@@ -42,6 +38,7 @@ public class SuperconductorRelayConfig {
         ComposeContainer composeContainer = new ComposeContainer(
             new File("src/test/resources/superconductor-docker-compose-dev_ws_old.yml"))
             .withExposedService("superconductor", 5555, Wait.forHealthcheck())) {
+      log.debug("loaded SuperconductorRelayConfig @ServiceConnection @Bean: {}", composeContainer.toString());
       return composeContainer;
     }
   }

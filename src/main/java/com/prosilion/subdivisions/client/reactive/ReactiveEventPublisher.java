@@ -33,7 +33,7 @@ public class ReactiveEventPublisher<T extends OkMessage> {
     try {
       Flux<T> map = eventSocketClient
           .send(eventMessage) // sending an event...
-          .take(Long.MAX_VALUE) // ... assumes at least N responses...
+          .take(Long.MAX_VALUE) 
           .map(OkMessage::decode); // ... of type OkMessage, and ignores any others (i.e., EOSE message)
       map.subscribe(subscriber);
       return map;
