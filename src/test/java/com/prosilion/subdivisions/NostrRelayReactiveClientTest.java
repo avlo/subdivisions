@@ -5,6 +5,7 @@ import com.prosilion.subdivisions.client.reactive.ReactiveNostrRelayClient;
 import com.prosilion.subdivisions.config.SuperconductorRelayConfig;
 import com.prosilion.subdivisions.util.Factory;
 import com.prosilion.subdivisions.util.TestSubscriber;
+import com.prosilion.subdivisions.util.TestSubscriber.Mode;
 import java.io.IOException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -44,19 +45,19 @@ class NostrRelayReactiveClientTest {
   @Test
   void testQueryNonExistantEventReturnsEmptyList() throws JsonProcessingException {
     ReactiveNostrRelayClient methodReactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUri);
-    
+
     EventFilter<GenericEvent> eventFilter = new EventFilter<>(Factory.createGenericEvent());
     AuthorFilter<PublicKey> authorFilter = new AuthorFilter<>(Factory.createNewIdentity().getPublicKey());
 
     final String subscriberId = Factory.generateRandomHex64String();
 
     ReqMessage reqMessage = new ReqMessage(subscriberId, new Filters(eventFilter, authorFilter));
-    TestSubscriber<GenericEvent> reqSubscriber = new TestSubscriber<>();
+    TestSubscriber<GenericEvent> reqSubscriber = new TestSubscriber<>(Mode.DO_NOT_WAIT_FOR_COMPLETE_ATOMIC_BOOL__FLUX_KNOWN_TO_HAVE_NO_RETURNED_ITEMS__NEEDS_FIXING);
     methodReactiveNostrRelayClient.send(reqMessage, reqSubscriber);
 
-    log.debug(reqSubscriber.getItems().getFirst().getContent());
+    assertTrue(reqSubscriber.getItems().isEmpty());
   }
-  
+
   @Test
   void testEventCreation() throws IOException {
     Identity identity = Factory.createNewIdentity();

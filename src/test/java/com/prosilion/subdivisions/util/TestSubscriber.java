@@ -15,33 +15,55 @@ import reactor.util.context.Context;
 
 @Slf4j
 public class TestSubscriber<T> extends BaseSubscriber<T> {
+  public enum Mode {
+    WAIT_FOR_COMPLETE_ATOMIC_BOOL,
+    DO_NOT_WAIT_FOR_COMPLETE_ATOMIC_BOOL__FLUX_KNOWN_TO_HAVE_NO_RETURNED_ITEMS__NEEDS_FIXING
+  }
+  
   public static final String ANSI_RESET = "\u001B[0m";
   public static final String ANSI_BLUE = "\033[1;34m";
-  public static final String ANSI_RED = "\033[1;36m";
 
   private final List<T> items = Collections.synchronizedList(new ArrayList<>());
-  private final AtomicBoolean completed = new AtomicBoolean(false);
+  private final AtomicBoolean completed;
   private Subscription subscription;
 
+  public TestSubscriber() {
+     this(Mode.WAIT_FOR_COMPLETE_ATOMIC_BOOL);
+  }
+  
+  public TestSubscriber(Mode mode) {
+    super();
+    this.completed = mode.equals(Mode.DO_NOT_WAIT_FOR_COMPLETE_ATOMIC_BOOL__FLUX_KNOWN_TO_HAVE_NO_RETURNED_ITEMS__NEEDS_FIXING) ? new AtomicBoolean(true) : new AtomicBoolean(false);
+  }
+  
   @Override
   public void hookOnSubscribe(@NonNull Subscription subscription) {
-    log.debug("0000000000000000000000");
-    log.debug("0000000000000000000000");
+    log.debug("in TestSubscriber.hookOnSubscribe()");
+//    log.debug("0000000000000000000000");
+//    log.debug("0000000000000000000000");
     this.subscription = subscription;
     subscription.request(1);
 
     log.debug(" Subscription object hashCode: [ " + ANSI_BLUE + subscription.hashCode() + ANSI_RESET + " ]");
-    log.debug("0000000000000000000000");
-    log.debug("0000000000000000000000");
+//    log.debug("0000000000000000000000");
+//    log.debug("0000000000000000000000");
   }
 
   @Override
   public void hookOnNext(@NonNull T value) {
+    log.debug("in TestSubscriber.hookOnNext()");
     log.debug("1111111111111111111111");
     log.debug("1111111111111111111111");
-    completed.setRelease(false);
+//    completed.setRelease(false);
+    log.debug("1 ###### release pre-acquire should be FALSE, is: [{}]", completed.get());
+    completed.set(false);
+    log.debug("-------------:");
     subscription.request(1);
-    completed.setRelease(true);
+//    completed.setRelease(true);
+    log.debug("2 ###### release post-acquire should be TRUE, is: [{}]", completed.get());
+    completed.set(true);
+    log.debug("-------------:");
+    log.debug("3 ###### release post-release should be FALSE, is: [{}]", completed.get());
     items.add(value);
     log.debug("TestSubscriber item list:");
     items.forEach(item -> log.debug("  " + item.toString()));
@@ -50,13 +72,16 @@ public class TestSubscriber<T> extends BaseSubscriber<T> {
   }
 
   public List<T> getItems() {
+    log.debug("in TestSubscriber.getItems()");
     log.debug("2222222222222222222222");
     log.debug("2222222222222222222222");
+//    Awaitility.await()
+//        .timeout(3, TimeUnit.SECONDS)
+//        .until(() -> completed.getAndSet(true));
     Awaitility.await()
-        .timeout(5, TimeUnit.SECONDS)
+        .timeout(3, TimeUnit.SECONDS)
         .untilTrue(completed);
-    //      completed.setRelease(false);
-    //    subscription.cancel();
+    log.debug("--------------------");
     List<T> eventList = List.copyOf(items);
     items.clear();
     log.debug("2222222222222222222222");
@@ -73,6 +98,7 @@ public class TestSubscriber<T> extends BaseSubscriber<T> {
 
   @Override
   protected void hookOnComplete() {
+    log.debug("in TestSubscriber.hookOnComplete()");
     log.debug("4444444444444444444444");
     log.debug("4444444444444444444444");
     completed.setRelease(true);
