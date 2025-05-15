@@ -6,7 +6,7 @@
     <groupId>com.prosilion</groupId>
     <artifactId>subdivisions</artifactId>
     <version>1.0.0</version>
-    <name>afterimage</name>
+    <name>subdivisions</name>
     <description>java web-socket client and nostr related utilities</description>
     <packaging>jar</packaging>
 

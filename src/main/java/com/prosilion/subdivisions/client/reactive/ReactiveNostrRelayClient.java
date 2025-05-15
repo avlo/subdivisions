@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import nostr.event.impl.GenericEvent;
+import nostr.event.BaseMessage;
 import nostr.event.message.EventMessage;
 import nostr.event.message.OkMessage;
 import nostr.event.message.ReqMessage;
@@ -14,9 +14,9 @@ import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
 
 @Slf4j
-public class ReactiveNostrRelayClient {
+public class ReactiveNostrRelayClient<T extends BaseMessage> {
   private final ReactiveEventPublisher<OkMessage> reactiveEventPublisher;
-  private final ReactiveRelaySubscriptionsManager<GenericEvent> reactiveRelaySubscriptionsManager;
+  private final ReactiveRelaySubscriptionsManager<T> reactiveRelaySubscriptionsManager;
 
   public ReactiveNostrRelayClient(@NonNull String relayUri) {
     log.debug("relayUri: \n{}", relayUri);
@@ -40,7 +40,7 @@ public class ReactiveNostrRelayClient {
     reactiveEventPublisher.send(eventMessage, subscriber);
   }
 
-  public void send(@NonNull ReqMessage reqMessage, @NonNull Subscriber<GenericEvent> subscriber) throws JsonProcessingException {
+  public void send(@NonNull ReqMessage reqMessage, @NonNull Subscriber<T> subscriber) throws JsonProcessingException {
     reactiveRelaySubscriptionsManager.send(reqMessage, subscriber);
   }
 }

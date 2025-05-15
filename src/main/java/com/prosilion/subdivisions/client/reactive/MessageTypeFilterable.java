@@ -13,20 +13,23 @@ public interface MessageTypeFilterable {
   Logger log = LoggerFactory.getLogger(MessageTypeFilterable.class);  // slf4j in interfaces req's explicit
 
   //  TODO: method needs thorough testing, doesn't properly filter Class<V> types
-  default <V extends BaseMessage> Flux<V> getTypeSpecificMessage(Class<V> messageClass, Flux<String> messages) {
-    log.debug("MessageTypeFilterable.getTypeSpecificMessage() messageClass: [{}]", messageClass.getSimpleName());
+  default <V extends BaseMessage> Flux<V> getTypeSpecificMessage(Flux<String> messages) {
+    log.debug("MessageTypeFilterable.getTypeSpecificMessage()");
     return messages
         .map(msg -> {
           try {
             return new BaseMessageDecoder<V>().decode(msg);
           } catch (JsonProcessingException e) {
             return null;
-          }})
+          }
+        })
         .filter(Objects::nonNull)
-        .filter(messageClass::isInstance);
+//        .filter(messageClass::isInstance)
+        ;
   }
 
-  default <V extends BaseMessage> List<V> getTypeSpecificMessage(Class<V> messageClass, List<String> messages) {
-    return getTypeSpecificMessage(messageClass, Flux.fromIterable(messages)).collectList().block();
+  default <V extends BaseMessage> List<V> getTypeSpecificMessage(List<String> messages) {
+    Flux<V> typeSpecificMessage = getTypeSpecificMessage(Flux.fromIterable(messages));
+    return typeSpecificMessage.collectList().block();
   }
 }

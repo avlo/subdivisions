@@ -1,17 +1,16 @@
 package com.prosilion.subdivisions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.prosilion.subdivisions.config.SuperconductorRelayConfig;
 import com.prosilion.subdivisions.client.standard.StandardEventPublisher;
 import com.prosilion.subdivisions.client.standard.StandardRelaySubscriptionsManager;
+import com.prosilion.subdivisions.config.SuperconductorRelayConfig;
 import com.prosilion.subdivisions.util.Factory;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import lombok.extern.slf4j.Slf4j;
-import nostr.base.Command;
 import nostr.base.PublicKey;
+import nostr.event.BaseMessage;
 import nostr.event.filter.AuthorFilter;
 import nostr.event.filter.EventFilter;
 import nostr.event.filter.Filters;
@@ -28,6 +27,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+import static com.prosilion.subdivisions.NostrRelayReactiveClientTest.getGenericEvents;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -38,8 +38,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringJUnitConfig(SuperconductorRelayConfig.class)
 @TestPropertySource("classpath:application-test.properties")
 @ActiveProfiles("test")
-class EventThenReqTest {
-  private final StandardRelaySubscriptionsManager standardRelaySubscriptionsManager;
+class EventThenReqTest<T extends BaseMessage> {
+  private final StandardRelaySubscriptionsManager<T> standardRelaySubscriptionsManager;
 
   private final PublicKey authorPubKey;
   private final String eventId;
@@ -47,7 +47,7 @@ class EventThenReqTest {
   @Autowired
   public EventThenReqTest(@Value("${superconductor.relay.uri}") String relayUri) throws ExecutionException, InterruptedException, IOException {
     final StandardEventPublisher standardEventPublisher = new StandardEventPublisher(relayUri);
-    this.standardRelaySubscriptionsManager = new StandardRelaySubscriptionsManager(relayUri);
+    this.standardRelaySubscriptionsManager = new StandardRelaySubscriptionsManager<>(relayUri);
     this.eventId = Factory.generateRandomHex64String();
     this.authorPubKey = Factory.createNewIdentity().getPublicKey();
 
@@ -72,19 +72,25 @@ class EventThenReqTest {
   void testReqFilteredByEventAndAuthor() throws JsonProcessingException {
     String subscriberId = Factory.generateRandomHex64String();
 
-    Map<Command, List<Object>> returnedJsonMap = standardRelaySubscriptionsManager.sendRequestReturnCommandResultsMap(
-        new ReqMessage(subscriberId,
-            new Filters(
-                new AuthorFilter<>(authorPubKey))));
+    List<T> returnedBaseMessages = standardRelaySubscriptionsManager
+        .sendRequestReturnEvents(
+            new ReqMessage(subscriberId,
+                new Filters(
+                    new AuthorFilter<>(authorPubKey))));
 
-    log.debug("returnedJsonMap testReqFilteredByEventAndAuthor():");
-    log.debug("  {}", returnedJsonMap);
-    assertTrue(returnedJsonMap.get(Command.EVENT).toString().contains(eventId));
-    assertTrue(returnedJsonMap.get(Command.EVENT).toString().contains(authorPubKey.toHexString()));
-    assertTrue(returnedJsonMap.get(Command.EOSE).toString().contains(subscriberId));
+    List<GenericEvent> returnedEvents = getGenericEvents(returnedBaseMessages);
 
-    assertFalse(returnedJsonMap.get(Command.EVENT).toString().contains(eventId + "X"));
-    assertFalse(returnedJsonMap.get(Command.EOSE).toString().contains(subscriberId + "X"));
+    log.debug("returnedBaseMessages testReqFilteredByEventAndAuthor():");
+    assertTrue(returnedBaseMessages.stream()
+        .filter(EoseMessage.class::isInstance)
+        .map(EoseMessage.class::cast)
+        .findAny().isPresent());
+
+    assertEquals(1, returnedEvents.size());
+    assertTrue(returnedEvents.toString().contains(eventId));
+    assertTrue(returnedEvents.toString().contains(authorPubKey.toHexString()));
+    assertFalse(returnedEvents.toString().contains(eventId + "X"));
+    assertFalse(returnedEvents.toString().contains(subscriberId + "X"));
   }
 
   @Test
@@ -93,15 +99,21 @@ class EventThenReqTest {
     String aNonExistentEventId = Factory.generateRandomHex64String();
     GenericEvent event = new GenericEvent(aNonExistentEventId);
 
-    Map<Command, List<Object>> returnedJsonMap = standardRelaySubscriptionsManager.sendRequestReturnCommandResultsMap(
-        new ReqMessage(subscriberId,
-            new Filters(
-                new EventFilter<>(event))));
+    List<T> returnedBaseMessages = standardRelaySubscriptionsManager
+        .sendRequestReturnEvents(
+            new ReqMessage(subscriberId,
+                new Filters(
+                    new EventFilter<>(event))));
 
-    log.info("returnedJsonMap testReqNonMatchingEvent():");
-    log.info("  {}", returnedJsonMap);
-    assertTrue(returnedJsonMap.get(Command.EVENT).isEmpty());
-    assertFalse(returnedJsonMap.get(Command.EOSE).isEmpty());
+    List<GenericEvent> returnedEvents = getGenericEvents(returnedBaseMessages);
+
+    log.debug("returnedBaseMessages testReqFilteredByEventAndAuthor():");
+    assertTrue(returnedBaseMessages.stream()
+        .filter(EoseMessage.class::isInstance)
+        .map(EoseMessage.class::cast)
+        .findAny().isPresent());
+
+    assertTrue(returnedEvents.isEmpty());
   }
 
   @Test
@@ -114,14 +126,19 @@ class EventThenReqTest {
         new Filters(
             new EventFilter<>(event))));
 
-    Map<Command, List<Object>> returnedJsonMap = standardRelaySubscriptionsManager.sendRequestReturnCommandResultsMap(
-        new ReqMessage(subscriberId,
-            new Filters(
-                new EventFilter<>(event))));
+    ReqMessage reqMessage = new ReqMessage(subscriberId,
+        new Filters(
+            new EventFilter<>(event)));
 
-    log.info("returnedJsonMap testCulledSubscriberId():");
-    log.info("  {}", returnedJsonMap);
-    assertTrue(returnedJsonMap.get(Command.EVENT).isEmpty());
-    assertEquals(new EoseMessage((String) returnedJsonMap.get(Command.EOSE).getFirst()).getSubscriptionId(), subscriberId);
+    List<T> returnedBaseMessages = standardRelaySubscriptionsManager.sendRequestReturnEvents(reqMessage);
+    List<GenericEvent> returnedEvents = getGenericEvents(returnedBaseMessages);
+
+    log.debug("returnedBaseMessages testReqFilteredByEventAndAuthor():");
+    assertTrue(returnedBaseMessages.stream()
+        .filter(EoseMessage.class::isInstance)
+        .map(EoseMessage.class::cast)
+        .findAny().isPresent());
+
+    assertTrue(returnedEvents.isEmpty());
   }
 }

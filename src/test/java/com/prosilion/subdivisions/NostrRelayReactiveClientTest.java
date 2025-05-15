@@ -5,12 +5,12 @@ import com.prosilion.subdivisions.client.reactive.ReactiveNostrRelayClient;
 import com.prosilion.subdivisions.config.SuperconductorRelayConfig;
 import com.prosilion.subdivisions.util.Factory;
 import com.prosilion.subdivisions.util.TestSubscriber;
-import com.prosilion.subdivisions.util.TestSubscriber.Mode;
 import java.io.IOException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import nostr.api.NIP01;
 import nostr.base.PublicKey;
+import nostr.event.BaseMessage;
 import nostr.event.filter.AuthorFilter;
 import nostr.event.filter.EventFilter;
 import nostr.event.filter.Filters;
@@ -43,28 +43,29 @@ class NostrRelayReactiveClientTest {
   }
 
   @Test
-  void testQueryNonExistantEventReturnsEmptyList() throws JsonProcessingException {
-    ReactiveNostrRelayClient methodReactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUri);
-
+  <T extends BaseMessage> void testQueryNonExistantEventReturnsEmptyList() throws JsonProcessingException {
     EventFilter<GenericEvent> eventFilter = new EventFilter<>(Factory.createGenericEvent());
     AuthorFilter<PublicKey> authorFilter = new AuthorFilter<>(Factory.createNewIdentity().getPublicKey());
 
     final String subscriberId = Factory.generateRandomHex64String();
 
     ReqMessage reqMessage = new ReqMessage(subscriberId, new Filters(eventFilter, authorFilter));
-    TestSubscriber<GenericEvent> reqSubscriber = new TestSubscriber<>(Mode.DO_NOT_WAIT_FOR_COMPLETE_ATOMIC_BOOL__FLUX_KNOWN_TO_HAVE_NO_RETURNED_ITEMS__NEEDS_FIXING);
-    methodReactiveNostrRelayClient.send(reqMessage, reqSubscriber);
+    TestSubscriber<T> reqSubscriber = new TestSubscriber<>();
+    ReactiveNostrRelayClient<T> nostrRelayService = new ReactiveNostrRelayClient<>(relayUri);
 
-    assertTrue(reqSubscriber.getItems().isEmpty());
+    nostrRelayService.send(reqMessage, reqSubscriber);
+    List<GenericEvent> genericEvents = getGenericEvents(reqSubscriber.getItems());
+    
+    assertTrue(genericEvents.isEmpty());
   }
 
   @Test
-  void testEventCreation() throws IOException {
+  <T extends BaseMessage> void testEventCreation() throws IOException {
     Identity identity = Factory.createNewIdentity();
     GenericEvent event = new NIP01<>(identity).createTextNoteEvent(Factory.lorumIpsum()).sign().getEvent();
 
     TestSubscriber<OkMessage> okMessageSubscriber = new TestSubscriber<>();
-    new ReactiveNostrRelayClient(relayUri).send(new EventMessage(event), okMessageSubscriber);
+    new ReactiveNostrRelayClient<T>(relayUri).send(new EventMessage(event), okMessageSubscriber);
 
     assertEquals(
         new OkMessage(event.getId(), true, "success: request processed").encode(),
@@ -72,14 +73,14 @@ class NostrRelayReactiveClientTest {
   }
 
   @Test
-  void testReqFilteredByEventAndAuthor() throws IOException {
+  <T extends BaseMessage> void testReqFilteredByEventAndAuthor() throws IOException {
     Identity identity = Factory.createNewIdentity();
     String content = Factory.lorumIpsum();
     GenericEvent event = new NIP01<>(identity).createTextNoteEvent(content).sign().getEvent();
 
-    ReactiveNostrRelayClient methodReactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUri);
+    ReactiveNostrRelayClient<T> superconductorReactiveNostrRelayClient = new ReactiveNostrRelayClient<>(relayUri);
     TestSubscriber<OkMessage> eventSubscriber = new TestSubscriber<>();
-    methodReactiveNostrRelayClient.send(new EventMessage(event), eventSubscriber);//, event.getId()));
+    superconductorReactiveNostrRelayClient.send(new EventMessage(event), eventSubscriber);//, event.getId()));
 
     List<OkMessage> items = eventSubscriber.getItems();
     OkMessage okMessage = new OkMessage(event.getId(), true, "success: request processed");
@@ -92,27 +93,36 @@ class NostrRelayReactiveClientTest {
     final String subscriberId = Factory.generateRandomHex64String();
 
     ReqMessage reqMessage = new ReqMessage(subscriberId, new Filters(eventFilter, authorFilter));
-    TestSubscriber<GenericEvent> reqSubscriber = new TestSubscriber<>();
-    methodReactiveNostrRelayClient.send(reqMessage, reqSubscriber);
+    TestSubscriber<T> reqSubscriber = new TestSubscriber<>();
+    superconductorReactiveNostrRelayClient.send(reqMessage, reqSubscriber);
 
-    GenericEvent returnedReqGenericEvent = reqSubscriber.getItems().getFirst();
+    List<GenericEvent> returnedReqGenericEvents = getGenericEvents(reqSubscriber.getItems());
 
-    assertEquals(returnedReqGenericEvent.getId(), event.getId());
-    assertEquals(returnedReqGenericEvent.getContent(), event.getContent());
-    assertEquals(returnedReqGenericEvent.getPubKey().toHexString(), event.getPubKey().toHexString());
+    assertEquals(returnedReqGenericEvents.getFirst().getId(), event.getId());
+    assertEquals(returnedReqGenericEvents.getFirst().getContent(), event.getContent());
+    assertEquals(returnedReqGenericEvents.getFirst().getPubKey().toHexString(), event.getPubKey().toHexString());
   }
 
+  public static <T extends BaseMessage> List<GenericEvent> getGenericEvents(List<T> returnedBaseMessages) {
+    return returnedBaseMessages.stream()
+        .filter(EventMessage.class::isInstance)
+        .map(EventMessage.class::cast)
+        .map(EventMessage::getEvent)
+        .map(GenericEvent.class::cast)
+        .toList();
+  }
+  
   @Test
-  void testTwoEventsFilteredByEventAndAuthorUsingTwoEventSubscribers() throws IOException {
+  <T extends BaseMessage> void testTwoEventsFilteredByEventAndAuthorUsingTwoEventSubscribers() throws IOException {
     Identity identity = Factory.createNewIdentity();
     String content1 = Factory.lorumIpsum();
-    ReactiveNostrRelayClient methodReactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUri);
+    ReactiveNostrRelayClient<T> superconductorReactiveNostrRelayClient = new ReactiveNostrRelayClient<>(relayUri);
 
 //    # -------------- EVENT 1 of 3 -------------------
     GenericEvent event1 = new NIP01<>(identity).createTextNoteEvent(content1).sign().getEvent();
 
     TestSubscriber<OkMessage> event1Subscriber = new TestSubscriber<>();
-    methodReactiveNostrRelayClient.send(new EventMessage(event1), event1Subscriber);//, event.getId()));
+    superconductorReactiveNostrRelayClient.send(new EventMessage(event1), event1Subscriber);//, event.getId()));
 
     List<OkMessage> event1SubscriberItems = event1Subscriber.getItems();
     OkMessage okMessage1 = new OkMessage(event1.getId(), true, "success: request processed");
@@ -123,7 +133,7 @@ class NostrRelayReactiveClientTest {
     GenericEvent event2 = new NIP01<>(identity).createTextNoteEvent(content2).sign().getEvent();
 
     TestSubscriber<OkMessage> event2Subscriber = new TestSubscriber<>();
-    methodReactiveNostrRelayClient.send(new EventMessage(event2), event2Subscriber);//, event.getId()));
+    superconductorReactiveNostrRelayClient.send(new EventMessage(event2), event2Subscriber);//, event.getId()));
 
     List<OkMessage> event2SubscriberItems = event2Subscriber.getItems();
     OkMessage okMessage2 = new OkMessage(event2.getId(), true, "success: request processed");
@@ -134,7 +144,7 @@ class NostrRelayReactiveClientTest {
     GenericEvent event3 = new NIP01<>(identity).createTextNoteEvent(content3).sign().getEvent();
 
     TestSubscriber<OkMessage> event3Subscriber = new TestSubscriber<>();
-    methodReactiveNostrRelayClient.send(new EventMessage(event3), event3Subscriber);//, event.getId()));
+    superconductorReactiveNostrRelayClient.send(new EventMessage(event3), event3Subscriber);//, event.getId()));
 
     List<OkMessage> event3SubscriberItems = event3Subscriber.getItems();
     OkMessage okMessage3 = new OkMessage(event3.getId(), true, "success: request processed");
@@ -155,14 +165,14 @@ class NostrRelayReactiveClientTest {
 
     ReqMessage reqMessage = new ReqMessage(subscriberId, new Filters(event1Filter, event2Filter, authorFilter));
 
-    TestSubscriber<GenericEvent> reqSubscriber = new TestSubscriber<>();
-    methodReactiveNostrRelayClient.send(reqMessage, reqSubscriber);
+    TestSubscriber<T> reqSubscriber = new TestSubscriber<>();
+    superconductorReactiveNostrRelayClient.send(reqMessage, reqSubscriber);
 
-    List<GenericEvent> items = reqSubscriber.getItems();
-    log.debug("size: [{}]", items.size());
+    List<GenericEvent> returnedReqGenericEvents = getGenericEvents(reqSubscriber.getItems());
+    log.debug("size: [{}]", returnedReqGenericEvents.size());
 
-    assertTrue(items.stream().anyMatch(event -> event.getId().equals(event1.getId())));
-    assertTrue(items.stream().anyMatch(event -> event.getContent().equals(event1.getContent())));
-    assertTrue(items.stream().anyMatch(event -> event.getPubKey().toHexString().equals(event1.getPubKey().toHexString())));
+    assertTrue(returnedReqGenericEvents.stream().anyMatch(event -> event.getId().equals(event1.getId())));
+    assertTrue(returnedReqGenericEvents.stream().anyMatch(event -> event.getContent().equals(event1.getContent())));
+    assertTrue(returnedReqGenericEvents.stream().anyMatch(event -> event.getPubKey().toHexString().equals(event1.getPubKey().toHexString())));
   }
 }

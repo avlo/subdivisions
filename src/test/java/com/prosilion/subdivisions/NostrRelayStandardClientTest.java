@@ -1,14 +1,15 @@
 package com.prosilion.subdivisions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.prosilion.subdivisions.config.SuperconductorRelayConfig;
 import com.prosilion.subdivisions.client.standard.StandardNostrRelayClient;
+import com.prosilion.subdivisions.config.SuperconductorRelayConfig;
 import com.prosilion.subdivisions.util.Factory;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import lombok.extern.slf4j.Slf4j;
 import nostr.base.PublicKey;
+import nostr.event.BaseMessage;
 import nostr.event.filter.AuthorFilter;
 import nostr.event.filter.EventFilter;
 import nostr.event.filter.Filters;
@@ -23,6 +24,8 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+import static com.prosilion.subdivisions.NostrRelayReactiveClientTest.getGenericEvents;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
@@ -30,8 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringJUnitConfig(SuperconductorRelayConfig.class)
 @TestPropertySource("classpath:application-test.properties")
 @ActiveProfiles("test")
-public class NostrRelayStandardClientTest {
-  private final StandardNostrRelayClient standardNostrRelayClient;
+public class NostrRelayStandardClientTest<T extends BaseMessage> {
+  private final StandardNostrRelayClient<T> standardNostrRelayClient;
 
   private final static String authorPubKey = Factory.generateRandomHex64String();
   private final static String eventId = Factory.generateRandomHex64String();
@@ -40,7 +43,7 @@ public class NostrRelayStandardClientTest {
 
   @Autowired
   public NostrRelayStandardClientTest(@Value("${superconductor.relay.uri}") String relayUri) throws IOException, ExecutionException, InterruptedException {
-    this.standardNostrRelayClient = new StandardNostrRelayClient(relayUri);
+    this.standardNostrRelayClient = new StandardNostrRelayClient<>(relayUri);
     content = Factory.lorumIpsum(getClass());
 
     String globalEventJson = "[\"EVENT\",{\"id\":\"" + eventId + "\",\"kind\":1,\"content\":\"" + content + "\",\"pubkey\":\"" + authorPubKey + "\",\"created_at\":1717357053050,\"tags\":[],\"sig\":\"86f25c161fec51b9e441bdb2c09095d5f8b92fdce66cb80d9ef09fad6ce53eaa14c5e16787c42f5404905536e43ebec0e463aee819378a4acbe412c533e60546\"}]";
@@ -53,25 +56,26 @@ public class NostrRelayStandardClientTest {
   void testReqFilteredByEventAndAuthorViaReqMessage() throws JsonProcessingException {
     final String subscriberId = Factory.generateRandomHex64String();
 
-    EventFilter<GenericEvent> eventFilter = new EventFilter<>(new GenericEvent(eventId));
-    AuthorFilter<PublicKey> authorFilter = new AuthorFilter<>(new PublicKey(authorPubKey));
+    GenericEvent genericEvent = new GenericEvent(eventId);
+    EventFilter<GenericEvent> eventFilter = new EventFilter<>(genericEvent);
+    PublicKey authorPubKey = new PublicKey(NostrRelayStandardClientTest.authorPubKey);
+    AuthorFilter<PublicKey> authorFilter = new AuthorFilter<>(authorPubKey);
 
     ReqMessage reqMessage = new ReqMessage(subscriberId, new Filters(eventFilter, authorFilter));
-    List<GenericEvent> returnedEvents = standardNostrRelayClient.sendRequestReturnEvents(reqMessage);
+    List<T> returnedReqMessages = standardNostrRelayClient.sendRequestReturnEvents(reqMessage);
 
-    log.debug("okMessage to UniqueSubscriberId:");
-    log.debug("  " + returnedEvents);
-    assertTrue(returnedEvents.stream().anyMatch(event -> event.getId().equals(eventId)));
-    assertTrue(returnedEvents.stream().anyMatch(event -> event.getContent().equals(content)));
-    assertTrue(returnedEvents.stream().anyMatch(event -> event.getPubKey().toHexString().equals(authorPubKey)));
+    List<GenericEvent> returnedReqGenericEvents = getGenericEvents(returnedReqMessages);
+    log.debug("  " + returnedReqMessages);
+    assertEquals(eventId, returnedReqGenericEvents.getFirst().getId());
+    assertEquals(content, returnedReqGenericEvents.getFirst().getContent());
+    assertEquals(authorPubKey.toHexString(), returnedReqGenericEvents.getFirst().getPubKey().toHexString());
 
     ReqMessage reqMessage2 = new ReqMessage(globalSubscriberId, new Filters(eventFilter, authorFilter));
-    List<GenericEvent> returnedEvents2 = standardNostrRelayClient.sendRequestReturnEvents(reqMessage2);
+    List<T> returnedReqMessages2 = standardNostrRelayClient.sendRequestReturnEvents(reqMessage2);
+    List<GenericEvent> returnedReqGenericEvents2 = getGenericEvents(returnedReqMessages2);
 
-    log.debug("okMessage:");
-    log.debug("  " + returnedEvents2);
-    assertTrue(returnedEvents2.stream().anyMatch(event -> event.getId().equals(eventId)));
-    assertTrue(returnedEvents2.stream().anyMatch(event -> event.getContent().equals(content)));
-    assertTrue(returnedEvents2.stream().anyMatch(event -> event.getPubKey().toHexString().equals(authorPubKey)));
+    assertTrue(returnedReqGenericEvents2.stream().anyMatch(event -> event.getId().equals(eventId)));
+    assertTrue(returnedReqGenericEvents2.stream().anyMatch(event -> event.getContent().equals(content)));
+    assertTrue(returnedReqGenericEvents2.stream().anyMatch(event -> event.getPubKey().toHexString().equals(authorPubKey.toHexString())));
   }
 }

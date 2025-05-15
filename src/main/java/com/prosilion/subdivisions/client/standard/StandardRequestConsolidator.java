@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.NonNull;
-import nostr.base.Command;
 import nostr.event.impl.GenericEvent;
 import nostr.event.message.ReqMessage;
 import org.apache.commons.lang3.stream.Streams;
@@ -39,10 +38,10 @@ public class StandardRequestConsolidator {
 //		return eventsMatchingNipXXX.getPubKeys()
 
 
-  public List<Map<Command, List<Object>>> sendRequestReturnMap(@NonNull ReqMessage reqMessage) {
-    return Streams.failableStream(map.values().stream()).map(entry ->
-        entry.sendRequestReturnCommandResultsMap(reqMessage)).stream().toList();
-  }
+//  public List<Map<Command, List<Object>>> sendRequestReturnMap(@NonNull ReqMessage reqMessage) {
+//    return Streams.failableStream(map.values().stream()).map(entry ->
+//        entry.sendRequestReturnCommandResultsMap(reqMessage)).stream().toList();
+//  }
 
   public List<GenericEvent> sendRequestReturnEvents(@NonNull ReqMessage reqMessage) {
     return Streams.failableStream(map.values().stream()).map(entry ->
