@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +18,7 @@ import org.springframework.boot.ssl.SslBundles;
 import reactor.core.publisher.Flux;
 
 @Slf4j
-public class ReactiveRelaySubscriptionsManager<T extends BaseMessage> implements MessageTypeFilterable {
+public class ReactiveRelaySubscriptionsManager implements MessageTypeFilterable {
   private final Map<String, ReactiveWebSocketClient> subscriberIdWebSocketClientMap = new ConcurrentHashMap<>();
   private final String relayUri;
   private SslBundles sslBundles;
@@ -39,15 +38,13 @@ public class ReactiveRelaySubscriptionsManager<T extends BaseMessage> implements
     log.debug("sslBundles protocol: \n{}", server.getProtocol());
   }
 
-  public void send(@NonNull ReqMessage reqMessage, @NonNull Subscriber<T> subscriber) throws JsonProcessingException {
+  public <T extends ReqMessage, V extends BaseMessage> void send(@NonNull T reqMessage, @NonNull Subscriber<V> subscriber) throws JsonProcessingException {
     log.debug("pre-encoded ReqMessage json: \n{}", reqMessage);
-    Flux<T> apply = baseMessagesReturnedByReqMessage.apply(getRequestResults(reqMessage));
+    Flux<V> apply = baseMessagesReturnedByReqMessage(getRequestResults(reqMessage));
     apply.subscribe(subscriber);
   }
 
-  private final Function<Flux<String>, Flux<T>> baseMessagesReturnedByReqMessage = this::getTypeSpecificMessage;
-
-  private Flux<String> getRequestResults(ReqMessage reqMessage) throws JsonProcessingException {
+  private <T extends ReqMessage> Flux<String> getRequestResults(T reqMessage) throws JsonProcessingException {
     String subscriberId = reqMessage.getSubscriptionId();
     final ReactiveWebSocketClient reactiveWebSocketClient = Optional.ofNullable(subscriberIdWebSocketClientMap.get(subscriberId))
         .orElseGet(() -> {
@@ -57,30 +54,9 @@ public class ReactiveRelaySubscriptionsManager<T extends BaseMessage> implements
     return reactiveWebSocketClient.send(reqMessage);
   }
 
-  //  public Map<Command, List<Object>> sendRequestReturnCommandResultsMap(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
-  //    return sendRequestReturnCommandResultsMap(
-  //        reqMessage.getSubscriptionId(),
-  //        reqMessage.encode());
-  //  }
-
-  //  TODO: need flux variant of below
-  //  public Map<Command, List<Object>> sendRequestReturnCommandResultsMap(@NonNull String subscriberId, @NonNull String reqJson) {
-  //    List<String> returnedEvents = getRequestResults(subscriberId, reqJson);
-  //
-  //    log.debug("55555555555555555");
-  //    log.debug("after REQUEST:");
-  //    log.debug("key/subscriberId:\n  [{}]\n", subscriberId);
-  //    log.debug("-----------------");
-  //    log.debug("returnedEvents:");
-  //    log.debug(returnedEvents.stream().map(event -> String.format("  %s\n", event)).collect(Collectors.joining()));
-  //    log.debug("55555555555555555");
-  //
-  //    Map<Command, List<Object>> results = new HashMap<>();
-  //    eose.apply(returnedEvents).ifPresent(eoses -> results.put(Command.EOSE, List.of(eoses)));
-  //    results.put(Command.EVENT, eventsAsStrings.apply(returnedEvents));
-  //
-  //    return results;
-  //  }
+  private <V extends BaseMessage> Flux<V> baseMessagesReturnedByReqMessage(@NonNull Flux<String> reqMessage) {
+    return this.getTypeSpecificMessage(reqMessage);
+  }
 
   //  TODO: cleanup sneaky
   @SneakyThrows

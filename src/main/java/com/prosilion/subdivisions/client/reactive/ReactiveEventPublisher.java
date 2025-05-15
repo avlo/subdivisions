@@ -11,7 +11,7 @@ import org.springframework.boot.ssl.SslBundles;
 import reactor.core.publisher.Flux;
 
 @Slf4j
-public class ReactiveEventPublisher<T extends OkMessage> {
+public class ReactiveEventPublisher {
   private final ReactiveWebSocketClient eventSocketClient;
 
   public ReactiveEventPublisher(@NonNull String relayUri) {
@@ -28,12 +28,12 @@ public class ReactiveEventPublisher<T extends OkMessage> {
     this.eventSocketClient = new ReactiveWebSocketClient(relayUri);
   }
 
-  public Flux<T> send(@NonNull EventMessage eventMessage, @NonNull Subscriber<T> subscriber) throws IOException {
+  public <T extends OkMessage> Flux<T> send(@NonNull EventMessage eventMessage, @NonNull Subscriber<T> subscriber) throws IOException {
     log.debug("socket send EventMessage content\n  {}", eventMessage.getEvent());
     try {
       Flux<T> map = eventSocketClient
           .send(eventMessage) // sending an event...
-          .take(Long.MAX_VALUE) 
+          .take(Long.MAX_VALUE)
           .map(OkMessage::decode); // ... of type OkMessage, and ignores any others (i.e., EOSE message)
       map.subscribe(subscriber);
       return map;

@@ -15,10 +15,6 @@ import reactor.util.context.Context;
 
 @Slf4j
 public class TestSubscriber<T> extends BaseSubscriber<T> {
-  
-  public static final String ANSI_RESET = "\u001B[0m";
-  public static final String ANSI_BLUE = "\033[1;34m";
-
   private final List<T> items = Collections.synchronizedList(new ArrayList<>());
   private final AtomicBoolean completed = new AtomicBoolean(false);
   private Subscription subscription;

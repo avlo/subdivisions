@@ -1,9 +1,9 @@
 package com.prosilion.subdivisions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.prosilion.subdivisions.config.SuperconductorRelayConfig;
 import com.prosilion.subdivisions.client.standard.StandardEventPublisher;
 import com.prosilion.subdivisions.client.standard.StandardRelaySubscriptionsManager;
+import com.prosilion.subdivisions.config.SuperconductorRelayConfig;
 import com.prosilion.subdivisions.util.Factory;
 import java.io.IOException;
 import java.util.List;
@@ -14,6 +14,8 @@ import nostr.event.BaseMessage;
 import nostr.event.filter.AddressTagFilter;
 import nostr.event.filter.Filters;
 import nostr.event.impl.GenericEvent;
+import nostr.event.json.codec.BaseMessageDecoder;
+import nostr.event.message.EventMessage;
 import nostr.event.message.OkMessage;
 import nostr.event.message.ReqMessage;
 import nostr.event.tag.AddressTag;
@@ -37,8 +39,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringJUnitConfig(SuperconductorRelayConfig.class)
 @TestPropertySource("classpath:application-test.properties")
 @ActiveProfiles("test")
-class EventWithAddressTagNoRelayThenReqTest<T extends BaseMessage> {
-  private final StandardRelaySubscriptionsManager<T> standardRelaySubscriptionsManager;
+class EventWithAddressTagNoRelayThenReqTest {
+  private final StandardRelaySubscriptionsManager standardRelaySubscriptionsManager;
 
   private final PublicKey authorPubKey = Factory.createNewIdentity().getPublicKey();
   private final String eventId = Factory.generateRandomHex64String();
@@ -48,7 +50,7 @@ class EventWithAddressTagNoRelayThenReqTest<T extends BaseMessage> {
   @Autowired
   public EventWithAddressTagNoRelayThenReqTest(@Value("${superconductor.relay.uri}") String relayUri) throws ExecutionException, InterruptedException, IOException {
     final StandardEventPublisher standardEventPublisher = new StandardEventPublisher(relayUri);
-    this.standardRelaySubscriptionsManager = new StandardRelaySubscriptionsManager<T>(relayUri);
+    this.standardRelaySubscriptionsManager = new StandardRelaySubscriptionsManager(relayUri);
 
     String content = Factory.lorumIpsum(getClass());
     String globalEventJson =
@@ -61,9 +63,10 @@ class EventWithAddressTagNoRelayThenReqTest<T extends BaseMessage> {
             "[\"a\",\"1:" + addressTagPubKey.toHexString() + ":" + uuid + "\"]" +
             "]," +
             "\"sig\":\"86f25c161fec51b9e441bdb2c09095d5f8b92fdce66cb80d9ef09fad6ce53eaa14c5e16787c42f5404905536e43ebec0e463aee819378a4acbe412c533e60546\"}]";
-    log.debug("setup() send event:\n  {}", globalEventJson);
 
-    OkMessage okMessage = standardEventPublisher.sendEvent(globalEventJson);
+    log.debug("setup() send event:\n  {}", globalEventJson);
+    OkMessage okMessage = standardEventPublisher.sendEvent(
+        new BaseMessageDecoder<EventMessage>().decode(globalEventJson));
     assertTrue(okMessage.getFlag());
     assertEquals(eventId, okMessage.getEventId());
     assertEquals("success: request processed", okMessage.getMessage());
@@ -79,7 +82,7 @@ class EventWithAddressTagNoRelayThenReqTest<T extends BaseMessage> {
     addressTag.setIdentifierTag(new IdentifierTag(uuid));
 
     ReqMessage reqMessage = new ReqMessage(subscriberId, new Filters(new AddressTagFilter<>(addressTag)));
-    List<T> returnedBaseMessages = standardRelaySubscriptionsManager.sendRequestReturnEvents(reqMessage);
+    List<BaseMessage> returnedBaseMessages = standardRelaySubscriptionsManager.send(reqMessage);
     List<GenericEvent> returnedEvents = getGenericEvents(returnedBaseMessages);
 
     log.debug("returnedEvents testReqFilteredByAddressTag():");

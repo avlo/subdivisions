@@ -51,11 +51,11 @@ class NostrRelayReactiveClientTest {
 
     ReqMessage reqMessage = new ReqMessage(subscriberId, new Filters(eventFilter, authorFilter));
     TestSubscriber<T> reqSubscriber = new TestSubscriber<>();
-    ReactiveNostrRelayClient<T> nostrRelayService = new ReactiveNostrRelayClient<>(relayUri);
+    ReactiveNostrRelayClient nostrRelayService = new ReactiveNostrRelayClient(relayUri);
 
     nostrRelayService.send(reqMessage, reqSubscriber);
     List<GenericEvent> genericEvents = getGenericEvents(reqSubscriber.getItems());
-    
+
     assertTrue(genericEvents.isEmpty());
   }
 
@@ -65,7 +65,7 @@ class NostrRelayReactiveClientTest {
     GenericEvent event = new NIP01<>(identity).createTextNoteEvent(Factory.lorumIpsum()).sign().getEvent();
 
     TestSubscriber<OkMessage> okMessageSubscriber = new TestSubscriber<>();
-    new ReactiveNostrRelayClient<T>(relayUri).send(new EventMessage(event), okMessageSubscriber);
+    new ReactiveNostrRelayClient(relayUri).send(new EventMessage(event), okMessageSubscriber);
 
     assertEquals(
         new OkMessage(event.getId(), true, "success: request processed").encode(),
@@ -78,7 +78,7 @@ class NostrRelayReactiveClientTest {
     String content = Factory.lorumIpsum();
     GenericEvent event = new NIP01<>(identity).createTextNoteEvent(content).sign().getEvent();
 
-    ReactiveNostrRelayClient<T> superconductorReactiveNostrRelayClient = new ReactiveNostrRelayClient<>(relayUri);
+    ReactiveNostrRelayClient superconductorReactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUri);
     TestSubscriber<OkMessage> eventSubscriber = new TestSubscriber<>();
     superconductorReactiveNostrRelayClient.send(new EventMessage(event), eventSubscriber);//, event.getId()));
 
@@ -111,12 +111,12 @@ class NostrRelayReactiveClientTest {
         .map(GenericEvent.class::cast)
         .toList();
   }
-  
+
   @Test
   <T extends BaseMessage> void testTwoEventsFilteredByEventAndAuthorUsingTwoEventSubscribers() throws IOException {
     Identity identity = Factory.createNewIdentity();
     String content1 = Factory.lorumIpsum();
-    ReactiveNostrRelayClient<T> superconductorReactiveNostrRelayClient = new ReactiveNostrRelayClient<>(relayUri);
+    ReactiveNostrRelayClient superconductorReactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUri);
 
 //    # -------------- EVENT 1 of 3 -------------------
     GenericEvent event1 = new NIP01<>(identity).createTextNoteEvent(content1).sign().getEvent();

@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +18,7 @@ import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
 
 @Slf4j
-public class StandardRelaySubscriptionsManager<T extends BaseMessage> implements MessageTypeFilterable {
+public class StandardRelaySubscriptionsManager implements MessageTypeFilterable {
   private final Map<String, StandardWebSocketClient> subscriberIdWebSocketClientMap = new ConcurrentHashMap<>();
   private final String relayUri;
   private SslBundles sslBundles;
@@ -39,47 +38,17 @@ public class StandardRelaySubscriptionsManager<T extends BaseMessage> implements
     log.debug("sslBundles protocol: \n{}", server.getProtocol());
   }
 
-  private final Function<List<String>, List<T>> baseMessagesReturnedByReqMessage = this::getTypeSpecificMessage
-//          .stream()
-//          .map(eventMessage -> (T) eventMessage.getEvent())
-//          .sorted(Comparator.comparing(T::))
-//          .toList()
-      ;
-
-//  private final Function<List<String>, Optional<String>> eose = (events) ->
-//      getTypeSpecificMessage(EoseMessage.class, events).stream().map(EoseMessage::getSubscriptionId).findFirst();
-
-  public List<T> sendRequestReturnEvents(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
+  public <T extends BaseMessage> List<T> send(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
     log.debug("pre-encoded ReqMessage json: \n{}", reqMessage);
-    return baseMessagesReturnedByReqMessage.apply(
+    return baseMessagesReturnedByReqMessage(
         getRequestResults(
             reqMessage.getSubscriptionId(),
             reqMessage.encode()));
   }
 
-//  public Map<Command, List<Object>> sendRequestReturnCommandResultsMap(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
-//    return sendRequestReturnCommandResultsMap(
-//        reqMessage.getSubscriptionId(),
-//        reqMessage.encode());
-//  }
-
-//  public Map<Command, List<Object>> sendRequestReturnCommandResultsMap(@NonNull String subscriberId, @NonNull String reqJson) {
-//    List<String> returnedEvents = getRequestResults(subscriberId, reqJson);
-//
-//    log.debug("55555555555555555");
-//    log.debug("after REQUEST:");
-//    log.debug("key/subscriberId:\n  [{}]\n", subscriberId);
-//    log.debug("-----------------");
-//    log.debug("returnedEvents:");
-//    log.debug(returnedEvents.stream().map(event -> String.format("  %s\n", event)).collect(Collectors.joining()));
-//    log.debug("55555555555555555");
-//
-//    Map<Command, List<Object>> results = new HashMap<>();
-//    eose.apply(returnedEvents).ifPresent(eoses -> results.put(Command.EOSE, List.of(eoses)));
-//    results.put(Command.EVENT, eventsAsStrings.apply(returnedEvents));
-//
-//    return results;
-//  }
+  private <T extends BaseMessage> List<T> baseMessagesReturnedByReqMessage(@NonNull List<String> reqMessage) {
+    return this.getTypeSpecificMessage(reqMessage);
+  }
 
   private List<String> getRequestResults(String subscriberId, String reqJson) {
     log.debug("subscriberId: [{}]", subscriberId);
@@ -92,9 +61,9 @@ public class StandardRelaySubscriptionsManager<T extends BaseMessage> implements
         }).getEvents();
   }
 
-  public List<T> updateReqResults(@NonNull String subscriberId) {
+  public <T extends BaseMessage> List<T> updateReqResults(@NonNull String subscriberId) {
     log.debug("RelaySubscriptionsManagerg updateReqResults for subscriberId: [{}]", subscriberId);
-    return baseMessagesReturnedByReqMessage.apply(getEvents(subscriberId));
+    return baseMessagesReturnedByReqMessage(getEvents(subscriberId));
   }
 
   private List<String> getEvents(@NonNull String subscriberId) {

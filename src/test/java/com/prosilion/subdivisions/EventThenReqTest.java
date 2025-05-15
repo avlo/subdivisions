@@ -15,7 +15,9 @@ import nostr.event.filter.AuthorFilter;
 import nostr.event.filter.EventFilter;
 import nostr.event.filter.Filters;
 import nostr.event.impl.GenericEvent;
+import nostr.event.json.codec.BaseMessageDecoder;
 import nostr.event.message.EoseMessage;
+import nostr.event.message.EventMessage;
 import nostr.event.message.OkMessage;
 import nostr.event.message.ReqMessage;
 import org.junit.jupiter.api.Test;
@@ -38,8 +40,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringJUnitConfig(SuperconductorRelayConfig.class)
 @TestPropertySource("classpath:application-test.properties")
 @ActiveProfiles("test")
-class EventThenReqTest<T extends BaseMessage> {
-  private final StandardRelaySubscriptionsManager<T> standardRelaySubscriptionsManager;
+class EventThenReqTest {
+  private final StandardRelaySubscriptionsManager standardRelaySubscriptionsManager;
 
   private final PublicKey authorPubKey;
   private final String eventId;
@@ -47,7 +49,7 @@ class EventThenReqTest<T extends BaseMessage> {
   @Autowired
   public EventThenReqTest(@Value("${superconductor.relay.uri}") String relayUri) throws ExecutionException, InterruptedException, IOException {
     final StandardEventPublisher standardEventPublisher = new StandardEventPublisher(relayUri);
-    this.standardRelaySubscriptionsManager = new StandardRelaySubscriptionsManager<>(relayUri);
+    this.standardRelaySubscriptionsManager = new StandardRelaySubscriptionsManager(relayUri);
     this.eventId = Factory.generateRandomHex64String();
     this.authorPubKey = Factory.createNewIdentity().getPublicKey();
 
@@ -62,7 +64,9 @@ class EventThenReqTest<T extends BaseMessage> {
             ",\"sig\":\"86f25c161fec51b9e441bdb2c09095d5f8b92fdce66cb80d9ef09fad6ce53eaa14c5e16787c42f5404905536e43ebec0e463aee819378a4acbe412c533e60546\"}]";
     log.debug("setup() send event:\n  {}", globalEventJson);
 
-    OkMessage okMessage = standardEventPublisher.sendEvent(globalEventJson);
+    OkMessage okMessage = standardEventPublisher.sendEvent(
+        new BaseMessageDecoder<EventMessage>().decode(globalEventJson));
+
     assertTrue(okMessage.getFlag());
     assertEquals(eventId, okMessage.getEventId());
     assertEquals("success: request processed", okMessage.getMessage());
@@ -72,8 +76,8 @@ class EventThenReqTest<T extends BaseMessage> {
   void testReqFilteredByEventAndAuthor() throws JsonProcessingException {
     String subscriberId = Factory.generateRandomHex64String();
 
-    List<T> returnedBaseMessages = standardRelaySubscriptionsManager
-        .sendRequestReturnEvents(
+    List<BaseMessage> returnedBaseMessages = standardRelaySubscriptionsManager
+        .send(
             new ReqMessage(subscriberId,
                 new Filters(
                     new AuthorFilter<>(authorPubKey))));
@@ -99,8 +103,8 @@ class EventThenReqTest<T extends BaseMessage> {
     String aNonExistentEventId = Factory.generateRandomHex64String();
     GenericEvent event = new GenericEvent(aNonExistentEventId);
 
-    List<T> returnedBaseMessages = standardRelaySubscriptionsManager
-        .sendRequestReturnEvents(
+    List<BaseMessage> returnedBaseMessages = standardRelaySubscriptionsManager
+        .send(
             new ReqMessage(subscriberId,
                 new Filters(
                     new EventFilter<>(event))));
@@ -130,7 +134,7 @@ class EventThenReqTest<T extends BaseMessage> {
         new Filters(
             new EventFilter<>(event)));
 
-    List<T> returnedBaseMessages = standardRelaySubscriptionsManager.sendRequestReturnEvents(reqMessage);
+    List<BaseMessage> returnedBaseMessages = standardRelaySubscriptionsManager.send(reqMessage);
     List<GenericEvent> returnedEvents = getGenericEvents(returnedBaseMessages);
 
     log.debug("returnedBaseMessages testReqFilteredByEventAndAuthor():");
