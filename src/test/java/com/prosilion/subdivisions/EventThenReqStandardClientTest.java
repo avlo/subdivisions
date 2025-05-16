@@ -40,14 +40,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringJUnitConfig(SuperconductorRelayConfig.class)
 @TestPropertySource("classpath:application-test.properties")
 @ActiveProfiles("test")
-class EventThenReqTest {
+class EventThenReqStandardClientTest {
   private final StandardRelaySubscriptionsManager standardRelaySubscriptionsManager;
 
   private final PublicKey authorPubKey;
   private final String eventId;
 
   @Autowired
-  public EventThenReqTest(@Value("${superconductor.relay.uri}") String relayUri) throws ExecutionException, InterruptedException, IOException {
+  public EventThenReqStandardClientTest(@Value("${superconductor.relay.uri}") String relayUri) throws ExecutionException, InterruptedException, IOException {
     final StandardEventPublisher standardEventPublisher = new StandardEventPublisher(relayUri);
     this.standardRelaySubscriptionsManager = new StandardRelaySubscriptionsManager(relayUri);
     this.eventId = Factory.generateRandomHex64String();

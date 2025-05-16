@@ -43,7 +43,7 @@ class NostrRelayReactiveClientTest {
   }
 
   @Test
-  <T extends BaseMessage> void testQueryNonExistantEventReturnsEmptyList() throws JsonProcessingException {
+  <T extends BaseMessage> void testQueryNonExistentEventReturnsEmptyList() throws JsonProcessingException {
     EventFilter<GenericEvent> eventFilter = new EventFilter<>(Factory.createGenericEvent());
     AuthorFilter<PublicKey> authorFilter = new AuthorFilter<>(Factory.createNewIdentity().getPublicKey());
 
