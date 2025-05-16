@@ -78,12 +78,12 @@ $ ./gradlew publishToMavenLocal
     <dependency>
       <groupId>com.prosilion</groupId>
       <artifactId>subdivisions</artifactId>
-      <version>1.0.0</version>
+      <version>1.1.0</version>
     </dependency>
 </details>
 <details>
   <summary>gradle</summary>
 
-    implementation 'com.prosilion:subdivisions:1.0.0'
+    implementation 'com.prosilion:subdivisions:1.1.0'
 </details>
 
