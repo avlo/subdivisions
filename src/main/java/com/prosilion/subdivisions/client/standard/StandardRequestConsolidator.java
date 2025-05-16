@@ -33,24 +33,10 @@ public class StandardRequestConsolidator {
     this.map.remove(name);
   }
 
-  //  List<PubKey> sendReq(ReqFilter(NIP-XXX))
-//  List<Event> eventsMatchingNipXXX = relay.sendReq(ReqFilter(NIP-XXX))
-//		return eventsMatchingNipXXX.getPubKeys()
-
-
-//  public List<Map<Command, List<Object>>> sendRequestReturnMap(@NonNull ReqMessage reqMessage) {
-//    return Streams.failableStream(map.values().stream()).map(entry ->
-//        entry.sendRequestReturnCommandResultsMap(reqMessage)).stream().toList();
-//  }
-
   public List<BaseMessage> sendRequestReturnEvents(@NonNull ReqMessage reqMessage) {
     return Streams.failableStream(map.values().stream()).map(entry ->
             entry.send(reqMessage)).stream()
-//        .flatMap(List::stream)
-//        .distinct()
-//        .collect(Collectors.toList());
         .distinct()
         .flatMap(List::stream).toList();
   }
 }
-//  Map<PubKey, Map<Event<rep-tag (NIP-XXX)>, Relay>
