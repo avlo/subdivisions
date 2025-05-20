@@ -62,7 +62,7 @@ class NostrRelayReactiveClientTest {
   @Test
   <T extends BaseMessage> void testEventCreation() throws IOException {
     Identity identity = Factory.createNewIdentity();
-    GenericEvent event = new NIP01<>(identity).createTextNoteEvent(Factory.lorumIpsum()).sign().getEvent();
+    GenericEvent event = new NIP01(identity).createTextNoteEvent(Factory.lorumIpsum()).sign().getEvent();
 
     TestSubscriber<OkMessage> okMessageSubscriber = new TestSubscriber<>();
     new ReactiveNostrRelayClient(relayUri).send(new EventMessage(event), okMessageSubscriber);
@@ -76,7 +76,7 @@ class NostrRelayReactiveClientTest {
   <T extends BaseMessage> void testReqFilteredByEventAndAuthor() throws IOException {
     Identity identity = Factory.createNewIdentity();
     String content = Factory.lorumIpsum();
-    GenericEvent event = new NIP01<>(identity).createTextNoteEvent(content).sign().getEvent();
+    GenericEvent event = new NIP01(identity).createTextNoteEvent(content).sign().getEvent();
 
     ReactiveNostrRelayClient superconductorReactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUri);
     TestSubscriber<OkMessage> eventSubscriber = new TestSubscriber<>();
@@ -119,7 +119,7 @@ class NostrRelayReactiveClientTest {
     ReactiveNostrRelayClient superconductorReactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUri);
 
 //    # -------------- EVENT 1 of 3 -------------------
-    GenericEvent event1 = new NIP01<>(identity).createTextNoteEvent(content1).sign().getEvent();
+    GenericEvent event1 = new NIP01(identity).createTextNoteEvent(content1).sign().getEvent();
 
     TestSubscriber<OkMessage> event1Subscriber = new TestSubscriber<>();
     superconductorReactiveNostrRelayClient.send(new EventMessage(event1), event1Subscriber);//, event.getId()));
@@ -130,7 +130,7 @@ class NostrRelayReactiveClientTest {
 
 //    # -------------- EVENT 2 of 3 -------------------
     String content2 = Factory.lorumIpsum();
-    GenericEvent event2 = new NIP01<>(identity).createTextNoteEvent(content2).sign().getEvent();
+    GenericEvent event2 = new NIP01(identity).createTextNoteEvent(content2).sign().getEvent();
 
     TestSubscriber<OkMessage> event2Subscriber = new TestSubscriber<>();
     superconductorReactiveNostrRelayClient.send(new EventMessage(event2), event2Subscriber);//, event.getId()));
@@ -141,7 +141,7 @@ class NostrRelayReactiveClientTest {
 
 //    # -------------- EVENT 3 of 3 -------------------
     String content3 = Factory.lorumIpsum();
-    GenericEvent event3 = new NIP01<>(identity).createTextNoteEvent(content3).sign().getEvent();
+    GenericEvent event3 = new NIP01(identity).createTextNoteEvent(content3).sign().getEvent();
 
     TestSubscriber<OkMessage> event3Subscriber = new TestSubscriber<>();
     superconductorReactiveNostrRelayClient.send(new EventMessage(event3), event3Subscriber);//, event.getId()));
