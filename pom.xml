@@ -5,7 +5,7 @@
 
     <groupId>com.prosilion</groupId>
     <artifactId>subdivisions</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <name>subdivisions</name>
     <description>java web-socket client and nostr related utilities</description>
     <packaging>jar</packaging>
@@ -13,7 +13,7 @@
     <properties>
         <java.version>21</java.version>
         <spring-boot.version>3.4.5</spring-boot.version>
-        <nostr-java.version>0.6.6-SNAPSHOT</nostr-java.version>
+        <nostr-java.version>0.7-SNAPSHOT</nostr-java.version>
 
         <awaitility.version>4.2.0</awaitility.version>
         <build-helper-maven-plugin.version>3.6.0</build-helper-maven-plugin.version>
@@ -35,7 +35,7 @@
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <mysql-connector-j.version>9.1.0</mysql-connector-j.version>
         <postgresql.version>42.7.3</postgresql.version>
-        <subdivisions.version>1.1.0</subdivisions.version>
+        <subdivisions.version>1.1.1</subdivisions.version>
         <testcontainers.version>1.20.6</testcontainers.version>
     </properties>
 
