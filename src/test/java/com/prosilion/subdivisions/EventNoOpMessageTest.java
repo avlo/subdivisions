@@ -44,7 +44,7 @@ class EventNoOpMessageTest {
   void testEventNoOpMessage() throws IOException {
     String content = Factory.lorumIpsum(getClass());
 
-    GenericEvent genericEvent = new NIP01<>(identity).createTextNoteEvent(content).sign().getEvent();
+    GenericEvent genericEvent = new NIP01(identity).createTextNoteEvent(content).sign().getEvent();
 
     log.debug("setup() send event:\n  {}", genericEvent);
 
