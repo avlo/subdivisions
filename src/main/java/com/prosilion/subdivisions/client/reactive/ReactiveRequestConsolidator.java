@@ -3,6 +3,7 @@ package com.prosilion.subdivisions.client.reactive;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import nostr.event.BaseMessage;
@@ -39,10 +40,8 @@ public class ReactiveRequestConsolidator {
     }
   }
 
-  public <T extends ReqMessage, V extends BaseMessage> void sendRxR(@NonNull T reqMessage, @NonNull Subscriber<V> subscriber) throws JsonProcessingException {
-    for (ReactiveRelaySubscriptionsManager mgr : map.values()) {
-      mgr.send(reqMessage, subscriber);
-    }
+  public Set<String> getRelayNames() {
+    return map.keySet();
   }
 }
 
