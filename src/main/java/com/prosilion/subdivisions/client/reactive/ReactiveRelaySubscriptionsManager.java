@@ -1,6 +1,8 @@
 package com.prosilion.subdivisions.client.reactive;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.prosilion.nostr.message.BaseMessage;
+import com.prosilion.nostr.message.ReqMessage;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -10,8 +12,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import nostr.event.BaseMessage;
-import nostr.event.message.ReqMessage;
 import org.reactivestreams.Subscriber;
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;

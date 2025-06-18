@@ -1,13 +1,14 @@
 package com.prosilion.subdivisions.client.reactive;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.prosilion.nostr.message.BaseMessage;
+import com.prosilion.nostr.message.ReqMessage;
+import jakarta.validation.constraints.NotEmpty;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.NonNull;
-import nostr.event.BaseMessage;
-import nostr.event.message.ReqMessage;
 import org.reactivestreams.Subscriber;
 
 public class ReactiveRequestConsolidator {
@@ -17,7 +18,7 @@ public class ReactiveRequestConsolidator {
     this(new HashMap<>());
   }
 
-  public ReactiveRequestConsolidator(Map<String, String> relayNameUriMap) {
+  public ReactiveRequestConsolidator(@NotEmpty Map<String, String> relayNameUriMap) {
     this.map = relayNameUriMap.entrySet().stream()
         .collect(Collectors.toMap(
             Map.Entry::getKey,
@@ -25,11 +26,11 @@ public class ReactiveRequestConsolidator {
                 new ReactiveRelaySubscriptionsManager(value.getValue())));
   }
 
-  public void addRelay(String name, String uri) {
-    this.map.put(name, new ReactiveRelaySubscriptionsManager(uri));
+  public void addRelay(@NonNull String name, @NonNull String uri) {
+    this.map.putIfAbsent(name, new ReactiveRelaySubscriptionsManager(uri));
   }
 
-  public void removeRelay(String name) {
+  public void removeRelay(@NonNull String name) {
     this.map.get(name).closeAllSessions();
     this.map.remove(name);
   }

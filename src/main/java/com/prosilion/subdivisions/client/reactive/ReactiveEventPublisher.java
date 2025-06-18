@@ -1,10 +1,10 @@
 package com.prosilion.subdivisions.client.reactive;
 
+import com.prosilion.nostr.message.EventMessage;
+import com.prosilion.nostr.message.OkMessage;
 import java.io.IOException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import nostr.event.message.EventMessage;
-import nostr.event.message.OkMessage;
 import org.reactivestreams.Subscriber;
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;

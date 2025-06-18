@@ -46,14 +46,14 @@ publishing {
 
 dependencies {
     def springBootVersion = '3.4.5'
-    def nostrJavaVersion = '0.6.6-SNAPSHOT'
+    def nostrJavaCoreVersion = '0.0.1'
     def apacheCommonsLang3 = '3.17.0'
     def googleGuava = '33.2.1-jre'
     def awaitility = '4.2.0'
     def reactorTestVersion = '3.7.5'
     def testcontainers = '1.20.6'
 
-    implementation 'xyz.tcheeric:nostr-java-api:' + nostrJavaVersion
+    implementation 'com.prosilion:nostr-java-core:' + nostrJavaCoreVersion
 
     implementation 'org.springframework.boot:spring-boot-starter:' + springBootVersion
     implementation 'org.springframework.boot:spring-boot-devtools'

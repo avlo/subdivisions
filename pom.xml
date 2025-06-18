@@ -13,7 +13,7 @@
     <properties>
         <java.version>21</java.version>
         <spring-boot.version>3.4.5</spring-boot.version>
-        <nostr-java.version>0.6.6-SNAPSHOT</nostr-java.version>
+        <nostr-java-core.version>0.0.1</nostr-java-core.version>
 
         <awaitility.version>4.2.0</awaitility.version>
         <build-helper-maven-plugin.version>3.6.0</build-helper-maven-plugin.version>
@@ -86,9 +86,9 @@
             <version>${spring-boot.version}</version>
         </dependency>
         <dependency>
-            <groupId>xyz.tcheeric</groupId>
-            <artifactId>nostr-java-api</artifactId>
-            <version>${nostr-java.version}</version>
+            <groupId>com.prosilion</groupId>
+            <artifactId>nostr-java-core</artifactId>
+            <version>${nostr-java-core.version}</version>
         </dependency>
 
         <dependency>

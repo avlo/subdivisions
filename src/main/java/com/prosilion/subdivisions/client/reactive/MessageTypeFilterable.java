@@ -1,10 +1,10 @@
 package com.prosilion.subdivisions.client.reactive;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.prosilion.nostr.codec.BaseMessageDecoder;
+import com.prosilion.nostr.message.BaseMessage;
 import java.util.List;
 import java.util.Objects;
-import nostr.event.BaseMessage;
-import nostr.event.json.codec.BaseMessageDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
@@ -18,7 +18,7 @@ public interface MessageTypeFilterable {
     return messages
         .map(msg -> {
           try {
-            return new BaseMessageDecoder<T>().decode(msg);
+            return BaseMessageDecoder.decode(msg);
           } catch (JsonProcessingException e) {
             return null;
           }

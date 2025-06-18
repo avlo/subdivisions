@@ -1,12 +1,12 @@
 package com.prosilion.subdivisions.client.reactive;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.prosilion.nostr.message.BaseMessage;
+import com.prosilion.nostr.message.CloseMessage;
 import java.net.URI;
 import java.net.URISyntaxException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import nostr.event.BaseMessage;
-import nostr.event.message.CloseMessage;
 import org.springframework.boot.ssl.SslBundles;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import reactor.core.publisher.Flux;
