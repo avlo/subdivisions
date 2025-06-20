@@ -7,7 +7,6 @@ import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.OkMessage;
 import com.prosilion.nostr.message.ReqMessage;
 import java.io.IOException;
-import java.util.concurrent.ExecutionException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Subscriber;
@@ -25,8 +24,7 @@ public class ReactiveNostrRelayClient {
     this.reactiveRelaySubscriptionsManager = new ReactiveRelaySubscriptionsManager(relayUri);
   }
 
-  public ReactiveNostrRelayClient(@NonNull String relayUri, SslBundles sslBundles
-  ) throws ExecutionException, InterruptedException {
+  public ReactiveNostrRelayClient(@NonNull String relayUri, SslBundles sslBundles) {
     log.debug("relayUri: \n{}", relayUri);
     log.debug("sslBundles: \n{}", sslBundles);
     final SslBundle server = sslBundles.getBundle("server");

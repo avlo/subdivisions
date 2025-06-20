@@ -2,7 +2,6 @@ package com.prosilion.subdivisions.client.reactive;
 
 import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.OkMessage;
-import java.io.IOException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Subscriber;
@@ -28,7 +27,7 @@ public class ReactiveEventPublisher {
     this.eventSocketClient = new ReactiveWebSocketClient(relayUri);
   }
 
-  public <T extends OkMessage> Flux<T> send(@NonNull EventMessage eventMessage, @NonNull Subscriber<T> subscriber) throws IOException {
+  public <T extends OkMessage> Flux<T> send(@NonNull EventMessage eventMessage, @NonNull Subscriber<T> subscriber) {
     log.debug("socket send EventMessage content\n  {}", eventMessage.getEvent());
     try {
       Flux<T> map = eventSocketClient
