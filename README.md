@@ -31,7 +31,7 @@ advanced:
 - Java 21
 - Spring [Boot](https://spring.io/projects/spring-boot) 3.4.3
 - Spring [WebSocketSession](https://docs.spring.io/spring-session/reference/guides/boot-websocket.html)  3.4.3
-- Event/Message [nostr-java](https://github.com/avlo/nostr-java-avlo-fork/tree/develop) API/library
+- Nostr Event & Request Messages via [nostr-java-core](https://github.com/avlo/nostr-java-core)
 
 ----
 
@@ -48,12 +48,12 @@ Gradle 8.13
 ----
 
 ### Usage
-#### 1. check out and build nostr-java library
+#### 1. Check-out nostr-java-core dependency library
 
 ```sh
 $ cd <your_git_home_dir>
-$ git clone git@github.com:avlo/nostr-java-avlo-fork.git
-$ cd nostr-java-avlo-fork
+$ git clone git@github.com:avlo/nostr-java-core.git
+$ cd nostr-java-core
 $ git checkout develop
 $ ./gradlew clean test
 $ ./gradlew publishToMavenLocal
