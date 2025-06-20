@@ -5,7 +5,7 @@
 
     <groupId>com.prosilion</groupId>
     <artifactId>subdivisions</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
     <name>subdivisions</name>
     <description>java web-socket client and nostr related utilities</description>
     <packaging>jar</packaging>
