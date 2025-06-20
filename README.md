@@ -51,8 +51,18 @@ Gradle 8.13
 ----
 
 ### Usage
+#### 1. Check-out nostr-java-core dependency library
 
-#### 1. check out and build SubDivisions (using git)
+```sh
+$ cd <your_git_home_dir>
+$ git clone git@github.com:avlo/nostr-java-core.git
+$ cd nostr-java-core
+$ git checkout develop
+$ ./gradlew clean test
+$ ./gradlew publishToMavenLocal
+```
+
+#### 2. check out and build SubDivisions
 
 ```sh
 $ cd <your_git_home_dir>
@@ -63,7 +73,7 @@ $ ./gradlew clean test
 $ ./gradlew publishToMavenLocal
 ```
 
-#### 2. add SubDivisions dependency to your project
+#### 3. add SubDivisions dependency to your project
 
 <details>
   <summary>maven</summary>
