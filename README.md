@@ -10,7 +10,7 @@
 ```
 
 
-## SubDivisions.  A java web-socket client & related utilities: 
+## SubDivisions.  java reactive web-socket client & related utilities: 
 
 1. an easy to use, generalized and extensible [WebSocketClient](https://github.com/avlo/subdivisions/blob/master/src/main/java/com/prosilion/subdivisions/WebSocketClient.java)
 
@@ -29,8 +29,9 @@ advanced:
 
 ### Dependencies:
 - Java 21
-- Spring [Boot](https://spring.io/projects/spring-boot) 3.4.3
-- Spring [WebSocketSession](https://docs.spring.io/spring-session/reference/guides/boot-websocket.html)  3.4.3
+- Spring [Boot](https://spring.io/projects/spring-boot) 3.4.3 (or higher)
+- Spring [WebSocketSession](https://docs.spring.io/spring-session/reference/guides/boot-websocket.html) 
+- Spring [WebFlux](https://docs.spring.io/spring-framework/reference/web/webflux.html) Reactive Web-Socket Client
 - Nostr Event & Request Messages via [nostr-java-core](https://github.com/avlo/nostr-java-core)
 
 ----
