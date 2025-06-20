@@ -1,6 +1,7 @@
 package com.prosilion.subdivisions.client.reactive;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.prosilion.nostr.enums.NostrException;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.OkMessage;
@@ -40,7 +41,7 @@ public class ReactiveNostrRelayClient {
     reactiveEventPublisher.send(eventMessage, subscriber);
   }
 
-  public <T extends BaseMessage> void send(@NonNull ReqMessage reqMessage, @NonNull Subscriber<T> subscriber) throws JsonProcessingException {
+  public <T extends BaseMessage> void send(@NonNull ReqMessage reqMessage, @NonNull Subscriber<T> subscriber) throws JsonProcessingException, NostrException {
     reactiveRelaySubscriptionsManager.send(reqMessage, subscriber);
   }
 }

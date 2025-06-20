@@ -1,6 +1,7 @@
 package com.prosilion.subdivisions.client.reactive;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.prosilion.nostr.enums.NostrException;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.CloseMessage;
 import java.net.URI;
@@ -32,7 +33,7 @@ class ReactiveWebSocketClient {
     log.debug("Secure (WSS) WebSocket subdivisions connected {}", reactiveWebSocketHandler.session().orElseThrow().getId());
   }
 
-  protected <T extends BaseMessage> Flux<String> send(T message) throws JsonProcessingException {
+  protected <T extends BaseMessage> Flux<String> send(T message) throws JsonProcessingException, NostrException {
     String encodedMessage = message.encode();  // explicitly put here for throws
     return Mono
         .fromRunnable(
@@ -45,7 +46,7 @@ class ReactiveWebSocketClient {
     reactiveWebSocketHandler.disconnect();
   }
 
-  protected Flux<String> disconnect(@NonNull String subscriptionId) throws JsonProcessingException {
+  protected Flux<String> disconnect(@NonNull String subscriptionId) throws JsonProcessingException, NostrException {
     Flux<String> stringFlux = send(new CloseMessage(subscriptionId));
     closeSocket();
     return stringFlux;

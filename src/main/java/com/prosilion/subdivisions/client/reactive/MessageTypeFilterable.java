@@ -15,7 +15,7 @@ public interface MessageTypeFilterable {
   //  TODO: method needs thorough testing, doesn't properly filter Class<V> types
   default <T extends BaseMessage> Flux<T> getTypeSpecificMessage(Flux<String> messages) {
     log.debug("MessageTypeFilterable.getTypeSpecificMessage()");
-    return messages
+    return (Flux<T>) messages
         .map(msg -> {
           try {
             return BaseMessageDecoder.decode(msg);
@@ -24,7 +24,7 @@ public interface MessageTypeFilterable {
           }
         })
         .filter(Objects::nonNull)
-//        .filter(messageClass::isInstance)
+//        .filter(T::isInstance)
         ;
   }
 

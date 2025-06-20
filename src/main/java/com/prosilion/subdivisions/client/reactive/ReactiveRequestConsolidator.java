@@ -1,6 +1,7 @@
 package com.prosilion.subdivisions.client.reactive;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.prosilion.nostr.enums.NostrException;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.ReqMessage;
 import jakarta.validation.constraints.NotEmpty;
@@ -35,7 +36,7 @@ public class ReactiveRequestConsolidator {
     this.map.remove(name);
   }
 
-  public <T extends ReqMessage, V extends BaseMessage> void send(@NonNull T reqMessage, @NonNull Subscriber<V> subscriber) throws JsonProcessingException {
+  public <T extends ReqMessage, V extends BaseMessage> void send(@NonNull T reqMessage, @NonNull Subscriber<V> subscriber) throws JsonProcessingException, NostrException {
     for (ReactiveRelaySubscriptionsManager mgr : map.values()) {
       mgr.send(reqMessage, subscriber);
     }

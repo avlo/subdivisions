@@ -1,29 +1,37 @@
 package com.prosilion.subdivisions.util;
 
+import com.prosilion.nostr.enums.NostrException;
+import com.prosilion.nostr.event.EventIF;
+import com.prosilion.nostr.event.GenericEventId;
+import com.prosilion.nostr.event.TextNoteEvent;
+import com.prosilion.nostr.event.internal.ClassifiedListing;
+import com.prosilion.nostr.tag.EventTag;
+import com.prosilion.nostr.tag.GeohashTag;
+import com.prosilion.nostr.tag.HashtagTag;
+import com.prosilion.nostr.tag.PriceTag;
+import com.prosilion.nostr.tag.PubKeyTag;
+import com.prosilion.nostr.tag.SubjectTag;
+import com.prosilion.nostr.user.Identity;
 import java.math.BigDecimal;
+import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 import java.util.UUID;
 import lombok.Getter;
-import nostr.event.entities.ClassifiedListing;
-import nostr.event.impl.GenericEvent;
-import nostr.event.tag.EventTag;
-import nostr.event.tag.GeohashTag;
-import nostr.event.tag.HashtagTag;
-import nostr.event.tag.PriceTag;
-import nostr.event.tag.PubKeyTag;
-import nostr.event.tag.SubjectTag;
-import nostr.id.Identity;
 import org.apache.commons.lang3.RandomStringUtils;
 
 public class Factory {
+
+  public static EventIF createEvent() throws NostrException, NoSuchAlgorithmException {
+    return new TextNoteEvent(createNewIdentity(), lorumIpsum());
+  }
 
   public static Identity createNewIdentity() {
     return Identity.generateRandomIdentity();
   }
 
-  public static GenericEvent createGenericEvent() {
+  public static GenericEventId createGenericEventId() {
     String concat = generateRandomHex64String();
-    return new GenericEvent(concat.substring(0, 64));
+    return new GenericEventId(concat.substring(0, 64));
   }
 
   public static <T> SubjectTag createSubjectTag(Class<T> clazz) {
@@ -43,7 +51,7 @@ public class Factory {
   }
 
   public static <T> EventTag createEventTag(Class<T> clazz) {
-    return new EventTag(createGenericEvent().getId());
+    return new EventTag(createGenericEventId().getId());
   }
 
   public static PriceTag createPriceTag() {
@@ -120,11 +128,7 @@ public class Factory {
     private final ClassifiedListing classifiedListing;
 
     private ClassifiedListingComposite(String title, String summary, PriceTag priceTag) {
-      this.classifiedListing = ClassifiedListing.builder(
-              title,
-              summary,
-              priceTag)
-          .build();
+      this.classifiedListing = new ClassifiedListing(title, summary, priceTag);
     }
   }
 }

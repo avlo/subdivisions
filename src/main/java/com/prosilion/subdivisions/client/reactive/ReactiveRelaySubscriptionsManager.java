@@ -1,6 +1,7 @@
 package com.prosilion.subdivisions.client.reactive;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.prosilion.nostr.enums.NostrException;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.ReqMessage;
 import java.util.Collection;
@@ -38,13 +39,13 @@ public class ReactiveRelaySubscriptionsManager implements MessageTypeFilterable 
     log.debug("sslBundles protocol: \n{}", server.getProtocol());
   }
 
-  public <T extends ReqMessage, V extends BaseMessage> void send(@NonNull T reqMessage, @NonNull Subscriber<V> subscriber) throws JsonProcessingException {
+  public <T extends ReqMessage, V extends BaseMessage> void send(@NonNull T reqMessage, @NonNull Subscriber<V> subscriber) throws JsonProcessingException, NostrException {
     log.debug("pre-encoded ReqMessage json: \n{}", reqMessage);
     Flux<V> apply = baseMessagesReturnedByReqMessage(getRequestResults(reqMessage));
     apply.subscribe(subscriber);
   }
 
-  private <T extends ReqMessage> Flux<String> getRequestResults(T reqMessage) throws JsonProcessingException {
+  private <T extends ReqMessage> Flux<String> getRequestResults(T reqMessage) throws JsonProcessingException, NostrException {
     String subscriberId = reqMessage.getSubscriptionId();
     final ReactiveWebSocketClient reactiveWebSocketClient = Optional.ofNullable(subscriberIdWebSocketClientMap.get(subscriberId))
         .orElseGet(() -> {
