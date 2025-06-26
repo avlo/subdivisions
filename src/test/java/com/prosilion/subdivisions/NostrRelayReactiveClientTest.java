@@ -13,7 +13,6 @@ import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.OkMessage;
 import com.prosilion.nostr.message.ReqMessage;
 import com.prosilion.nostr.user.Identity;
-import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.subdivisions.client.reactive.ReactiveNostrRelayClient;
 import com.prosilion.subdivisions.config.SuperconductorRelayConfig;
 import com.prosilion.subdivisions.util.EventDto;
@@ -48,8 +47,8 @@ class NostrRelayReactiveClientTest {
 
   @Test
   void testQueryNonExistentEventReturnsEmptyList() throws JsonProcessingException, NostrException {
-    EventFilter<GenericEventId> eventFilter = new EventFilter<>(Factory.createGenericEventId());
-    AuthorFilter<PublicKey> authorFilter = new AuthorFilter<>(Factory.createNewIdentity().getPublicKey());
+    EventFilter eventFilter = new EventFilter(Factory.createGenericEventId());
+    AuthorFilter authorFilter = new AuthorFilter(Factory.createNewIdentity().getPublicKey());
 
     final String subscriberId = Factory.generateRandomHex64String();
 
@@ -92,8 +91,8 @@ class NostrRelayReactiveClientTest {
 
 //  #--------------------- REQ -------------------------
     Filters filters = new Filters(
-        new AuthorFilter<>(identity.getPublicKey()),
-        new EventFilter<>(new GenericEventId(event.getId())));
+        new AuthorFilter(identity.getPublicKey()),
+        new EventFilter(new GenericEventId(event.getId())));
 
     final String subscriberId = Factory.generateRandomHex64String();
 
@@ -158,9 +157,9 @@ class NostrRelayReactiveClientTest {
     final String subscriberId = Factory.generateRandomHex64String();
 
     Filters filters = new Filters(
-        new AuthorFilter<>(identity.getPublicKey()),
-        new EventFilter<>(new GenericEventId(event1.getId())),
-        new EventFilter<>(new GenericEventId(event2.getId())));
+        new AuthorFilter(identity.getPublicKey()),
+        new EventFilter(new GenericEventId(event1.getId())),
+        new EventFilter(new GenericEventId(event2.getId())));
 
     ReqMessage reqMessage = new ReqMessage(subscriberId, filters);
 
