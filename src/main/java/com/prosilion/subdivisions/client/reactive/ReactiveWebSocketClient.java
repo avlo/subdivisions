@@ -19,7 +19,7 @@ class ReactiveWebSocketClient {
 
   protected ReactiveWebSocketClient(@NonNull String relayUrl) {
     this.reactiveWebSocketHandler = new ReactiveWebSocketHandler();
-    System.out.println("call new ReactiveWebSocketHandler hashCode: [ " + reactiveWebSocketHandler.hashCode() + " ]");
+    log.debug("call new ReactiveWebSocketHandler hashCode: [ " + reactiveWebSocketHandler.hashCode() + " ]");
     reactiveWebSocketHandler.connect(new ReactorNettyWebSocketClient(), getURI(relayUrl));
   }
 
