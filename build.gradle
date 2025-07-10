@@ -31,6 +31,9 @@ repositories {
     mavenLocal()
     mavenCentral()
     gradlePluginPortal()
+    maven {
+        url = uri("https://maven.pkg.github.com/avlo/nostr-java-core")
+    }
 }
 
 publishing {
