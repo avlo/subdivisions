@@ -37,7 +37,7 @@ public class ReactiveEventPublisher {
       map.subscribe(subscriber);
       return map;
     } catch (Exception e) {
-      return Flux.just((T) new OkMessage(eventMessage.getEvent().getEventId(), false, "error: server returned unknown response"));
+      return Flux.just((T) new OkMessage(eventMessage.getEvent().getId(), false, "error: server returned unknown response"));
     }
   }
 }
