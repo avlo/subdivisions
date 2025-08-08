@@ -40,4 +40,8 @@ public class ReactiveEventPublisher {
       return Flux.just((T) new OkMessage(eventMessage.getEvent().getId(), false, "error: server returned unknown response"));
     }
   }
+
+  public void closeSocket() {
+    eventSocketClient.closeSocket();
+  }
 }

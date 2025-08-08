@@ -42,4 +42,9 @@ public class ReactiveNostrRelayClient {
   public <T extends BaseMessage> void send(@NonNull ReqMessage reqMessage, @NonNull Subscriber<T> subscriber) throws JsonProcessingException, NostrException {
     reactiveRelaySubscriptionsManager.send(reqMessage, subscriber);
   }
+
+  public void closeSocket() {
+    reactiveEventPublisher.closeSocket();
+    reactiveRelaySubscriptionsManager.closeAllSessions();
+  }
 }
