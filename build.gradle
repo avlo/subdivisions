@@ -48,7 +48,7 @@ publishing {
 }
 
 dependencies {
-    def springBootVersion = '3.4.5'
+    def springBootVersion = '3.5.1'
     def nostrJavaCoreVersion = '1.0.0'
     def apacheCommonsLang3 = '3.17.0'
     def googleGuava = '33.2.1-jre'
