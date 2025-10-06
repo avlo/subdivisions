@@ -3,6 +3,7 @@ package com.prosilion.subdivisions.client.reactive;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.message.BaseMessage;
+import com.prosilion.nostr.message.CanonicalAuthenticationMessage;
 import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.OkMessage;
 import com.prosilion.nostr.message.ReqMessage;
@@ -41,6 +42,10 @@ public class ReactiveNostrRelayClient {
 
   public <T extends BaseMessage> void send(@NonNull ReqMessage reqMessage, @NonNull Subscriber<T> subscriber) throws JsonProcessingException, NostrException {
     reactiveRelaySubscriptionsManager.send(reqMessage, subscriber);
+  }
+
+  public void send(@NonNull CanonicalAuthenticationMessage authMessage, @NonNull Subscriber<OkMessage> subscriber) throws NostrException {
+    reactiveEventPublisher.send(authMessage, subscriber);
   }
 
   public void closeSocket() {

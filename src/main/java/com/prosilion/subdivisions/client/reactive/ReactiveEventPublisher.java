@@ -1,5 +1,8 @@
 package com.prosilion.subdivisions.client.reactive;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.prosilion.nostr.message.BaseMessage;
+import com.prosilion.nostr.message.CanonicalAuthenticationMessage;
 import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.OkMessage;
 import lombok.NonNull;
@@ -27,18 +30,34 @@ public class ReactiveEventPublisher {
     this.eventSocketClient = new ReactiveWebSocketClient(relayUri);
   }
 
-  public <T extends OkMessage> Flux<T> send(@NonNull EventMessage eventMessage, @NonNull Subscriber<T> subscriber) {
+  public void send(@NonNull CanonicalAuthenticationMessage canonicalAuthenticationMessage, @NonNull Subscriber<OkMessage> subscriber) {
+    try {
+      sendMessage(canonicalAuthenticationMessage, subscriber);
+    } catch (Exception e) {
+      Flux.just(new OkMessage(canonicalAuthenticationMessage.getEvent().getId(),
+          false,
+          "error during authentication: server returned unknown response"));
+    }
+  }
+
+  public void send(@NonNull EventMessage eventMessage, @NonNull Subscriber<OkMessage> subscriber) {
     log.debug("socket send EventMessage content\n  {}", eventMessage.getEvent());
     try {
-      Flux<T> map = eventSocketClient
-          .send(eventMessage) // sending an event...
-          .take(Long.MAX_VALUE)
-          .map(OkMessage::decode); // ... of type OkMessage, and ignores any others (i.e., EOSE message)
-      map.subscribe(subscriber);
-      return map;
+      sendMessage(eventMessage, subscriber);
     } catch (Exception e) {
-      return Flux.just((T) new OkMessage(eventMessage.getEvent().getId(), false, "error: server returned unknown response"));
+      Flux.just(new OkMessage(
+          eventMessage.getEvent().getId(),
+          false,
+          "error: server returned unknown response"));
     }
+  }
+
+  private <T extends BaseMessage> void sendMessage(@NonNull T eventMessage, @NonNull Subscriber<OkMessage> subscriber) throws JsonProcessingException {
+    Flux<OkMessage> map = eventSocketClient
+        .send(eventMessage) // sending an event...
+        .take(Long.MAX_VALUE)
+        .map(OkMessage::decode); // ... of type OkMessage, and ignores any others (i.e., EOSE message)
+    map.subscribe(subscriber);
   }
 
   public void closeSocket() {

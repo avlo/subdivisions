@@ -2,8 +2,8 @@ package com.prosilion.subdivisions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.nostr.NostrException;
+import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.GenericEventId;
-import com.prosilion.nostr.event.GenericEventKindIF;
 import com.prosilion.nostr.event.TextNoteEvent;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.AuthorFilter;
@@ -15,7 +15,6 @@ import com.prosilion.nostr.message.ReqMessage;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.subdivisions.client.reactive.ReactiveNostrRelayClient;
 import com.prosilion.subdivisions.config.SuperconductorRelayConfig;
-import com.prosilion.subdivisions.util.EventDto;
 import com.prosilion.subdivisions.util.Factory;
 import com.prosilion.subdivisions.util.TestSubscriber;
 import java.io.IOException;
@@ -57,7 +56,7 @@ class NostrRelayReactiveClientTest {
     ReactiveNostrRelayClient nostrRelayService = new ReactiveNostrRelayClient(relayUri);
 
     nostrRelayService.send(reqMessage, reqSubscriber);
-    List<GenericEventKindIF> genericEvents = getGenericEvents(reqSubscriber.getItems());
+    List<EventIF> genericEvents = getGenericEvents(reqSubscriber.getItems());
 
     assertTrue(genericEvents.isEmpty());
   }
@@ -68,7 +67,7 @@ class NostrRelayReactiveClientTest {
     TextNoteEvent event = new TextNoteEvent(identity, Factory.lorumIpsum());
 
     TestSubscriber<OkMessage> okMessageSubscriber = new TestSubscriber<>();
-    new ReactiveNostrRelayClient(relayUri).send(new EventMessage(new EventDto(event).convertBaseEventToDto()), okMessageSubscriber);
+    new ReactiveNostrRelayClient(relayUri).send(new EventMessage(event), okMessageSubscriber);
 
     assertEquals(
         new OkMessage(event.getId(), true, "success: request processed").encode(),
@@ -83,7 +82,7 @@ class NostrRelayReactiveClientTest {
     TestSubscriber<OkMessage> eventSubscriber = new TestSubscriber<>();
     ReactiveNostrRelayClient superconductorReactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUri);
 
-    superconductorReactiveNostrRelayClient.send(new EventMessage(new EventDto(event).convertBaseEventToDto()), eventSubscriber);
+    superconductorReactiveNostrRelayClient.send(new EventMessage(event), eventSubscriber);
 
     List<OkMessage> items = eventSubscriber.getItems();
     OkMessage okMessage = new OkMessage(event.getId(), true, "success: request processed");
@@ -100,14 +99,14 @@ class NostrRelayReactiveClientTest {
     TestSubscriber<ReqMessage> reqSubscriber = new TestSubscriber<>();
     superconductorReactiveNostrRelayClient.send(reqMessage, reqSubscriber);
 
-    List<GenericEventKindIF> returnedReqGenericEvents = getGenericEvents(reqSubscriber.getItems());
+    List<EventIF> returnedReqGenericEvents = getGenericEvents(reqSubscriber.getItems());
 
     assertEquals(returnedReqGenericEvents.getFirst().getId(), event.getId());
     assertEquals(returnedReqGenericEvents.getFirst().getContent(), event.getContent());
     assertEquals(returnedReqGenericEvents.getFirst().getPublicKey().toHexString(), event.getPublicKey().toHexString());
   }
 
-  public static <T extends BaseMessage> List<GenericEventKindIF> getGenericEvents(List<T> returnedBaseMessages) {
+  public static <T extends BaseMessage> List<EventIF> getGenericEvents(List<T> returnedBaseMessages) {
     return returnedBaseMessages.stream()
         .filter(EventMessage.class::isInstance)
         .map(EventMessage.class::cast)
@@ -125,7 +124,7 @@ class NostrRelayReactiveClientTest {
     TextNoteEvent event1 = new TextNoteEvent(identity, content1);
 
     TestSubscriber<OkMessage> event1Subscriber = new TestSubscriber<>();
-    superconductorReactiveNostrRelayClient.send(new EventMessage(new EventDto(event1).convertBaseEventToDto()), event1Subscriber);
+    superconductorReactiveNostrRelayClient.send(new EventMessage(event1), event1Subscriber);
 
     List<OkMessage> event1SubscriberItems = event1Subscriber.getItems();
     OkMessage okMessage1 = new OkMessage(event1.getId(), true, "success: request processed");
@@ -136,7 +135,7 @@ class NostrRelayReactiveClientTest {
     TextNoteEvent event2 = new TextNoteEvent(identity, content2);
 
     TestSubscriber<OkMessage> event2Subscriber = new TestSubscriber<>();
-    superconductorReactiveNostrRelayClient.send(new EventMessage(new EventDto(event2).convertBaseEventToDto()), event2Subscriber);
+    superconductorReactiveNostrRelayClient.send(new EventMessage(event2), event2Subscriber);
 
     List<OkMessage> event2SubscriberItems = event2Subscriber.getItems();
     OkMessage okMessage2 = new OkMessage(event2.getId(), true, "success: request processed");
@@ -147,7 +146,7 @@ class NostrRelayReactiveClientTest {
     TextNoteEvent event3 = new TextNoteEvent(identity, content3);
 
     TestSubscriber<OkMessage> event3Subscriber = new TestSubscriber<>();
-    superconductorReactiveNostrRelayClient.send(new EventMessage(new EventDto(event3).convertBaseEventToDto()), event3Subscriber);
+    superconductorReactiveNostrRelayClient.send(new EventMessage(event3), event3Subscriber);
 
     List<OkMessage> event3SubscriberItems = event3Subscriber.getItems();
     OkMessage okMessage3 = new OkMessage(event3.getId(), true, "success: request processed");
@@ -166,7 +165,7 @@ class NostrRelayReactiveClientTest {
     TestSubscriber<T> reqSubscriber = new TestSubscriber<>();
     superconductorReactiveNostrRelayClient.send(reqMessage, reqSubscriber);
 
-    List<GenericEventKindIF> returnedReqGenericEvents = getGenericEvents(reqSubscriber.getItems());
+    List<EventIF> returnedReqGenericEvents = getGenericEvents(reqSubscriber.getItems());
     log.debug("size: [{}]", returnedReqGenericEvents.size());
 
     assertTrue(returnedReqGenericEvents.stream().anyMatch(event -> event.getId().equals(event1.getId())));
