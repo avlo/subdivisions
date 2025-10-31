@@ -40,12 +40,12 @@ public class ReactiveNostrRelayClient {
     reactiveEventPublisher.send(eventMessage, subscriber);
   }
 
-  public <T extends BaseMessage> void send(@NonNull ReqMessage reqMessage, @NonNull Subscriber<T> subscriber) throws JsonProcessingException, NostrException {
-    reactiveRelaySubscriptionsManager.send(reqMessage, subscriber);
-  }
-
   public void send(@NonNull CanonicalAuthenticationMessage authMessage, @NonNull Subscriber<OkMessage> subscriber) throws NostrException {
     reactiveEventPublisher.send(authMessage, subscriber);
+  }
+
+  public <T extends BaseMessage> void send(@NonNull ReqMessage reqMessage, @NonNull Subscriber<T> subscriber) throws JsonProcessingException, NostrException {
+    reactiveRelaySubscriptionsManager.send(reqMessage, subscriber);
   }
 
   public void closeSocket() {

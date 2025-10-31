@@ -2,7 +2,9 @@ package com.prosilion.subdivisions.client.reactive;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.nostr.NostrException;
+import com.prosilion.nostr.codec.BaseMessageDecoder;
 import com.prosilion.nostr.message.BaseMessage;
+import com.prosilion.nostr.message.ClosedMessage;
 import com.prosilion.nostr.message.ReqMessage;
 import java.util.Collection;
 import java.util.List;
@@ -19,7 +21,7 @@ import org.springframework.boot.ssl.SslBundles;
 import reactor.core.publisher.Flux;
 
 @Slf4j
-public class ReactiveRelaySubscriptionsManager implements MessageTypeFilterable {
+public class ReactiveRelaySubscriptionsManager {
   private final Map<String, ReactiveWebSocketClient> subscriberIdWebSocketClientMap = new ConcurrentHashMap<>();
   private final String relayUri;
   private SslBundles sslBundles;
@@ -45,7 +47,7 @@ public class ReactiveRelaySubscriptionsManager implements MessageTypeFilterable 
     apply.subscribe(subscriber);
   }
 
-  private <T extends ReqMessage> Flux<String> getRequestResults(T reqMessage) throws JsonProcessingException, NostrException {
+  private <T extends ReqMessage> Flux<String> getRequestResults(T reqMessage) throws JsonProcessingException {
     String subscriberId = reqMessage.getSubscriptionId();
     final ReactiveWebSocketClient reactiveWebSocketClient = Optional.ofNullable(subscriberIdWebSocketClientMap.get(subscriberId))
         .orElseGet(() -> {
@@ -56,7 +58,15 @@ public class ReactiveRelaySubscriptionsManager implements MessageTypeFilterable 
   }
 
   private <V extends BaseMessage> Flux<V> baseMessagesReturnedByReqMessage(@NonNull Flux<String> reqMessage) {
-    return this.getTypeSpecificMessage(reqMessage);
+    return (Flux<V>) reqMessage
+        .map(msg -> {
+          try {
+            return BaseMessageDecoder.decode(msg);
+          } catch (JsonProcessingException e) {
+            throw new NostrException(String.format("%s flux bad not good", getClass().getSimpleName()), e);
+          }
+        })
+        .filter(Objects::nonNull);
   }
 
   //  TODO: cleanup sneaky

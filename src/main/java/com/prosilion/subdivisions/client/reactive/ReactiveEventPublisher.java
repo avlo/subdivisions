@@ -1,6 +1,7 @@
 package com.prosilion.subdivisions.client.reactive;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.CanonicalAuthenticationMessage;
 import com.prosilion.nostr.message.EventMessage;
@@ -30,34 +31,36 @@ public class ReactiveEventPublisher {
     this.eventSocketClient = new ReactiveWebSocketClient(relayUri);
   }
 
-  public void send(@NonNull CanonicalAuthenticationMessage canonicalAuthenticationMessage, @NonNull Subscriber<OkMessage> subscriber) {
+  public <T extends OkMessage> void send(@NonNull EventMessage eventMessage, @NonNull Subscriber<T> subscriber) {
+    debug(eventMessage, eventMessage.getEvent());
+    getFlux(eventMessage, subscriber);
+  }
+
+  public <T extends OkMessage> void send(@NonNull CanonicalAuthenticationMessage authMessage, @NonNull Subscriber<T> subscriber) {
+    debug(authMessage, authMessage.getEvent());
+    getFlux(authMessage, subscriber);
+  }
+
+  private <T extends OkMessage> void getFlux(BaseMessage baseMessage, Subscriber<T> subscriber) {
     try {
-      sendMessage(canonicalAuthenticationMessage, subscriber);
-    } catch (Exception e) {
-      Flux.just(new OkMessage(canonicalAuthenticationMessage.getEvent().getId(),
-          false,
-          "error during authentication: server returned unknown response"));
+      Flux<T> map = eventSocketClient
+          .send(baseMessage) // sending an event...
+          .take(Long.MAX_VALUE)
+          .map(OkMessage::decode); // ... of type OkMessage, and ignores any others (i.e., EOSE message)
+      map.subscribe(subscriber);
+    } catch (JsonProcessingException jpe) {
+      Flux.just((T) new OkMessage(
+              baseMessage.toString(), false,
+              String.format(
+                  "%s error: server returned unknown response for JSON content\n  %s",
+                  getClass().getSimpleName(),
+                  baseMessage)))
+          .subscribe(subscriber);
     }
   }
 
-  public void send(@NonNull EventMessage eventMessage, @NonNull Subscriber<OkMessage> subscriber) {
-    log.debug("socket send EventMessage content\n  {}", eventMessage.getEvent());
-    try {
-      sendMessage(eventMessage, subscriber);
-    } catch (Exception e) {
-      Flux.just(new OkMessage(
-          eventMessage.getEvent().getId(),
-          false,
-          "error: server returned unknown response"));
-    }
-  }
-
-  private <T extends BaseMessage> void sendMessage(@NonNull T eventMessage, @NonNull Subscriber<OkMessage> subscriber) throws JsonProcessingException {
-    Flux<OkMessage> map = eventSocketClient
-        .send(eventMessage) // sending an event...
-        .take(Long.MAX_VALUE)
-        .map(OkMessage::decode); // ... of type OkMessage, and ignores any others (i.e., EOSE message)
-    map.subscribe(subscriber);
+  private void debug(BaseMessage baseMessage, EventIF event) {
+    log.debug("{} send {} content\n  {}", getClass().getSimpleName(), baseMessage.getClass().getSimpleName(), event);
   }
 
   public void closeSocket() {
