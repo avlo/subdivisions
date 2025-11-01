@@ -8,32 +8,27 @@ import jakarta.validation.constraints.NotEmpty;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.NonNull;
 import org.reactivestreams.Subscriber;
 
 public class ReactiveRequestConsolidator {
-  private final Map<String, ReactiveRelaySubscriptionsManager> map;
+  private final Map<String, ReactiveRelaySubscriptionsManager> map = new HashMap<>();
 
   public ReactiveRequestConsolidator() {
     this(new HashMap<>());
   }
 
   public ReactiveRequestConsolidator(@NotEmpty Map<String, String> relayNameUriMap) {
-    this.map = relayNameUriMap.entrySet().stream()
-        .collect(Collectors.toMap(
-            Map.Entry::getKey,
-            value ->
-                new ReactiveRelaySubscriptionsManager(value.getValue())));
+    relayNameUriMap.forEach(this::addRelay);
   }
 
   public void addRelay(@NonNull String name, @NonNull String uri) {
-    this.map.putIfAbsent(name, new ReactiveRelaySubscriptionsManager(uri));
+    map.putIfAbsent(name, new ReactiveRelaySubscriptionsManager(uri));
   }
 
   public void removeRelay(@NonNull String name) {
-    this.map.get(name).closeAllSessions();
-    this.map.remove(name);
+    map.get(name).closeAllSessions();
+    map.remove(name);
   }
 
   public <T extends ReqMessage, V extends BaseMessage> void send(@NonNull T reqMessage, @NonNull Subscriber<V> subscriber) throws JsonProcessingException, NostrException {
