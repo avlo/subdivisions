@@ -54,7 +54,7 @@ dependencies {
     def googleGuava = '33.2.1-jre'
     def awaitility = '4.2.0'
     def reactorTestVersion = '3.7.5'
-    def testcontainers = '1.20.6'
+    def testcontainers = '1.21.3'
 
     implementation 'com.prosilion:nostr-java-core:' + nostrJavaCoreVersion
 
@@ -72,12 +72,16 @@ dependencies {
     implementation 'com.google.guava:guava:' + googleGuava
     implementation 'org.awaitility:awaitility:' + awaitility
 //    testImplementation 'org.springframework.boot:spring-boot-docker-compose'
+    developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.testcontainers:testcontainers:' + testcontainers
     testImplementation 'org.testcontainers:junit-jupiter:' + testcontainers
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    def springBootEmbeddedRedis = '1.0.1'
+    testImplementation('io.github.tobi-laa:spring-boot-embedded-redis:' + springBootEmbeddedRedis)
 
     testImplementation 'io.projectreactor:reactor-test:' + reactorTestVersion
 }

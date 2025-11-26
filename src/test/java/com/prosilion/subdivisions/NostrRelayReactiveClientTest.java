@@ -15,33 +15,32 @@ import com.prosilion.nostr.message.ReqMessage;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.subdivisions.client.reactive.ReactiveNostrRelayClient;
 import com.prosilion.subdivisions.config.SuperconductorRelayConfig;
+import com.prosilion.subdivisions.config.TestcontainersConfig;
 import com.prosilion.subdivisions.util.Factory;
 import com.prosilion.subdivisions.util.TestSubscriber;
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
-@ExtendWith(SpringExtension.class)
-@SpringJUnitConfig(SuperconductorRelayConfig.class)
+@SpringBootTest(classes = SuperconductorRelayConfig.class)
 @TestPropertySource("classpath:application-test.properties")
 @ActiveProfiles("test")
+@Import(TestcontainersConfig.class)
 class NostrRelayReactiveClientTest {
-  private final String relayUri;
+  private final String relayUrl;
 
-  public NostrRelayReactiveClientTest(@Value("${superconductor.relay.uri}") String relayUri) {
-    this.relayUri = relayUri;
+  public NostrRelayReactiveClientTest(@Value("${superconductor.relay.url}") String relayUrl) {
+    this.relayUrl = relayUrl;
   }
 
   @Test
@@ -53,7 +52,7 @@ class NostrRelayReactiveClientTest {
 
     ReqMessage reqMessage = new ReqMessage(subscriberId, new Filters(eventFilter, authorFilter));
     TestSubscriber<BaseMessage> reqSubscriber = new TestSubscriber<>();
-    ReactiveNostrRelayClient nostrRelayService = new ReactiveNostrRelayClient(relayUri);
+    ReactiveNostrRelayClient nostrRelayService = new ReactiveNostrRelayClient(relayUrl);
 
     nostrRelayService.send(reqMessage, reqSubscriber);
     List<EventIF> genericEvents = getGenericEvents(reqSubscriber.getItems());
@@ -62,12 +61,12 @@ class NostrRelayReactiveClientTest {
   }
 
   @Test
-  void testEventCreation() throws IOException, NostrException, NoSuchAlgorithmException {
+  void testEventCreation() throws IOException, NostrException {
     Identity identity = Factory.createNewIdentity();
     TextNoteEvent event = new TextNoteEvent(identity, Factory.lorumIpsum());
 
     TestSubscriber<OkMessage> okMessageSubscriber = new TestSubscriber<>();
-    new ReactiveNostrRelayClient(relayUri).send(new EventMessage(event), okMessageSubscriber);
+    new ReactiveNostrRelayClient(relayUrl).send(new EventMessage(event), okMessageSubscriber);
 
     assertEquals(
         new OkMessage(event.getId(), true, "success: request processed").encode(),
@@ -75,12 +74,12 @@ class NostrRelayReactiveClientTest {
   }
 
   @Test
-  void testReqFilteredByEventAndAuthor() throws IOException, NostrException, NoSuchAlgorithmException {
+  void testReqFilteredByEventAndAuthor() throws IOException, NostrException {
     Identity identity = Factory.createNewIdentity();
     TextNoteEvent event = new TextNoteEvent(identity, Factory.lorumIpsum());
 
     TestSubscriber<OkMessage> eventSubscriber = new TestSubscriber<>();
-    ReactiveNostrRelayClient superconductorReactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUri);
+    ReactiveNostrRelayClient superconductorReactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUrl);
 
     superconductorReactiveNostrRelayClient.send(new EventMessage(event), eventSubscriber);
 
@@ -115,10 +114,10 @@ class NostrRelayReactiveClientTest {
   }
 
   @Test
-  <T extends BaseMessage> void testTwoEventsFilteredByEventAndAuthorUsingTwoEventSubscribers() throws IOException, NostrException, NoSuchAlgorithmException {
+  <T extends BaseMessage> void testTwoEventsFilteredByEventAndAuthorUsingTwoEventSubscribers() throws IOException, NostrException {
     Identity identity = Factory.createNewIdentity();
     String content1 = Factory.lorumIpsum();
-    ReactiveNostrRelayClient superconductorReactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUri);
+    ReactiveNostrRelayClient superconductorReactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUrl);
 
 //    # -------------- EVENT 1 of 3 -------------------
     TextNoteEvent event1 = new TextNoteEvent(identity, content1);
