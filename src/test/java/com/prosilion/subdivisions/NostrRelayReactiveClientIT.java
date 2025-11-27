@@ -22,24 +22,27 @@ import java.io.IOException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
-@SpringBootTest(classes = SuperconductorRelayConfig.class)
 @TestPropertySource("classpath:application-test.properties")
+@ExtendWith(SpringExtension.class)
+@SpringJUnitConfig(SuperconductorRelayConfig.class)
 @ActiveProfiles("test")
 @Import(TestcontainersConfig.class)
-class NostrRelayReactiveClientTest {
+class NostrRelayReactiveClientIT {
   private final String relayUrl;
 
-  public NostrRelayReactiveClientTest(@Value("${superconductor.relay.url}") String relayUrl) {
+  public NostrRelayReactiveClientIT(@Value("${superconductor.relay.url}") String relayUrl) {
     this.relayUrl = relayUrl;
   }
 
@@ -66,11 +69,14 @@ class NostrRelayReactiveClientTest {
     TextNoteEvent event = new TextNoteEvent(identity, Factory.lorumIpsum());
 
     TestSubscriber<OkMessage> okMessageSubscriber = new TestSubscriber<>();
-    new ReactiveNostrRelayClient(relayUrl).send(new EventMessage(event), okMessageSubscriber);
+    ReactiveNostrRelayClient reactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUrl);
 
+    reactiveNostrRelayClient.send(new EventMessage(event), okMessageSubscriber);
+
+    List<OkMessage> items = okMessageSubscriber.getItems();
     assertEquals(
         new OkMessage(event.getId(), true, "success: request processed").encode(),
-        okMessageSubscriber.getItems().getFirst().encode());
+        items.getFirst().encode());
   }
 
   @Test
@@ -103,14 +109,6 @@ class NostrRelayReactiveClientTest {
     assertEquals(returnedReqGenericEvents.getFirst().getId(), event.getId());
     assertEquals(returnedReqGenericEvents.getFirst().getContent(), event.getContent());
     assertEquals(returnedReqGenericEvents.getFirst().getPublicKey().toHexString(), event.getPublicKey().toHexString());
-  }
-
-  public static <T extends BaseMessage> List<EventIF> getGenericEvents(List<T> returnedBaseMessages) {
-    return returnedBaseMessages.stream()
-        .filter(EventMessage.class::isInstance)
-        .map(EventMessage.class::cast)
-        .map(EventMessage::getEvent)
-        .toList();
   }
 
   @Test
@@ -170,5 +168,13 @@ class NostrRelayReactiveClientTest {
     assertTrue(returnedReqGenericEvents.stream().anyMatch(event -> event.getId().equals(event1.getId())));
     assertTrue(returnedReqGenericEvents.stream().anyMatch(event -> event.getContent().equals(event1.getContent())));
     assertTrue(returnedReqGenericEvents.stream().anyMatch(event -> event.getPublicKey().toHexString().equals(event1.getPublicKey().toHexString())));
+  }
+
+  public static <T extends BaseMessage> List<EventIF> getGenericEvents(List<T> returnedBaseMessages) {
+    return returnedBaseMessages.stream()
+        .filter(EventMessage.class::isInstance)
+        .map(EventMessage.class::cast)
+        .map(EventMessage::getEvent)
+        .toList();
   }
 }

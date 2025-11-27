@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.codec.BaseMessageDecoder;
 import com.prosilion.nostr.message.BaseMessage;
-import com.prosilion.nostr.message.ClosedMessage;
 import com.prosilion.nostr.message.ReqMessage;
 import java.util.Collection;
 import java.util.List;
@@ -13,7 +12,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.NonNull;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Subscriber;
 import org.springframework.boot.ssl.SslBundle;
@@ -69,8 +67,6 @@ public class ReactiveRelaySubscriptionsManager {
         .filter(Objects::nonNull);
   }
 
-  //  TODO: cleanup sneaky
-  @SneakyThrows
   private ReactiveWebSocketClient getReactiveWebSocketClient() {
     return Objects.isNull(sslBundles) ?
         new ReactiveWebSocketClient(relayUri) :
