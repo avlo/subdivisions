@@ -24,15 +24,15 @@ public class ReactiveRelaySubscriptionsManager {
   private final String relayUri;
   private SslBundles sslBundles;
 
-  public ReactiveRelaySubscriptionsManager(@NonNull String relayUri) {
-    this.relayUri = relayUri;
-    log.debug("relayUri: \n{}", relayUri);
+  public ReactiveRelaySubscriptionsManager(@NonNull String relayUrl) {
+    log.debug("{} constructor called with relay url {}", getClass().getSimpleName(), relayUrl);
+    this.relayUri = relayUrl;
   }
 
-  public ReactiveRelaySubscriptionsManager(@NonNull String relayUri, @NonNull SslBundles sslBundles) {
-    this.relayUri = relayUri;
+  public ReactiveRelaySubscriptionsManager(@NonNull String relayUrl, @NonNull SslBundles sslBundles) {
+    log.debug("{} constructor called with relay url {} and sslBundles {}", getClass().getSimpleName(), relayUrl, sslBundles);
+    this.relayUri = relayUrl;
     this.sslBundles = sslBundles;
-    log.debug("sslBundles: \n{}", sslBundles);
     final SslBundle server = sslBundles.getBundle("server");
     log.debug("sslBundles name: \n{}", server);
     log.debug("sslBundles key: \n{}", server.getKey());
@@ -40,7 +40,7 @@ public class ReactiveRelaySubscriptionsManager {
   }
 
   public <T extends ReqMessage, V extends BaseMessage> void send(@NonNull T reqMessage, @NonNull Subscriber<V> subscriber) throws JsonProcessingException, NostrException {
-    log.debug("pre-encoded ReqMessage json: \n{}", reqMessage);
+    log.debug("{} called send() with pre-encoded ReqMessage json: \n{}", getClass().getSimpleName(), reqMessage);
     Flux<V> apply = baseMessagesReturnedByReqMessage(getRequestResults(reqMessage));
     apply.subscribe(subscriber);
   }

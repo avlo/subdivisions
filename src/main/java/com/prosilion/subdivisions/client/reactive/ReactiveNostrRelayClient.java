@@ -19,21 +19,20 @@ public class ReactiveNostrRelayClient {
   private final ReactiveEventPublisher reactiveEventPublisher;
   private final ReactiveRelaySubscriptionsManager reactiveRelaySubscriptionsManager;
 
-  public ReactiveNostrRelayClient(@NonNull String relayUri) {
-    log.debug("relayUri: \n{}", relayUri);
-    this.reactiveEventPublisher = new ReactiveEventPublisher(relayUri);
-    this.reactiveRelaySubscriptionsManager = new ReactiveRelaySubscriptionsManager(relayUri);
+  public ReactiveNostrRelayClient(@NonNull String relayUrl) {
+    log.debug("{} constructor called with relay url {}", getClass().getSimpleName(), relayUrl);
+    this.reactiveEventPublisher = new ReactiveEventPublisher(relayUrl);
+    this.reactiveRelaySubscriptionsManager = new ReactiveRelaySubscriptionsManager(relayUrl);
   }
 
-  public ReactiveNostrRelayClient(@NonNull String relayUri, SslBundles sslBundles) {
-    log.debug("relayUri: \n{}", relayUri);
-    log.debug("sslBundles: \n{}", sslBundles);
+  public ReactiveNostrRelayClient(@NonNull String relayUrl, SslBundles sslBundles) {
+    log.debug("{} constructor called with relay url {} and sslBundles {}", getClass().getSimpleName(), relayUrl, sslBundles);
     final SslBundle server = sslBundles.getBundle("server");
     log.debug("sslBundles name: \n{}", server);
     log.debug("sslBundles key: \n{}", server.getKey());
     log.debug("sslBundles protocol: \n{}", server.getProtocol());
-    this.reactiveEventPublisher = new ReactiveEventPublisher(relayUri, sslBundles);
-    this.reactiveRelaySubscriptionsManager = new ReactiveRelaySubscriptionsManager(relayUri, sslBundles);
+    this.reactiveEventPublisher = new ReactiveEventPublisher(relayUrl, sslBundles);
+    this.reactiveRelaySubscriptionsManager = new ReactiveRelaySubscriptionsManager(relayUrl, sslBundles);
   }
 
   public void send(@NonNull EventMessage eventMessage, @NonNull Subscriber<OkMessage> subscriber) throws IOException {

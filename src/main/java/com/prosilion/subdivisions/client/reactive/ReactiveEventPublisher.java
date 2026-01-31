@@ -1,7 +1,6 @@
 package com.prosilion.subdivisions.client.reactive;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.CanonicalAuthenticationMessage;
 import com.prosilion.nostr.message.EventMessage;
@@ -17,27 +16,28 @@ import reactor.core.publisher.Flux;
 public class ReactiveEventPublisher {
   private final ReactiveWebSocketClient eventSocketClient;
 
-  public ReactiveEventPublisher(@NonNull String relayUri) {
-    log.debug("relayUri: \n{}", relayUri);
-    this.eventSocketClient = new ReactiveWebSocketClient(relayUri);
+  public ReactiveEventPublisher(@NonNull String relayUrl) {
+    log.debug("{} constructor called with relay url {}", getClass().getSimpleName(), relayUrl);
+    this.eventSocketClient = new ReactiveWebSocketClient(relayUrl);
   }
 
-  public ReactiveEventPublisher(@NonNull String relayUri, SslBundles sslBundles) {
-    log.debug("sslBundles: \n{}", sslBundles);
+  public ReactiveEventPublisher(@NonNull String relayUrl, SslBundles sslBundles) {
+    log.debug("{} constructor called with relay url {} and sslBundles {}", getClass().getSimpleName(), relayUrl, sslBundles);
     final SslBundle server = sslBundles.getBundle("server");
     log.debug("sslBundles name: \n{}", server);
     log.debug("sslBundles key: \n{}", server.getKey());
     log.debug("sslBundles protocol: \n{}", server.getProtocol());
-    this.eventSocketClient = new ReactiveWebSocketClient(relayUri);
+    this.eventSocketClient = new ReactiveWebSocketClient(relayUrl);
   }
 
   public <T extends OkMessage> void send(@NonNull EventMessage eventMessage, @NonNull Subscriber<T> subscriber) {
-    debug(eventMessage, eventMessage.getEvent());
+    log.debug("{} send {} content\n", getClass().getSimpleName(), eventMessage.getClass().getSimpleName());
+    eventMessage.debug();
     getFlux(eventMessage, subscriber);
   }
 
   public <T extends OkMessage> void send(@NonNull CanonicalAuthenticationMessage authMessage, @NonNull Subscriber<T> subscriber) {
-    debug(authMessage, authMessage.getEvent());
+    log.debug("{} send {} content\n", getClass().getSimpleName(), authMessage.getClass().getSimpleName());
     getFlux(authMessage, subscriber);
   }
 
@@ -57,10 +57,6 @@ public class ReactiveEventPublisher {
                   baseMessage)))
           .subscribe(subscriber);
     }
-  }
-
-  private void debug(BaseMessage baseMessage, EventIF event) {
-    log.debug("{} send {} content\n  {}", getClass().getSimpleName(), baseMessage.getClass().getSimpleName(), event);
   }
 
   public void closeSocket() {

@@ -18,18 +18,20 @@ class ReactiveWebSocketClient {
   private final ReactiveWebSocketHandler reactiveWebSocketHandler;
 
   protected ReactiveWebSocketClient(@NonNull String relayUrl) {
+    log.debug("{} constructor called with relay url {}", getClass().getSimpleName(), relayUrl);
     this.reactiveWebSocketHandler = new ReactiveWebSocketHandler();
     log.debug("call new ReactiveWebSocketHandler hashCode: [ " + reactiveWebSocketHandler.hashCode() + " ]");
     reactiveWebSocketHandler.connect(new ReactorNettyWebSocketClient(), getURI(relayUrl));
   }
 
-  protected ReactiveWebSocketClient(@NonNull String relayUri, @NonNull SslBundles sslBundles) {
+  protected ReactiveWebSocketClient(@NonNull String relayUrl, @NonNull SslBundles sslBundles) {
+    log.debug("{} constructor called with relay url {} and sslBundles {}", getClass().getSimpleName(), relayUrl, sslBundles);
     this.reactiveWebSocketHandler = new ReactiveWebSocketHandler();
     final ReactorNettyWebSocketClient reactorNettyWebSocketClient = new ReactorNettyWebSocketClient();
 //    TODO: Secure (WSS) WebSocket needs impl
     log.info("WARNING: **** Secure (WSS) WebSocket implementation is incomplete, currently+ NOT using wss ****");
 //    reactorNettyWebSocketClient.setSslContext(sslBundles.getBundle("server").createSslContext());
-    reactiveWebSocketHandler.connect(reactorNettyWebSocketClient, getURI(relayUri));
+    reactiveWebSocketHandler.connect(reactorNettyWebSocketClient, getURI(relayUrl));
     log.debug("Secure (WSS) WebSocket subdivisions connected {}", reactiveWebSocketHandler.session().orElseThrow().getId());
   }
 
