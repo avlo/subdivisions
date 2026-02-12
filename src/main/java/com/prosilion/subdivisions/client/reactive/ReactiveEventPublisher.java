@@ -17,7 +17,7 @@ public class ReactiveEventPublisher {
   private final ReactiveWebSocketClient eventSocketClient;
 
   public ReactiveEventPublisher(@NonNull String relayUrl) {
-    log.debug("{} constructor called with relay url {}", getClass().getSimpleName(), relayUrl);
+    log.debug("{} Ctor called with relay url: [{}]", getClass().getSimpleName(), relayUrl);
     this.eventSocketClient = new ReactiveWebSocketClient(relayUrl);
   }
 
@@ -31,13 +31,18 @@ public class ReactiveEventPublisher {
   }
 
   public <T extends OkMessage> void send(@NonNull EventMessage eventMessage, @NonNull Subscriber<T> subscriber) {
-    log.debug("{} send {} content\n", getClass().getSimpleName(), eventMessage.getClass().getSimpleName());
-    eventMessage.debug();
+    log.debug("{} send(eventMessage, subscriber) [{}] content:\n{}",
+        getClass().getSimpleName(),
+        subscriber,
+        eventMessage.getEvent().createPrettyPrintJson());
     getFlux(eventMessage, subscriber);
   }
 
   public <T extends OkMessage> void send(@NonNull CanonicalAuthenticationMessage authMessage, @NonNull Subscriber<T> subscriber) {
-    log.debug("{} send {} content\n", getClass().getSimpleName(), authMessage.getClass().getSimpleName());
+    log.debug("{} send(CanonicalAuthenticationMessage, subscriber) [{}] content:\n{}",
+        getClass().getSimpleName(),
+        subscriber,
+        authMessage.event().createPrettyPrintJson());
     getFlux(authMessage, subscriber);
   }
 

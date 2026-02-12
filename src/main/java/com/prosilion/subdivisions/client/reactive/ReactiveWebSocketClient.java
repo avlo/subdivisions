@@ -18,14 +18,14 @@ class ReactiveWebSocketClient {
   private final ReactiveWebSocketHandler reactiveWebSocketHandler;
 
   protected ReactiveWebSocketClient(@NonNull String relayUrl) {
-    log.debug("{} constructor called with relay url {}", getClass().getSimpleName(), relayUrl);
+    log.debug("{} Ctor() called with relay url: [{}]", getClass().getSimpleName(), relayUrl);
     this.reactiveWebSocketHandler = new ReactiveWebSocketHandler();
-    log.debug("call new ReactiveWebSocketHandler hashCode: [ " + reactiveWebSocketHandler.hashCode() + " ]");
+    log.debug("... call new ReactiveWebSocketHandler hashCode: [{}]", reactiveWebSocketHandler.hashCode());
     reactiveWebSocketHandler.connect(new ReactorNettyWebSocketClient(), getURI(relayUrl));
   }
 
   protected ReactiveWebSocketClient(@NonNull String relayUrl, @NonNull SslBundles sslBundles) {
-    log.debug("{} constructor called with relay url {} and sslBundles {}", getClass().getSimpleName(), relayUrl, sslBundles);
+    log.debug("{} constructor called with relay url: [{}], sslBundles [{}]", getClass().getSimpleName(), relayUrl, sslBundles);
     this.reactiveWebSocketHandler = new ReactiveWebSocketHandler();
     final ReactorNettyWebSocketClient reactorNettyWebSocketClient = new ReactorNettyWebSocketClient();
 //    TODO: Secure (WSS) WebSocket needs impl

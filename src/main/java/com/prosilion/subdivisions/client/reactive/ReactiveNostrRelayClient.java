@@ -20,7 +20,7 @@ public class ReactiveNostrRelayClient {
   private final ReactiveRelaySubscriptionsManager reactiveRelaySubscriptionsManager;
 
   public ReactiveNostrRelayClient(@NonNull String relayUrl) {
-    log.debug("{} constructor called with relay url {}", getClass().getSimpleName(), relayUrl);
+    log.debug("{} Ctor() called with relay url: [{}]", getClass().getSimpleName(), relayUrl);
     this.reactiveEventPublisher = new ReactiveEventPublisher(relayUrl);
     this.reactiveRelaySubscriptionsManager = new ReactiveRelaySubscriptionsManager(relayUrl);
   }

@@ -25,22 +25,22 @@ public class ReactiveRelaySubscriptionsManager {
   private SslBundles sslBundles;
 
   public ReactiveRelaySubscriptionsManager(@NonNull String relayUrl) {
-    log.debug("{} constructor called with relay url {}", getClass().getSimpleName(), relayUrl);
+    log.debug("{} constructor called with relay url: [{}]", getClass().getSimpleName(), relayUrl);
     this.relayUri = relayUrl;
   }
 
   public ReactiveRelaySubscriptionsManager(@NonNull String relayUrl, @NonNull SslBundles sslBundles) {
-    log.debug("{} constructor called with relay url {} and sslBundles {}", getClass().getSimpleName(), relayUrl, sslBundles);
+    log.debug("{} constructor called with relay url:  [{}], sslBundles [{}]", getClass().getSimpleName(), relayUrl, sslBundles);
     this.relayUri = relayUrl;
     this.sslBundles = sslBundles;
     final SslBundle server = sslBundles.getBundle("server");
-    log.debug("sslBundles name: \n{}", server);
-    log.debug("sslBundles key: \n{}", server.getKey());
-    log.debug("sslBundles protocol: \n{}", server.getProtocol());
+    log.debug("sslBundles name: [{}]", server);
+    log.debug("sslBundles key: [{}]", server.getKey());
+    log.debug("sslBundles protocol: [{}]", server.getProtocol());
   }
 
   public <T extends ReqMessage, V extends BaseMessage> void send(@NonNull T reqMessage, @NonNull Subscriber<V> subscriber) throws JsonProcessingException, NostrException {
-    log.debug("{} called send() with pre-encoded ReqMessage json: \n{}", getClass().getSimpleName(), reqMessage);
+    log.debug("{} send(reqMessage, subscriber) ReqMessage:\n{}", getClass().getSimpleName(), reqMessage.encode());
     Flux<V> apply = baseMessagesReturnedByReqMessage(getRequestResults(reqMessage));
     apply.subscribe(subscriber);
   }
