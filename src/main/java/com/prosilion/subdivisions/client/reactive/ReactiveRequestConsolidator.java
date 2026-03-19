@@ -10,10 +10,10 @@ import java.util.Set;
 import lombok.NonNull;
 import org.reactivestreams.Subscriber;
 
-public class ReactiveRequestConsolidator {
+class ReactiveRequestConsolidator {
   private final Map<String, ReactiveRelaySubscriptionsManager> map = new HashMap<>();
 
-  public <T extends ReqMessage, V extends BaseMessage> void send(
+  protected <T extends ReqMessage, V extends BaseMessage> void send(
       @NonNull T reqMessage,
       @NonNull Subscriber<V> subscriber,
       @NonNull String url) throws JsonProcessingException, NostrException {
@@ -23,16 +23,16 @@ public class ReactiveRequestConsolidator {
     }
   }
 
-  public void removeRelay(@NonNull String url) {
+  protected void removeRelay(@NonNull String url) {
     map.get(url).closeAllSessions();
     map.remove(url);
   }
 
-  private void addRelay(@NonNull String url) {
+  protected void addRelay(@NonNull String url) {
     map.putIfAbsent(url, new ReactiveRelaySubscriptionsManager(url));
   }
 
-  public Set<String> getRelayNames() {
+  protected Set<String> getRelayNames() {
     return map.keySet();
   }
 }

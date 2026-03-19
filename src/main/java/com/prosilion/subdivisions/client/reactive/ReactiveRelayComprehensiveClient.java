@@ -15,32 +15,32 @@ import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
 
 @Slf4j
-public class ReactiveNostrRelayClient {
-  private final ReactiveEventPublisher reactiveEventPublisher;
+public class ReactiveRelayComprehensiveClient {
+  private final ReactiveRelayEventPublisher reactiveRelayEventPublisher;
   private final ReactiveRelaySubscriptionsManager reactiveRelaySubscriptionsManager;
 
-  public ReactiveNostrRelayClient(@NonNull String relayUrl) {
+  public ReactiveRelayComprehensiveClient(@NonNull String relayUrl) {
     log.debug("{} Ctor() called with relay url: [{}]", getClass().getSimpleName(), relayUrl);
-    this.reactiveEventPublisher = new ReactiveEventPublisher(relayUrl);
+    this.reactiveRelayEventPublisher = new ReactiveRelayEventPublisher(relayUrl);
     this.reactiveRelaySubscriptionsManager = new ReactiveRelaySubscriptionsManager(relayUrl);
   }
 
-  public ReactiveNostrRelayClient(@NonNull String relayUrl, SslBundles sslBundles) {
+  public ReactiveRelayComprehensiveClient(@NonNull String relayUrl, SslBundles sslBundles) {
     log.debug("{} constructor called with relay url {} and sslBundles {}", getClass().getSimpleName(), relayUrl, sslBundles);
     final SslBundle server = sslBundles.getBundle("server");
     log.debug("sslBundles name: \n{}", server);
     log.debug("sslBundles key: \n{}", server.getKey());
     log.debug("sslBundles protocol: \n{}", server.getProtocol());
-    this.reactiveEventPublisher = new ReactiveEventPublisher(relayUrl, sslBundles);
+    this.reactiveRelayEventPublisher = new ReactiveRelayEventPublisher(relayUrl, sslBundles);
     this.reactiveRelaySubscriptionsManager = new ReactiveRelaySubscriptionsManager(relayUrl, sslBundles);
   }
 
   public void send(@NonNull EventMessage eventMessage, @NonNull Subscriber<OkMessage> subscriber) throws IOException {
-    reactiveEventPublisher.send(eventMessage, subscriber);
+    reactiveRelayEventPublisher.send(eventMessage, subscriber);
   }
 
   public void send(@NonNull CanonicalAuthenticationMessage authMessage, @NonNull Subscriber<OkMessage> subscriber) throws NostrException {
-    reactiveEventPublisher.send(authMessage, subscriber);
+    reactiveRelayEventPublisher.send(authMessage, subscriber);
   }
 
   public <T extends BaseMessage> void send(@NonNull ReqMessage reqMessage, @NonNull Subscriber<T> subscriber) throws JsonProcessingException, NostrException {
@@ -48,7 +48,7 @@ public class ReactiveNostrRelayClient {
   }
 
   public void closeSocket() {
-    reactiveEventPublisher.closeSocket();
+    reactiveRelayEventPublisher.closeSocket();
     reactiveRelaySubscriptionsManager.closeAllSessions();
   }
 }

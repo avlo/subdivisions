@@ -9,7 +9,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -19,17 +18,17 @@ import org.springframework.boot.ssl.SslBundles;
 import reactor.core.publisher.Flux;
 
 @Slf4j
-public class ReactiveRelaySubscriptionsManager {
+class ReactiveRelaySubscriptionsManager {
   private final Map<String, ReactiveWebSocketClient> subscriberIdWebSocketClientMap = new ConcurrentHashMap<>();
   private final String relayUri;
   private SslBundles sslBundles;
 
-  public ReactiveRelaySubscriptionsManager(@NonNull String relayUrl) {
+  protected ReactiveRelaySubscriptionsManager(@NonNull String relayUrl) {
     log.debug("{} constructor called with relay url: [{}]", getClass().getSimpleName(), relayUrl);
     this.relayUri = relayUrl;
   }
 
-  public ReactiveRelaySubscriptionsManager(@NonNull String relayUrl, @NonNull SslBundles sslBundles) {
+  protected ReactiveRelaySubscriptionsManager(@NonNull String relayUrl, @NonNull SslBundles sslBundles) {
     log.debug("{} constructor called with relay url:  [{}], sslBundles [{}]", getClass().getSimpleName(), relayUrl, sslBundles);
     this.relayUri = relayUrl;
     this.sslBundles = sslBundles;
@@ -39,7 +38,7 @@ public class ReactiveRelaySubscriptionsManager {
     log.debug("sslBundles protocol: [{}]", server.getProtocol());
   }
 
-  public <T extends ReqMessage, V extends BaseMessage> void send(@NonNull T reqMessage, @NonNull Subscriber<V> subscriber) throws JsonProcessingException, NostrException {
+  protected <T extends ReqMessage, V extends BaseMessage> void send(@NonNull T reqMessage, @NonNull Subscriber<V> subscriber) throws JsonProcessingException, NostrException {
     log.debug("{} send(reqMessage, subscriber) ReqMessage:\n{}", getClass().getSimpleName(), reqMessage.encode());
     Flux<V> apply = baseMessagesReturnedByReqMessage(getRequestResults(reqMessage));
     apply.subscribe(subscriber);
@@ -47,11 +46,8 @@ public class ReactiveRelaySubscriptionsManager {
 
   private <T extends ReqMessage> Flux<String> getRequestResults(T reqMessage) throws JsonProcessingException {
     String subscriberId = reqMessage.getSubscriptionId();
-    final ReactiveWebSocketClient reactiveWebSocketClient = Optional.ofNullable(subscriberIdWebSocketClientMap.get(subscriberId))
-        .orElseGet(() -> {
-          subscriberIdWebSocketClientMap.put(subscriberId, getReactiveWebSocketClient());
-          return subscriberIdWebSocketClientMap.get(subscriberId);
-        });
+    subscriberIdWebSocketClientMap.putIfAbsent(subscriberId, getReactiveWebSocketClient());
+    ReactiveWebSocketClient reactiveWebSocketClient = subscriberIdWebSocketClientMap.get(subscriberId);
     return reactiveWebSocketClient.send(reqMessage);
   }
 
@@ -73,16 +69,16 @@ public class ReactiveRelaySubscriptionsManager {
         new ReactiveWebSocketClient(relayUri, sslBundles);
   }
 
-  public void closeSession(@NonNull String... subscriberIds) {
+  protected void closeSession(@NonNull String... subscriberIds) {
     closeSessions(List.of(subscriberIds));
   }
 
-  public void closeSessions(@NonNull List<String> subscriberIds) {
+  protected void closeSessions(@NonNull List<String> subscriberIds) {
     subscriberIds.forEach(id -> closeSessions(subscriberIdWebSocketClientMap.get(id)));
     subscriberIds.forEach(subscriberIdWebSocketClientMap::remove);
   }
 
-  public void closeAllSessions() {
+  protected void closeAllSessions() {
     closeSessions(subscriberIdWebSocketClientMap);
     subscriberIdWebSocketClientMap.clear();
   }

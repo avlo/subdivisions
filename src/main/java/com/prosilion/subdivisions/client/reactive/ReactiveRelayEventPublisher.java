@@ -13,15 +13,15 @@ import org.springframework.boot.ssl.SslBundles;
 import reactor.core.publisher.Flux;
 
 @Slf4j
-public class ReactiveEventPublisher {
+public class ReactiveRelayEventPublisher {
   private final ReactiveWebSocketClient eventSocketClient;
 
-  public ReactiveEventPublisher(@NonNull String relayUrl) {
+  public ReactiveRelayEventPublisher(@NonNull String relayUrl) {
     log.debug("{} Ctor called with relay url: [{}]", getClass().getSimpleName(), relayUrl);
     this.eventSocketClient = new ReactiveWebSocketClient(relayUrl);
   }
 
-  public ReactiveEventPublisher(@NonNull String relayUrl, SslBundles sslBundles) {
+  public ReactiveRelayEventPublisher(@NonNull String relayUrl, SslBundles sslBundles) {
     log.debug("{} constructor called with relay url {} and sslBundles {}", getClass().getSimpleName(), relayUrl, sslBundles);
     final SslBundle server = sslBundles.getBundle("server");
     log.debug("sslBundles name: \n{}", server);

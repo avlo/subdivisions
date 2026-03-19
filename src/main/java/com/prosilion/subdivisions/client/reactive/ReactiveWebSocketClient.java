@@ -21,7 +21,9 @@ class ReactiveWebSocketClient {
     log.debug("{} Ctor() called with relay url: [{}]", getClass().getSimpleName(), relayUrl);
     this.reactiveWebSocketHandler = new ReactiveWebSocketHandler();
     log.debug("... call new ReactiveWebSocketHandler hashCode: [{}]", reactiveWebSocketHandler.hashCode());
-    reactiveWebSocketHandler.connect(new ReactorNettyWebSocketClient(), getURI(relayUrl));
+    ReactorNettyWebSocketClient webSocketClient = new ReactorNettyWebSocketClient();
+    webSocketClient.getHttpClient().warmup().block();
+    reactiveWebSocketHandler.connect(webSocketClient, getURI(relayUrl));
   }
 
   protected ReactiveWebSocketClient(@NonNull String relayUrl, @NonNull SslBundles sslBundles) {
