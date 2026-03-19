@@ -2,14 +2,13 @@ package com.prosilion.subdivisions.client;
 
 import com.prosilion.nostr.NostrException;
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BooleanSupplier;
 import lombok.extern.slf4j.Slf4j;
-import org.awaitility.core.DurationFactory;
 import org.reactivestreams.Subscription;
 import org.springframework.lang.NonNull;
 import reactor.core.publisher.BaseSubscriber;
@@ -22,7 +21,7 @@ public class RequestSubscriber<T> extends BaseSubscriber<T> {
   private Subscription subscription;
 
   public RequestSubscriber() {
-    this(DurationFactory.of(3, TimeUnit.SECONDS));
+    this(Duration.of(3000, ChronoUnit.MILLIS));
   }
 
   public RequestSubscriber(@NonNull Duration timeout) {
