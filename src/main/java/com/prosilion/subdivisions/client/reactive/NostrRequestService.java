@@ -12,9 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 
-public class ReactiveRelayReqService {
+public class NostrRequestService {
   @Generated
-  private static final Logger log = LoggerFactory.getLogger(ReactiveRelayReqService.class);
+  private static final Logger log = LoggerFactory.getLogger(NostrRequestService.class);
   private ReactiveRequestConsolidator requestConsolidator;
 
   public List<BaseMessage> send(@NonNull ReqMessage reqMessage, @NonNull String relayUrl) throws JsonProcessingException, NostrException {

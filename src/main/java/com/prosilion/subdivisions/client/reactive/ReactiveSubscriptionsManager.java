@@ -18,17 +18,17 @@ import org.springframework.boot.ssl.SslBundles;
 import reactor.core.publisher.Flux;
 
 @Slf4j
-class ReactiveRelaySubscriptionsManager {
+class ReactiveSubscriptionsManager {
   private final Map<String, ReactiveWebSocketClient> subscriberIdWebSocketClientMap = new ConcurrentHashMap<>();
   private final String relayUri;
   private SslBundles sslBundles;
 
-  protected ReactiveRelaySubscriptionsManager(@NonNull String relayUrl) {
+  protected ReactiveSubscriptionsManager(@NonNull String relayUrl) {
     log.debug("{} constructor called with relay url: [{}]", getClass().getSimpleName(), relayUrl);
     this.relayUri = relayUrl;
   }
 
-  protected ReactiveRelaySubscriptionsManager(@NonNull String relayUrl, @NonNull SslBundles sslBundles) {
+  protected ReactiveSubscriptionsManager(@NonNull String relayUrl, @NonNull SslBundles sslBundles) {
     log.debug("{} constructor called with relay url:  [{}], sslBundles [{}]", getClass().getSimpleName(), relayUrl, sslBundles);
     this.relayUri = relayUrl;
     this.sslBundles = sslBundles;

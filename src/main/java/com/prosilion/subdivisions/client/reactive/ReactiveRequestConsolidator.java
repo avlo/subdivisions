@@ -11,14 +11,14 @@ import lombok.NonNull;
 import org.reactivestreams.Subscriber;
 
 class ReactiveRequestConsolidator {
-  private final Map<String, ReactiveRelaySubscriptionsManager> map = new HashMap<>();
+  private final Map<String, ReactiveSubscriptionsManager> map = new HashMap<>();
 
   protected <T extends ReqMessage, V extends BaseMessage> void send(
       @NonNull T reqMessage,
       @NonNull Subscriber<V> subscriber,
       @NonNull String url) throws JsonProcessingException, NostrException {
     addRelay(url);
-    for (ReactiveRelaySubscriptionsManager mgr : map.values()) {
+    for (ReactiveSubscriptionsManager mgr : map.values()) {
       mgr.send(reqMessage, subscriber);
     }
   }
@@ -29,7 +29,7 @@ class ReactiveRequestConsolidator {
   }
 
   protected void addRelay(@NonNull String url) {
-    map.putIfAbsent(url, new ReactiveRelaySubscriptionsManager(url));
+    map.putIfAbsent(url, new ReactiveSubscriptionsManager(url));
   }
 
   protected Set<String> getRelayNames() {

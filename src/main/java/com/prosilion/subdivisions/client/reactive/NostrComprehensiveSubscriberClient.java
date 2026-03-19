@@ -15,40 +15,40 @@ import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
 
 @Slf4j
-public class ReactiveRelayComprehensiveClient {
-  private final ReactiveRelayEventPublisher reactiveRelayEventPublisher;
-  private final ReactiveRelaySubscriptionsManager reactiveRelaySubscriptionsManager;
+public class NostrComprehensiveSubscriberClient {
+  private final NostrEventPublisher nostrEventPublisher;
+  private final ReactiveSubscriptionsManager reactiveSubscriptionsManager;
 
-  public ReactiveRelayComprehensiveClient(@NonNull String relayUrl) {
+  public NostrComprehensiveSubscriberClient(@NonNull String relayUrl) {
     log.debug("{} Ctor() called with relay url: [{}]", getClass().getSimpleName(), relayUrl);
-    this.reactiveRelayEventPublisher = new ReactiveRelayEventPublisher(relayUrl);
-    this.reactiveRelaySubscriptionsManager = new ReactiveRelaySubscriptionsManager(relayUrl);
+    this.nostrEventPublisher = new NostrEventPublisher(relayUrl);
+    this.reactiveSubscriptionsManager = new ReactiveSubscriptionsManager(relayUrl);
   }
 
-  public ReactiveRelayComprehensiveClient(@NonNull String relayUrl, SslBundles sslBundles) {
+  public NostrComprehensiveSubscriberClient(@NonNull String relayUrl, SslBundles sslBundles) {
     log.debug("{} constructor called with relay url {} and sslBundles {}", getClass().getSimpleName(), relayUrl, sslBundles);
     final SslBundle server = sslBundles.getBundle("server");
     log.debug("sslBundles name: \n{}", server);
     log.debug("sslBundles key: \n{}", server.getKey());
     log.debug("sslBundles protocol: \n{}", server.getProtocol());
-    this.reactiveRelayEventPublisher = new ReactiveRelayEventPublisher(relayUrl, sslBundles);
-    this.reactiveRelaySubscriptionsManager = new ReactiveRelaySubscriptionsManager(relayUrl, sslBundles);
+    this.nostrEventPublisher = new NostrEventPublisher(relayUrl, sslBundles);
+    this.reactiveSubscriptionsManager = new ReactiveSubscriptionsManager(relayUrl, sslBundles);
   }
 
   public void send(@NonNull EventMessage eventMessage, @NonNull Subscriber<OkMessage> subscriber) throws IOException {
-    reactiveRelayEventPublisher.send(eventMessage, subscriber);
+    nostrEventPublisher.send(eventMessage, subscriber);
   }
 
   public void send(@NonNull CanonicalAuthenticationMessage authMessage, @NonNull Subscriber<OkMessage> subscriber) throws NostrException {
-    reactiveRelayEventPublisher.send(authMessage, subscriber);
+    nostrEventPublisher.send(authMessage, subscriber);
   }
 
   public <T extends BaseMessage> void send(@NonNull ReqMessage reqMessage, @NonNull Subscriber<T> subscriber) throws JsonProcessingException, NostrException {
-    reactiveRelaySubscriptionsManager.send(reqMessage, subscriber);
+    reactiveSubscriptionsManager.send(reqMessage, subscriber);
   }
 
   public void closeSocket() {
-    reactiveRelayEventPublisher.closeSocket();
-    reactiveRelaySubscriptionsManager.closeAllSessions();
+    nostrEventPublisher.closeSocket();
+    reactiveSubscriptionsManager.closeAllSessions();
   }
 }

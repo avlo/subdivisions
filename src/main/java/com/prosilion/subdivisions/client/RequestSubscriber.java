@@ -25,7 +25,7 @@ public class RequestSubscriber<T> extends BaseSubscriber<T> {
     this(DurationFactory.of(3, TimeUnit.SECONDS));
   }
 
-  public RequestSubscriber(Duration timeout) {
+  public RequestSubscriber(@NonNull Duration timeout) {
     this.timeout = timeout;
   }
 
@@ -51,7 +51,7 @@ public class RequestSubscriber<T> extends BaseSubscriber<T> {
     return eventList;
   }
 
-  public static void await(Duration timeout, BooleanSupplier conditionSupplier) {
+  private static void await(Duration timeout, BooleanSupplier conditionSupplier) {
     long timeoutNs = timeout.toNanos();
     long startTime = System.nanoTime();
     do {
