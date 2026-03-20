@@ -10,7 +10,7 @@ import java.util.Set;
 import lombok.NonNull;
 import org.reactivestreams.Subscriber;
 
-class ReactiveRequestConsolidator {
+public class ReactiveRequestConsolidator {
   private final Map<String, ReactiveSubscriptionsManager> map = new HashMap<>();
 
   protected <T extends ReqMessage, V extends BaseMessage> void send(

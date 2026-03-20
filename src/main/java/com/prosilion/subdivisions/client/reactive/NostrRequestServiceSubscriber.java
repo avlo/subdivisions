@@ -9,20 +9,15 @@ import org.springframework.lang.NonNull;
 
 public class NostrRequestServiceSubscriber {
   private final ReactiveRequestConsolidator requestConsolidator;
-  private final String relayUrl;
 
-  public NostrRequestServiceSubscriber(@NonNull String relayUrl) {
-    this.requestConsolidator = new ReactiveRequestConsolidator();
-    this.relayUrl = relayUrl;
+  public NostrRequestServiceSubscriber(@NonNull ReactiveRequestConsolidator reactiveRequestConsolidator) {
+    this.requestConsolidator = reactiveRequestConsolidator;
   }
 
   public <T extends BaseMessage> void send(
       @NonNull ReqMessage reqMessage,
+      @NonNull String relayUrl,
       @NonNull Subscriber<T> subscriber) throws JsonProcessingException, NostrException {
     this.requestConsolidator.send(reqMessage, subscriber, relayUrl);
-  }
-
-  public void disconnect() {
-    this.requestConsolidator.removeRelay(relayUrl);
   }
 }

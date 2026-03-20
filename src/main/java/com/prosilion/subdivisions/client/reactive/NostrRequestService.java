@@ -12,24 +12,20 @@ import org.springframework.lang.NonNull;
 public class NostrRequestService {
   private final NostrRequestServiceSubscriber nostrRequestServiceSubscriber;
 
-  public NostrRequestService(@NonNull String relayUrl) {
-    this.nostrRequestServiceSubscriber = new NostrRequestServiceSubscriber(relayUrl);
+  public NostrRequestService(@NonNull ReactiveRequestConsolidator reactiveRequestConsolidator) {
+    this.nostrRequestServiceSubscriber = new NostrRequestServiceSubscriber(reactiveRequestConsolidator);
   }
 
-  public List<BaseMessage> send(@NonNull ReqMessage reqMessage) throws JsonProcessingException, NostrException {
-    return send(reqMessage, new RequestSubscriber<>());
+  public List<BaseMessage> send(@NonNull ReqMessage reqMessage, @NonNull String relayUrl) throws JsonProcessingException, NostrException {
+    return send(reqMessage, relayUrl, new RequestSubscriber<>());
   }
 
-  public List<BaseMessage> send(@NonNull ReqMessage reqMessage, @NonNull Duration timeout) throws JsonProcessingException, NostrException {
-    return send(reqMessage, new RequestSubscriber<>(timeout));
+  public List<BaseMessage> send(@NonNull ReqMessage reqMessage, @NonNull String relayUrl, @NonNull Duration timeout) throws JsonProcessingException, NostrException {
+    return send(reqMessage, relayUrl, new RequestSubscriber<>(timeout));
   }
 
-  private List<BaseMessage> send(@NonNull ReqMessage reqMessage, RequestSubscriber<BaseMessage> subscriber) throws JsonProcessingException, NostrException {
-    nostrRequestServiceSubscriber.send(reqMessage, subscriber);
+  private List<BaseMessage> send(@NonNull ReqMessage reqMessage, @NonNull String relayUrl, RequestSubscriber<BaseMessage> subscriber) throws JsonProcessingException, NostrException {
+    nostrRequestServiceSubscriber.send(reqMessage, relayUrl, subscriber);
     return subscriber.getItems();
-  }
-
-  public void disconnect() {
-    this.nostrRequestServiceSubscriber.disconnect();
   }
 }
