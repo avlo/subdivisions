@@ -15,32 +15,32 @@ import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
 
 @Slf4j
-public class NostrComprehensiveSubscriberClient {
-  private final NostrEventPublisher nostrEventPublisher;
+public class NostrComprehensiveClientSubscriber {
+  private final NostrEventPublisherSubscriber nostrEventPublisherSubscriber;
   private final ReactiveSubscriptionsManager reactiveSubscriptionsManager;
 
-  public NostrComprehensiveSubscriberClient(@NonNull String relayUrl) {
+  public NostrComprehensiveClientSubscriber(@NonNull String relayUrl) {
     log.debug("{} Ctor() called with relay url: [{}]", getClass().getSimpleName(), relayUrl);
-    this.nostrEventPublisher = new NostrEventPublisher(relayUrl);
+    this.nostrEventPublisherSubscriber = new NostrEventPublisherSubscriber(relayUrl);
     this.reactiveSubscriptionsManager = new ReactiveSubscriptionsManager(relayUrl);
   }
 
-  public NostrComprehensiveSubscriberClient(@NonNull String relayUrl, SslBundles sslBundles) {
+  public NostrComprehensiveClientSubscriber(@NonNull String relayUrl, SslBundles sslBundles) {
     log.debug("{} constructor called with relay url {} and sslBundles {}", getClass().getSimpleName(), relayUrl, sslBundles);
     final SslBundle server = sslBundles.getBundle("server");
     log.debug("sslBundles name: \n{}", server);
     log.debug("sslBundles key: \n{}", server.getKey());
     log.debug("sslBundles protocol: \n{}", server.getProtocol());
-    this.nostrEventPublisher = new NostrEventPublisher(relayUrl, sslBundles);
+    this.nostrEventPublisherSubscriber = new NostrEventPublisherSubscriber(relayUrl, sslBundles);
     this.reactiveSubscriptionsManager = new ReactiveSubscriptionsManager(relayUrl, sslBundles);
   }
 
-  public void send(@NonNull EventMessage eventMessage, @NonNull Subscriber<OkMessage> subscriber) throws IOException {
-    nostrEventPublisher.send(eventMessage, subscriber);
+  public <T extends OkMessage> void send(@NonNull EventMessage eventMessage, @NonNull Subscriber<T> subscriber) throws IOException {
+    nostrEventPublisherSubscriber.send(eventMessage, subscriber);
   }
 
-  public void send(@NonNull CanonicalAuthenticationMessage authMessage, @NonNull Subscriber<OkMessage> subscriber) throws NostrException {
-    nostrEventPublisher.send(authMessage, subscriber);
+  public <T extends OkMessage> void send(@NonNull CanonicalAuthenticationMessage authMessage, @NonNull Subscriber<T> subscriber) throws NostrException {
+    nostrEventPublisherSubscriber.send(authMessage, subscriber);
   }
 
   public <T extends BaseMessage> void send(@NonNull ReqMessage reqMessage, @NonNull Subscriber<T> subscriber) throws JsonProcessingException, NostrException {
@@ -48,7 +48,7 @@ public class NostrComprehensiveSubscriberClient {
   }
 
   public void closeSocket() {
-    nostrEventPublisher.closeSocket();
+    nostrEventPublisherSubscriber.closeSocket();
     reactiveSubscriptionsManager.closeAllSessions();
   }
 }

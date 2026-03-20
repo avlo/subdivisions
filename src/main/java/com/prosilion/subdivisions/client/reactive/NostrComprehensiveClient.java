@@ -19,13 +19,11 @@ import org.springframework.lang.NonNull;
 
 @Slf4j
 public class NostrComprehensiveClient {
-  private final NostrComprehensiveSubscriberClient client;
-  Duration requestTimeoutDuration;
+  private final NostrComprehensiveClientSubscriber client;
 
-  public NostrComprehensiveClient(@NonNull String relayUrl, Duration requestTimeoutDuration) {
+  public NostrComprehensiveClient(@NonNull String relayUrl) {
     log.debug("constructor called with relayUrl [{}]", relayUrl);
-    this.requestTimeoutDuration = requestTimeoutDuration;
-    this.client = new NostrComprehensiveSubscriberClient(relayUrl);
+    this.client = new NostrComprehensiveClientSubscriber(relayUrl);
   }
 
   public NostrComprehensiveClient(@Value("${superconductor.relay.url}") @NonNull String relayUrl, @NonNull SslBundles sslBundles) throws ExecutionException, InterruptedException {
@@ -34,17 +32,24 @@ public class NostrComprehensiveClient {
     log.debug("sslBundles name: \n{}", server);
     log.debug("sslBundles key: \n{}", server.getKey());
     log.debug("sslBundles protocol: \n{}", server.getProtocol());
-    this.client = new NostrComprehensiveSubscriberClient(relayUrl, sslBundles);
+    this.client = new NostrComprehensiveClientSubscriber(relayUrl, sslBundles);
   }
 
   public OkMessage send(@NonNull EventMessage eventMessage) throws IOException {
-    RequestSubscriber<OkMessage> subscriber = new RequestSubscriber<>(requestTimeoutDuration);
+    RequestSubscriber<OkMessage> subscriber = new RequestSubscriber<>();
     client.send(eventMessage, subscriber);
     return subscriber.getItems().getFirst();
   }
 
   public List<BaseMessage> send(@NonNull ReqMessage reqMessage) throws JsonProcessingException, NostrException {
-    RequestSubscriber<BaseMessage> subscriber = new RequestSubscriber<>(requestTimeoutDuration);
+    return send(reqMessage, new RequestSubscriber<>());
+  }
+
+  public List<BaseMessage> send(@NonNull ReqMessage reqMessage, @NonNull Duration timeout) throws JsonProcessingException, NostrException {
+    return send(reqMessage, new RequestSubscriber<>(timeout));
+  }
+
+  private List<BaseMessage> send(@NonNull ReqMessage reqMessage, @NonNull RequestSubscriber<BaseMessage> subscriber) throws JsonProcessingException, NostrException {
     client.send(reqMessage, subscriber);
     return subscriber.getItems();
   }

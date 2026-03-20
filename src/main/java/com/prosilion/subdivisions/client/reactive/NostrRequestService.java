@@ -5,27 +5,30 @@ import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.ReqMessage;
 import com.prosilion.subdivisions.client.RequestSubscriber;
+import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
-import lombok.Generated;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 
 public class NostrRequestService {
-  @Generated
-  private static final Logger log = LoggerFactory.getLogger(NostrRequestService.class);
-  private ReactiveRequestConsolidator requestConsolidator;
+  private NostrRequestServiceSubscriber nostrRequestServiceSubscriber;
 
   public List<BaseMessage> send(@NonNull ReqMessage reqMessage, @NonNull String relayUrl) throws JsonProcessingException, NostrException {
-    if (Objects.isNull(this.requestConsolidator))
-      requestConsolidator = new ReactiveRequestConsolidator();
-    RequestSubscriber<BaseMessage> subscriber = new RequestSubscriber<>();
-    this.requestConsolidator.send(reqMessage, subscriber, relayUrl);
+    return send(reqMessage, relayUrl, new RequestSubscriber<>());
+  }
+
+  public List<BaseMessage> send(@NonNull ReqMessage reqMessage, @NonNull String relayUrl, @NonNull Duration timeout) throws JsonProcessingException, NostrException {
+    return send(reqMessage, relayUrl, new RequestSubscriber<>(timeout));
+  }
+
+  private List<BaseMessage> send(@NonNull ReqMessage reqMessage, @NonNull String relayUrl, RequestSubscriber<BaseMessage> subscriber) throws JsonProcessingException, NostrException {
+    if (Objects.isNull(this.nostrRequestServiceSubscriber))
+      nostrRequestServiceSubscriber = new NostrRequestServiceSubscriber();
+    nostrRequestServiceSubscriber.send(reqMessage, relayUrl, subscriber);
     return subscriber.getItems();
   }
 
   public void disconnect(@NonNull String subscriptionId) {
-    this.requestConsolidator.removeRelay(subscriptionId);
+    this.nostrRequestServiceSubscriber.disconnect(subscriptionId);
   }
 }
