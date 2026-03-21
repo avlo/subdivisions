@@ -7,10 +7,10 @@ import com.prosilion.nostr.message.ReqMessage;
 import org.reactivestreams.Subscriber;
 import org.springframework.lang.NonNull;
 
-public class NostrRequestServiceSubscriber {
+public class NostrMeshRequestServiceSubscriber {
   private final ReactiveRequestConsolidator requestConsolidator;
 
-  public NostrRequestServiceSubscriber(@NonNull ReactiveRequestConsolidator reactiveRequestConsolidator) {
+  public NostrMeshRequestServiceSubscriber(@NonNull ReactiveRequestConsolidator reactiveRequestConsolidator) {
     this.requestConsolidator = reactiveRequestConsolidator;
   }
 

@@ -10,9 +10,7 @@ import com.prosilion.subdivisions.client.RequestSubscriber;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
 import org.springframework.lang.NonNull;
@@ -26,7 +24,7 @@ public class NostrComprehensiveClient {
     this.client = new NostrComprehensiveClientSubscriber(relayUrl);
   }
 
-  public NostrComprehensiveClient(@Value("${superconductor.relay.url}") @NonNull String relayUrl, @NonNull SslBundles sslBundles) throws ExecutionException, InterruptedException {
+  public NostrComprehensiveClient(@NonNull String relayUrl, @NonNull SslBundles sslBundles) {
     log.debug("constructor called with relay url {} and sslBundles {}", relayUrl, sslBundles);
     final SslBundle server = sslBundles.getBundle("server");
     log.debug("sslBundles name: \n{}", server);

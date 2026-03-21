@@ -9,11 +9,11 @@ import java.time.Duration;
 import java.util.List;
 import org.springframework.lang.NonNull;
 
-public class NostrRequestService {
-  private final NostrRequestServiceSubscriber nostrRequestServiceSubscriber;
+public class NostrMeshRequestService {
+  private final NostrMeshRequestServiceSubscriber nostrMeshRequestServiceSubscriber;
 
-  public NostrRequestService(@NonNull ReactiveRequestConsolidator reactiveRequestConsolidator) {
-    this.nostrRequestServiceSubscriber = new NostrRequestServiceSubscriber(reactiveRequestConsolidator);
+  public NostrMeshRequestService(@NonNull ReactiveRequestConsolidator reactiveRequestConsolidator) {
+    this.nostrMeshRequestServiceSubscriber = new NostrMeshRequestServiceSubscriber(reactiveRequestConsolidator);
   }
 
   public List<BaseMessage> send(@NonNull ReqMessage reqMessage, @NonNull String relayUrl) throws JsonProcessingException, NostrException {
@@ -25,7 +25,7 @@ public class NostrRequestService {
   }
 
   private List<BaseMessage> send(@NonNull ReqMessage reqMessage, @NonNull String relayUrl, RequestSubscriber<BaseMessage> subscriber) throws JsonProcessingException, NostrException {
-    nostrRequestServiceSubscriber.send(reqMessage, relayUrl, subscriber);
+    nostrMeshRequestServiceSubscriber.send(reqMessage, relayUrl, subscriber);
     return subscriber.getItems();
   }
 }
