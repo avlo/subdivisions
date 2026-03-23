@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>com.prosilion.subdivisions.client.reactive.ReactiveRequestConsolidator</OriginalElement>
+  <nodes>
+    <node x="609.5425188374597" y="619.0441334768568">com.prosilion.subdivisions.client.reactive.ReactiveSubscriptionsManager</node>
+    <node x="340.72282023681373" y="790.0441334768568">com.prosilion.subdivisions.client.reactive.ReactiveWebSocketClient</node>
+    <node x="596.0" y="439.0441334768568">com.prosilion.subdivisions.client.reactive.ReactiveRequestConsolidator</node>
+    <node x="-239.0" y="420.0441334768568">com.prosilion.subdivisions.client.reactive.NostrEventPublisher</node>
+    <node x="780.5" y="259.0441334768568">com.prosilion.subdivisions.client.reactive.NostrSingleRelayRequestService</node>
+    <node x="377.0" y="259.0441334768568">com.prosilion.subdivisions.client.reactive.NostrMeshRequestServiceSubscriber</node>
+    <node x="352.0" y="107.54413347685679">com.prosilion.subdivisions.client.reactive.NostrMeshRequestService</node>
+    <node x="274.22282023681373" y="984.0984930032294">com.prosilion.subdivisions.client.reactive.ReactiveWebSocketHandler</node>
+    <node x="63.5" y="259.0441334768568">com.prosilion.subdivisions.client.reactive.NostrComprehensiveClient</node>
+    <node x="922.0" y="439.0441334768568">com.prosilion.subdivisions.client.reactive.NostrSingleRelayRequestServiceSubscriber</node>
+    <node x="-6.0" y="638.0441334768568">com.prosilion.subdivisions.client.reactive.NostrEventPublisherSubscriber</node>
+    <node x="161.0" y="410.5441334768568">com.prosilion.subdivisions.client.reactive.NostrComprehensiveClientSubscriber</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="com.prosilion.subdivisions.client.reactive.NostrMeshRequestServiceSubscriber" target="com.prosilion.subdivisions.client.reactive.ReactiveRequestConsolidator" relationship="TO_ONE">
+      <point x="165.0" y="32.0" />
+      <point x="-15.0" y="-32.0" />
+    </edge>
+    <edge source="com.prosilion.subdivisions.client.reactive.NostrComprehensiveClientSubscriber" target="com.prosilion.subdivisions.client.reactive.ReactiveSubscriptionsManager" relationship="CREATE">
+      <point x="134.55951638320778" y="61.95149020452129" />
+      <point x="473.5595163832078" y="608.0102260495156" />
+      <point x="472.96566475780406" y="608.0102260495156" />
+      <point x="472.96566475780406" y="672.510578772874" />
+      <point x="737.033638320775" y="672.510578772874" />
+      <point x="737.033638320775" y="689.0441334768568" />
+      <point x="208.0" y="0.0" />
+    </edge>
+    <edge source="com.prosilion.subdivisions.client.reactive.NostrMeshRequestService" target="com.prosilion.subdivisions.client.reactive.NostrMeshRequestServiceSubscriber" relationship="CREATE">
+      <point x="-100.0" y="32.0" />
+      <point x="459.0" y="141.0441334768568" />
+      <point x="559.0" y="141.0441334768568" />
+      <point x="0.0" y="-32.0" />
+    </edge>
+    <edge source="com.prosilion.subdivisions.client.reactive.NostrSingleRelayRequestService" target="com.prosilion.subdivisions.client.reactive.NostrSingleRelayRequestServiceSubscriber" relationship="TO_ONE">
+      <point x="0.0" y="32.0" />
+      <point x="-80.0" y="-32.0" />
+    </edge>
+    <edge source="com.prosilion.subdivisions.client.reactive.NostrComprehensiveClientSubscriber" target="com.prosilion.subdivisions.client.reactive.NostrEventPublisherSubscriber" relationship="CREATE">
+      <point x="-70.58266953713678" y="62.18877933261558" />
+      <point x="269.5405339074273" y="533.2329128094724" />
+      <point x="269.5405339074273" y="642.745248654467" />
+      <point x="131.10213562970932" y="-46.29888482238982" />
+    </edge>
+    <edge source="com.prosilion.subdivisions.client.reactive.NostrEventPublisher" target="com.prosilion.subdivisions.client.reactive.NostrEventPublisherSubscriber" relationship="CREATE">
+      <point x="76.69655543595255" y="51.51834660925715" />
+      <point x="15.13495371367054" y="522.562480086114" />
+      <point x="15.13495371367054" y="598.0" />
+      <point x="-123.86504628632946" y="14.915702906350816" />
+    </edge>
+    <edge source="com.prosilion.subdivisions.client.reactive.NostrComprehensiveClient" target="com.prosilion.subdivisions.client.reactive.NostrComprehensiveClientSubscriber" relationship="TO_ONE">
+      <point x="0.0" y="51.0" />
+      <point x="199.0" y="316.2941334768568" />
+      <point x="199.0" y="316.2941334768568" />
+      <point x="-140.0" y="-60.5" />
+    </edge>
+    <edge source="com.prosilion.subdivisions.client.reactive.NostrSingleRelayRequestServiceSubscriber" target="com.prosilion.subdivisions.client.reactive.ReactiveSubscriptionsManager" relationship="CREATE">
+      <point x="-84.48600645855754" y="29.607104413347656" />
+      <point x="1014.5139935414425" y="533.5575888051668" />
+      <point x="1015.0756189451022" y="533.5575888051668" />
+      <point x="1015.0756189451022" y="619.1141011840689" />
+      <point x="149.80570505920332" y="-69.93003229278793" />
+    </edge>
+    <edge source="com.prosilion.subdivisions.client.reactive.ReactiveSubscriptionsManager" target="com.prosilion.subdivisions.client.reactive.ReactiveWebSocketClient" relationship="TO_MANY">
+      <point x="0.0" y="70.0" />
+      <point x="817.5425188374597" y="871.0" />
+      <point x="502.22282023681373" y="871.0" />
+      <point x="0.0" y="-51.0" />
+    </edge>
+    <edge source="com.prosilion.subdivisions.client.reactive.NostrSingleRelayRequestServiceSubscriber" target="com.prosilion.subdivisions.client.reactive.ReactiveSubscriptionsManager" relationship="TO_ONE">
+      <point x="0.0" y="32.0" />
+      <point x="967.3745963401507" y="503.0441334768568" />
+      <point x="967.3745963401507" y="528.0" />
+      <point x="968.4451022604951" y="528.0" />
+      <point x="150.90258342303537" y="-69.93003229278793" />
+    </edge>
+    <edge source="com.prosilion.subdivisions.client.reactive.NostrComprehensiveClient" target="com.prosilion.subdivisions.client.reactive.NostrComprehensiveClientSubscriber" relationship="CREATE">
+      <point x="128.0" y="51.0" />
+      <point x="327.0" y="316.2941334768568" />
+      <point x="327.0" y="316.2941334768568" />
+      <point x="-12.0" y="-60.5" />
+    </edge>
+    <edge source="com.prosilion.subdivisions.client.reactive.NostrEventPublisherSubscriber" target="com.prosilion.subdivisions.client.reactive.ReactiveWebSocketClient" relationship="TO_ONE">
+      <point x="0.0" y="51.0" />
+      <point x="139.0" y="871.0" />
+      <point x="502.22282023681373" y="871.0" />
+      <point x="0.0" y="-51.0" />
+    </edge>
+    <edge source="com.prosilion.subdivisions.client.reactive.ReactiveWebSocketClient" target="com.prosilion.subdivisions.client.reactive.ReactiveWebSocketHandler" relationship="CREATE">
+      <point x="-20.0" y="51.0" />
+      <point x="482.22282023681373" y="1096.2941334768568" />
+      <point x="482.22282023681373" y="1096.2941334768568" />
+      <point x="0.0" y="-60.5" />
+    </edge>
+    <edge source="com.prosilion.subdivisions.client.reactive.NostrSingleRelayRequestService" target="com.prosilion.subdivisions.client.reactive.NostrSingleRelayRequestServiceSubscriber" relationship="CREATE">
+      <point x="65.0" y="32.0" />
+      <point x="-15.0" y="-32.0" />
+    </edge>
+    <edge source="com.prosilion.subdivisions.client.reactive.ReactiveRequestConsolidator" target="com.prosilion.subdivisions.client.reactive.ReactiveSubscriptionsManager" relationship="TO_MANY">
+      <point x="0.0" y="32.0" />
+      <point x="739.0" y="528.0" />
+      <point x="739.1975242195911" y="528.0" />
+      <point x="-78.34499461786868" y="-68.83315392895588" />
+    </edge>
+    <edge source="com.prosilion.subdivisions.client.reactive.NostrEventPublisher" target="com.prosilion.subdivisions.client.reactive.NostrEventPublisherSubscriber" relationship="TO_ONE">
+      <point x="155.88239827771793" y="50.39514316469308" />
+      <point x="92.63599138858979" y="521.4392766415499" />
+      <point x="-46.36400861141021" y="-48.54529171151785" />
+    </edge>
+    <edge source="com.prosilion.subdivisions.client.reactive.NostrComprehensiveClientSubscriber" target="com.prosilion.subdivisions.client.reactive.NostrEventPublisherSubscriber" relationship="TO_ONE">
+      <point x="-126.18124004305713" y="56.011160387513314" />
+      <point x="211.69555651237886" y="527.0552938643701" />
+      <point x="72.69555651237886" y="-54.161308934338194" />
+    </edge>
+    <edge source="com.prosilion.subdivisions.client.reactive.ReactiveSubscriptionsManager" target="com.prosilion.subdivisions.client.reactive.ReactiveWebSocketClient" relationship="CREATE">
+      <point x="-211.06727664155005" y="37.56404736275567" />
+      <point x="733.0565123789021" y="726.6081808396125" />
+      <point x="733.0565123789021" y="841.0441334768568" />
+      <point x="-161.5" y="0.0" />
+    </edge>
+    <edge source="com.prosilion.subdivisions.client.reactive.NostrMeshRequestService" target="com.prosilion.subdivisions.client.reactive.NostrMeshRequestServiceSubscriber" relationship="TO_ONE">
+      <point x="0.0" y="32.0" />
+      <point x="559.0" y="141.0441334768568" />
+      <point x="659.0" y="141.0441334768568" />
+      <point x="100.0" y="-32.0" />
+    </edge>
+    <edge source="com.prosilion.subdivisions.client.reactive.NostrComprehensiveClientSubscriber" target="com.prosilion.subdivisions.client.reactive.ReactiveSubscriptionsManager" relationship="TO_ONE">
+      <point x="178.0" y="15.0" />
+      <point x="502.22282023681373" y="486.0441334768568" />
+      <point x="502.22282023681373" y="646.5441334768568" />
+      <point x="625.122174381055" y="646.5441334768568" />
+      <point x="-192.4203444564048" y="-37.023681377825596" />
+    </edge>
+    <edge source="com.prosilion.subdivisions.client.reactive.NostrEventPublisherSubscriber" target="com.prosilion.subdivisions.client.reactive.ReactiveWebSocketClient" relationship="CREATE">
+      <point x="145.0" y="0.0" />
+      <point x="211.0" y="689.0441334768568" />
+      <point x="211.0" y="841.0441334768568" />
+      <point x="-161.5" y="0.0" />
+    </edge>
+    <edge source="com.prosilion.subdivisions.client.reactive.ReactiveWebSocketClient" target="com.prosilion.subdivisions.client.reactive.ReactiveWebSocketHandler" relationship="TO_ONE">
+      <point x="0.0" y="51.0" />
+      <point x="502.22282023681373" y="1096.2941334768568" />
+      <point x="502.22282023681373" y="1096.2941334768568" />
+      <point x="20.0" y="-60.5" />
+    </edge>
+    <edge source="com.prosilion.subdivisions.client.reactive.ReactiveRequestConsolidator" target="com.prosilion.subdivisions.client.reactive.ReactiveSubscriptionsManager" relationship="CREATE">
+      <point x="-38.193218514531736" y="27.413347685683505" />
+      <point x="700.8067814854683" y="571.5974165769645" />
+      <point x="700.088805166846" y="571.5974165769645" />
+      <point x="700.088805166846" y="689.0441334768568" />
+      <point x="208.0" y="0.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Compact" zoom="0.9116781157998037" showDependencies="true" x="505.40172228202346" y="603.5" />
+  <SelectedNodes />
+  <Categories>
+    <Category>Constructors</Category>
+    <Category>Fields</Category>
+    <Category>Inner Classes</Category>
+  </Categories>
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

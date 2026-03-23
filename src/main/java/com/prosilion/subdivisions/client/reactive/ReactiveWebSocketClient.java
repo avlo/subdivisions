@@ -22,7 +22,6 @@ class ReactiveWebSocketClient {
     this.reactiveWebSocketHandler = new ReactiveWebSocketHandler();
     log.debug("... call new ReactiveWebSocketHandler hashCode: [{}]", reactiveWebSocketHandler.hashCode());
     ReactorNettyWebSocketClient webSocketClient = new ReactorNettyWebSocketClient();
-    webSocketClient.getHttpClient().warmup().block();
     reactiveWebSocketHandler.connect(webSocketClient, getURI(relayUrl));
   }
 
@@ -37,11 +36,17 @@ class ReactiveWebSocketClient {
     log.debug("Secure (WSS) WebSocket subdivisions connected {}", reactiveWebSocketHandler.session().orElseThrow().getId());
   }
 
-  protected <T extends BaseMessage> Flux<String> send(T message) throws JsonProcessingException, NostrException {
-    String encodedMessage = message.encode();  // explicitly put here for throws
+  protected <T extends BaseMessage> Flux<String> send(T message) {
+    String encodedMessage = null;  // explicitly put here for throws
+    try {
+      encodedMessage = message.encode();
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
+    String finalEncodedMessage = encodedMessage;
     return Mono
         .fromRunnable(
-            () -> reactiveWebSocketHandler.send(encodedMessage))
+            () -> reactiveWebSocketHandler.send(finalEncodedMessage))
         .thenMany(
             reactiveWebSocketHandler.receive().map(String::trim));
   }

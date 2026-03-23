@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BooleanSupplier;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Subscription;
 import org.springframework.lang.NonNull;
@@ -17,6 +18,8 @@ import reactor.core.publisher.BaseSubscriber;
 public class RequestSubscriber<T> extends BaseSubscriber<T> {
   private final List<T> items = Collections.synchronizedList(new ArrayList<>());
   private final AtomicBoolean areItemsPopulated = new AtomicBoolean(true);
+  
+  @Getter
   private final Duration timeout;
   private Subscription subscription;
 

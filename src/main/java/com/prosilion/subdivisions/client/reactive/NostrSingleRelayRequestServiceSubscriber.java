@@ -16,7 +16,7 @@ public class NostrSingleRelayRequestServiceSubscriber {
 
   public <T extends BaseMessage> void send(
       @NonNull ReqMessage reqMessage,
-      @NonNull Subscriber<T> subscriber) throws JsonProcessingException, NostrException {
+      @NonNull Subscriber<T> subscriber) {
     this.reactiveSubscriptionsManager.send(reqMessage, subscriber);
   }
 }

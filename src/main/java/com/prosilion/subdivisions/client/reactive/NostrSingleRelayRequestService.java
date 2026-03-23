@@ -20,11 +20,11 @@ public class NostrSingleRelayRequestService {
     return send(reqMessage, new RequestSubscriber<>());
   }
 
-  public List<BaseMessage> send(@NonNull ReqMessage reqMessage, @NonNull Duration timeout) throws JsonProcessingException, NostrException {
+  public List<BaseMessage> send(@NonNull ReqMessage reqMessage, @NonNull Duration timeout) {
     return send(reqMessage, new RequestSubscriber<>(timeout));
   }
 
-  private List<BaseMessage> send(@NonNull ReqMessage reqMessage, RequestSubscriber<BaseMessage> subscriber) throws JsonProcessingException, NostrException {
+  private List<BaseMessage> send(@NonNull ReqMessage reqMessage, RequestSubscriber<BaseMessage> subscriber) {
     nostrSingleRelayRequestServiceSubscriber.send(reqMessage, subscriber);
     return subscriber.getItems();
   }

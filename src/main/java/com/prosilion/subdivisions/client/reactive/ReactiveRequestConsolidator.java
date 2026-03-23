@@ -13,23 +13,20 @@ import org.reactivestreams.Subscriber;
 public class ReactiveRequestConsolidator {
   private final Map<String, ReactiveSubscriptionsManager> map = new HashMap<>();
 
-  protected <T extends ReqMessage, V extends BaseMessage> void send(
+  public <T extends ReqMessage, V extends BaseMessage> void send(
       @NonNull T reqMessage,
       @NonNull Subscriber<V> subscriber,
       @NonNull String url) throws JsonProcessingException, NostrException {
-    addRelay(url);
-    for (ReactiveSubscriptionsManager mgr : map.values()) {
-      mgr.send(reqMessage, subscriber);
-    }
+    map.putIfAbsent(url, new ReactiveSubscriptionsManager(url));
+    map.get(url).send(reqMessage, subscriber);
+//    for (ReactiveSubscriptionsManager mgr : map.values()) {
+//      mgr.send(reqMessage, subscriber);
+//    }
   }
 
   protected void removeRelay(@NonNull String url) {
     map.get(url).closeAllSessions();
     map.remove(url);
-  }
-
-  protected void addRelay(@NonNull String url) {
-    map.putIfAbsent(url, new ReactiveSubscriptionsManager(url));
   }
 
   protected Set<String> getRelayNames() {

@@ -15,7 +15,8 @@ import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
-import com.prosilion.subdivisions.util.NostrRelayReqService;
+import com.prosilion.subdivisions.client.reactive.NostrMeshRequestService;
+import com.prosilion.subdivisions.client.reactive.ReactiveRequestConsolidator;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -46,13 +47,13 @@ class StandaloneReactiveClientIT {
   Identity voteRecipientIdentity =
       Identity.create("ccc4585483196998204846989544737603523651520600328805626488477202");
 
-  NostrRelayReqService nostrRelayReqService;
+  NostrMeshRequestService nostrMeshRequestService;
   String relayUrl;
   String methodEncoded;
 
   public StandaloneReactiveClientIT() {
-    nostrRelayReqService = new NostrRelayReqService();
     this.relayUrl = "ws://localhost:5555";
+    this.nostrMeshRequestService = new NostrMeshRequestService(new ReactiveRequestConsolidator());
 //    this.relayUrl = "ws://0.0.0.0:5555";
   }
 
@@ -67,9 +68,7 @@ class StandaloneReactiveClientIT {
     log.debug("reqMessageEncoded:\n{}", reqMessageEncoded);
     log.debug("reqMessageEncoded.equals(methodEncoded)? {}", reqMessageEncoded.equals(methodEncoded));
 
-    List<BaseMessage> send = nostrRelayReqService.send(
-        reqMessage,
-        relayUrl);
+    List<BaseMessage> send = nostrMeshRequestService.send(reqMessage, relayUrl);
 
     List<EventIF> genericEvents = getGenericEvents(send);
     String collect = genericEvents.stream().map(event ->
@@ -88,9 +87,7 @@ class StandaloneReactiveClientIT {
     log.debug("reqMessageEncoded:\n{}", reqMessageEncoded);
     log.debug("reqMessageEncoded.equals(methodEncoded)? {}", reqMessageEncoded.equals(methodEncoded));
 
-    List<BaseMessage> send = nostrRelayReqService.send(
-        reqMessage,
-        relayUrl);
+    List<BaseMessage> send = nostrMeshRequestService.send(reqMessage, relayUrl);
 
     List<EventIF> genericEvents = getGenericEvents(send);
     String collect = genericEvents.stream().map(event ->
@@ -116,11 +113,11 @@ class StandaloneReactiveClientIT {
   //  @Test
   void testVoteReceiverRequest() throws JsonProcessingException {
     log.info("\n\ntestVoteReceiverRequest");
-    List<BaseMessage> send = nostrRelayReqService.send(
+    List<BaseMessage> send = nostrMeshRequestService.send(
         new ReqMessage(
             generateRandomHex64String(),
-            getVoteReceiverFilters(voteRecipientIdentity.getPublicKey())),
-        relayUrl);
+            getVoteReceiverFilters(voteRecipientIdentity.getPublicKey()))
+        , relayUrl);
 
     List<EventIF> genericEvents = getGenericEvents(send);
     String collect = genericEvents.stream().map(event ->

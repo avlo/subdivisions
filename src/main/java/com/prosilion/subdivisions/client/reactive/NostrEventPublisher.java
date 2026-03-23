@@ -4,6 +4,7 @@ import com.prosilion.nostr.message.CanonicalAuthenticationMessage;
 import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.OkMessage;
 import com.prosilion.subdivisions.client.RequestSubscriber;
+import java.time.Duration;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ssl.SslBundle;
@@ -28,7 +29,14 @@ public class NostrEventPublisher {
   }
 
   public OkMessage send(@NonNull EventMessage eventMessage) {
-    RequestSubscriber<OkMessage> subscriber = new RequestSubscriber<>();
+    return send(eventMessage, new RequestSubscriber<>());
+  }
+
+  public OkMessage send(@NonNull EventMessage eventMessage, @NonNull Duration timeout) {
+    return send(eventMessage, new RequestSubscriber<>(timeout));
+  }
+
+  private OkMessage send(@NonNull EventMessage eventMessage, @NonNull RequestSubscriber<OkMessage> subscriber) {
     nostrEventPublisherSubscriber.send(eventMessage, subscriber);
     return subscriber.getItems().getFirst();
   }

@@ -1,6 +1,5 @@
 package com.prosilion.subdivisions.client.reactive;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.CanonicalAuthenticationMessage;
 import com.prosilion.nostr.message.EventMessage;
@@ -47,21 +46,11 @@ public class NostrEventPublisherSubscriber {
   }
 
   private <T extends OkMessage> void getFlux(BaseMessage baseMessage, Subscriber<T> subscriber) {
-    try {
-      Flux<T> map = eventSocketClient
-          .send(baseMessage) // sending an event...
-          .take(Long.MAX_VALUE)
-          .map(OkMessage::decode); // ... of type OkMessage, and ignores any others (i.e., EOSE message)
-      map.subscribe(subscriber);
-    } catch (JsonProcessingException jpe) {
-      Flux.just((T) new OkMessage(
-              baseMessage.toString(), false,
-              String.format(
-                  "%s error: server returned unknown response for JSON content\n  %s",
-                  getClass().getSimpleName(),
-                  baseMessage)))
-          .subscribe(subscriber);
-    }
+    Flux<T> map = eventSocketClient
+        .send(baseMessage) // sending an event...
+        .take(Long.MAX_VALUE)
+        .map(OkMessage::decode); // ... of type OkMessage, and ignores any others (i.e., EOSE message)
+    map.subscribe(subscriber);
   }
 
   public void closeSocket() {

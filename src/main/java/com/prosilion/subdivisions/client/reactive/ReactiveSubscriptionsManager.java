@@ -38,13 +38,12 @@ class ReactiveSubscriptionsManager {
     log.debug("sslBundles protocol: [{}]", server.getProtocol());
   }
 
-  protected <T extends ReqMessage, V extends BaseMessage> void send(@NonNull T reqMessage, @NonNull Subscriber<V> subscriber) throws JsonProcessingException, NostrException {
-    log.debug("{} send(reqMessage, subscriber) ReqMessage:\n{}", getClass().getSimpleName(), reqMessage.encode());
+  protected <T extends ReqMessage, V extends BaseMessage> void send(@NonNull T reqMessage, @NonNull Subscriber<V> subscriber) {
     Flux<V> apply = baseMessagesReturnedByReqMessage(getRequestResults(reqMessage));
     apply.subscribe(subscriber);
   }
 
-  private <T extends ReqMessage> Flux<String> getRequestResults(T reqMessage) throws JsonProcessingException {
+  private <T extends ReqMessage> Flux<String> getRequestResults(T reqMessage) {
     String subscriberId = reqMessage.getSubscriptionId();
     subscriberIdWebSocketClientMap.putIfAbsent(subscriberId, getReactiveWebSocketClient());
     ReactiveWebSocketClient reactiveWebSocketClient = subscriberIdWebSocketClientMap.get(subscriberId);

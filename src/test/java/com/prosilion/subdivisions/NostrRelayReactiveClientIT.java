@@ -13,30 +13,27 @@ import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.OkMessage;
 import com.prosilion.nostr.message.ReqMessage;
 import com.prosilion.nostr.user.Identity;
-import com.prosilion.subdivisions.client.reactive.ReactiveNostrRelayClient;
-import com.prosilion.subdivisions.config.SuperconductorRelayConfig;
+import com.prosilion.subdivisions.client.RequestSubscriber;
+import com.prosilion.subdivisions.client.reactive.NostrComprehensiveClientSubscriber;
 import com.prosilion.subdivisions.config.TestcontainersConfig;
 import com.prosilion.subdivisions.util.Factory;
-import com.prosilion.subdivisions.util.TestSubscriber;
 import java.io.IOException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
-@TestPropertySource("classpath:application-test.properties")
-@ExtendWith(SpringExtension.class)
-@SpringJUnitConfig(SuperconductorRelayConfig.class)
+//@TestPropertySource("classpath:application-test.properties")
+//@ExtendWith(SpringExtension.class)
+//@SpringJUnitConfig(SuperconductorRelayConfig.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 @Import(TestcontainersConfig.class)
 class NostrRelayReactiveClientIT {
@@ -54,11 +51,13 @@ class NostrRelayReactiveClientIT {
     final String subscriberId = Factory.generateRandomHex64String();
 
     ReqMessage reqMessage = new ReqMessage(subscriberId, new Filters(eventFilter, authorFilter));
-    TestSubscriber<BaseMessage> reqSubscriber = new TestSubscriber<>();
-    ReactiveNostrRelayClient nostrRelayService = new ReactiveNostrRelayClient(relayUrl);
+    RequestSubscriber<BaseMessage> reqSubscriber = new RequestSubscriber<>();
+    NostrComprehensiveClientSubscriber nostrRelayService = new NostrComprehensiveClientSubscriber(relayUrl);
 
     nostrRelayService.send(reqMessage, reqSubscriber);
-    List<EventIF> genericEvents = getGenericEvents(reqSubscriber.getItems());
+    List<BaseMessage> items = reqSubscriber.getItems();
+    assertEquals(1, items.size());
+    List<EventIF> genericEvents = getGenericEvents(items);
 
     assertTrue(genericEvents.isEmpty());
   }
@@ -68,10 +67,10 @@ class NostrRelayReactiveClientIT {
     Identity identity = Factory.createNewIdentity();
     TextNoteEvent event = new TextNoteEvent(identity, Factory.lorumIpsum());
 
-    TestSubscriber<OkMessage> okMessageSubscriber = new TestSubscriber<>();
-    ReactiveNostrRelayClient reactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUrl);
+    RequestSubscriber<OkMessage> okMessageSubscriber = new RequestSubscriber<>();
+    NostrComprehensiveClientSubscriber nostrComprehensiveClientSubscriber = new NostrComprehensiveClientSubscriber(relayUrl);
 
-    reactiveNostrRelayClient.send(new EventMessage(event), okMessageSubscriber);
+    nostrComprehensiveClientSubscriber.send(new EventMessage(event), okMessageSubscriber);
 
     List<OkMessage> items = okMessageSubscriber.getItems();
     assertEquals(
@@ -84,10 +83,10 @@ class NostrRelayReactiveClientIT {
     Identity identity = Factory.createNewIdentity();
     TextNoteEvent event = new TextNoteEvent(identity, Factory.lorumIpsum());
 
-    TestSubscriber<OkMessage> eventSubscriber = new TestSubscriber<>();
-    ReactiveNostrRelayClient superconductorReactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUrl);
+    RequestSubscriber<OkMessage> eventSubscriber = new RequestSubscriber<>();
+    NostrComprehensiveClientSubscriber superconductorNostrComprehensiveClientSubscriber = new NostrComprehensiveClientSubscriber(relayUrl);
 
-    superconductorReactiveNostrRelayClient.send(new EventMessage(event), eventSubscriber);
+    superconductorNostrComprehensiveClientSubscriber.send(new EventMessage(event), eventSubscriber);
 
     List<OkMessage> items = eventSubscriber.getItems();
     OkMessage okMessage = new OkMessage(event.getId(), true, "success: request processed");
@@ -101,8 +100,8 @@ class NostrRelayReactiveClientIT {
     final String subscriberId = Factory.generateRandomHex64String();
 
     ReqMessage reqMessage = new ReqMessage(subscriberId, filters);
-    TestSubscriber<ReqMessage> reqSubscriber = new TestSubscriber<>();
-    superconductorReactiveNostrRelayClient.send(reqMessage, reqSubscriber);
+    RequestSubscriber<ReqMessage> reqSubscriber = new RequestSubscriber<>();
+    superconductorNostrComprehensiveClientSubscriber.send(reqMessage, reqSubscriber);
 
     List<EventIF> returnedReqGenericEvents = getGenericEvents(reqSubscriber.getItems());
 
@@ -115,13 +114,13 @@ class NostrRelayReactiveClientIT {
   <T extends BaseMessage> void testTwoEventsFilteredByEventAndAuthorUsingTwoEventSubscribers() throws IOException, NostrException {
     Identity identity = Factory.createNewIdentity();
     String content1 = Factory.lorumIpsum();
-    ReactiveNostrRelayClient superconductorReactiveNostrRelayClient = new ReactiveNostrRelayClient(relayUrl);
+    NostrComprehensiveClientSubscriber superconductorNostrComprehensiveClientSubscriber = new NostrComprehensiveClientSubscriber(relayUrl);
 
 //    # -------------- EVENT 1 of 3 -------------------
     TextNoteEvent event1 = new TextNoteEvent(identity, content1);
 
-    TestSubscriber<OkMessage> event1Subscriber = new TestSubscriber<>();
-    superconductorReactiveNostrRelayClient.send(new EventMessage(event1), event1Subscriber);
+    RequestSubscriber<OkMessage> event1Subscriber = new RequestSubscriber<>();
+    superconductorNostrComprehensiveClientSubscriber.send(new EventMessage(event1), event1Subscriber);
 
     List<OkMessage> event1SubscriberItems = event1Subscriber.getItems();
     OkMessage okMessage1 = new OkMessage(event1.getId(), true, "success: request processed");
@@ -131,8 +130,8 @@ class NostrRelayReactiveClientIT {
     String content2 = Factory.lorumIpsum();
     TextNoteEvent event2 = new TextNoteEvent(identity, content2);
 
-    TestSubscriber<OkMessage> event2Subscriber = new TestSubscriber<>();
-    superconductorReactiveNostrRelayClient.send(new EventMessage(event2), event2Subscriber);
+    RequestSubscriber<OkMessage> event2Subscriber = new RequestSubscriber<>();
+    superconductorNostrComprehensiveClientSubscriber.send(new EventMessage(event2), event2Subscriber);
 
     List<OkMessage> event2SubscriberItems = event2Subscriber.getItems();
     OkMessage okMessage2 = new OkMessage(event2.getId(), true, "success: request processed");
@@ -142,8 +141,8 @@ class NostrRelayReactiveClientIT {
     String content3 = Factory.lorumIpsum();
     TextNoteEvent event3 = new TextNoteEvent(identity, content3);
 
-    TestSubscriber<OkMessage> event3Subscriber = new TestSubscriber<>();
-    superconductorReactiveNostrRelayClient.send(new EventMessage(event3), event3Subscriber);
+    RequestSubscriber<OkMessage> event3Subscriber = new RequestSubscriber<>();
+    superconductorNostrComprehensiveClientSubscriber.send(new EventMessage(event3), event3Subscriber);
 
     List<OkMessage> event3SubscriberItems = event3Subscriber.getItems();
     OkMessage okMessage3 = new OkMessage(event3.getId(), true, "success: request processed");
@@ -159,8 +158,8 @@ class NostrRelayReactiveClientIT {
 
     ReqMessage reqMessage = new ReqMessage(subscriberId, filters);
 
-    TestSubscriber<T> reqSubscriber = new TestSubscriber<>();
-    superconductorReactiveNostrRelayClient.send(reqMessage, reqSubscriber);
+    RequestSubscriber<T> reqSubscriber = new RequestSubscriber<>();
+    superconductorNostrComprehensiveClientSubscriber.send(reqMessage, reqSubscriber);
 
     List<EventIF> returnedReqGenericEvents = getGenericEvents(reqSubscriber.getItems());
     log.debug("size: [{}]", returnedReqGenericEvents.size());
