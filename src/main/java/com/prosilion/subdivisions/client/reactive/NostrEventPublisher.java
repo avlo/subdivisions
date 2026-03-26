@@ -19,19 +19,19 @@ public class NostrEventPublisher {
 
   public OkMessage send(
       @NonNull EventMessage eventMessage) {
-    return send(eventMessage, new RequestSubscriber<>());
+    return sendUsingLocalPublisher(eventMessage, new RequestSubscriber<>());
   }
 
   public OkMessage send(
       @NonNull EventMessage eventMessage,
       @NonNull Duration timeout) {
-    return send(eventMessage, new RequestSubscriber<>(timeout));
+    return sendUsingLocalPublisher(eventMessage, new RequestSubscriber<>(timeout));
   }
 
-  public OkMessage send(
+  public void send(
       @NonNull EventMessage eventMessage,
       @NonNull RequestSubscriber<OkMessage> subscriber) {
-    return sendAuthenticated(eventMessage, subscriber);
+    sendToPublisher(eventMessage, subscriber);
   }
 
   public OkMessage send(
@@ -52,22 +52,26 @@ public class NostrEventPublisher {
       @NonNull EventMessage eventMessage,
       @NonNull RequestSubscriber<OkMessage> subscriber) {
     if (authenticated)
-      return sendAuthenticated(eventMessage, subscriber);
+      return sendUsingLocalPublisher(eventMessage, subscriber);
 
     publisher.send(authMessage, subscriber);
     OkMessage okMessage = subscriber.getItems().stream()
         .findFirst()
         .filter(message -> Boolean.FALSE.equals(message.getFlag()))
-        .orElseGet(() -> sendAuthenticated(eventMessage, subscriber));
+        .orElseGet(() -> sendUsingLocalPublisher(eventMessage, subscriber));
     authenticated = true;
     return okMessage;
   }
 
-  private OkMessage sendAuthenticated(
+  private OkMessage sendUsingLocalPublisher(
       EventMessage eventMessage,
       RequestSubscriber<OkMessage> subscriber) {
-    publisher.send(eventMessage, subscriber);
+    sendToPublisher(eventMessage, subscriber);
     return subscriber.getItems().getFirst();
+  }
+
+  private void sendToPublisher(EventMessage eventMessage, RequestSubscriber<OkMessage> subscriber) {
+    publisher.send(eventMessage, subscriber);
   }
 
   public void closeSocket() {
