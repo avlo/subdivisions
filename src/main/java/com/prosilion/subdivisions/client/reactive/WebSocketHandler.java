@@ -12,18 +12,18 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
-class ReactiveWebSocketHandler {
+class WebSocketHandler {
   private final Sinks.Many<String> sendBuffer;
   private final Sinks.Many<String> receiveBuffer;
   private Disposable subscription;
   private WebSocketSession session;
 
-  protected ReactiveWebSocketHandler() {
+  WebSocketHandler() {
     this.sendBuffer = Sinks.many().multicast().onBackpressureBuffer();
     this.receiveBuffer = Sinks.many().multicast().onBackpressureBuffer();
   }
 
-  protected void connect(@NonNull WebSocketClient webSocketClient, @NonNull URI uri) {
+  void connect(@NonNull WebSocketClient webSocketClient, @NonNull URI uri) {
     subscription =
         webSocketClient
             .execute(
@@ -36,7 +36,7 @@ class ReactiveWebSocketHandler {
             .subscribe();
   }
 
-  protected void send(@NonNull String message) {
+  void send(@NonNull String message) {
     sendBuffer.tryEmitNext(message);
   }
 
@@ -64,11 +64,11 @@ class ReactiveWebSocketHandler {
             .then();
   }
 
-  protected Flux<String> receive() {
+  Flux<String> receive() {
     return receiveBuffer.asFlux();
   }
 
-  protected void disconnect() {
+  void disconnect() {
     if (Objects.isNull(subscription) || subscription.isDisposed()) {
       return;
     }
@@ -77,7 +77,7 @@ class ReactiveWebSocketHandler {
     onClose();
   }
 
-  protected Optional<WebSocketSession> session() {
+  Optional<WebSocketSession> session() {
     return Optional.ofNullable(session);
   }
 

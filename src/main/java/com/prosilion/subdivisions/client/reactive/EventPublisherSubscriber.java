@@ -12,24 +12,24 @@ import org.springframework.boot.ssl.SslBundles;
 import reactor.core.publisher.Flux;
 
 @Slf4j
-public class NostrEventPublisherSubscriber {
-  private final ReactiveWebSocketClient eventSocketClient;
+class EventPublisherSubscriber {
+  private final WebSocketClient eventSocketClient;
 
-  public NostrEventPublisherSubscriber(@NonNull String relayUrl) {
+  EventPublisherSubscriber(@NonNull String relayUrl) {
     log.debug("{} Ctor called with relay url: [{}]", getClass().getSimpleName(), relayUrl);
-    this.eventSocketClient = new ReactiveWebSocketClient(relayUrl);
+    this.eventSocketClient = new WebSocketClient(relayUrl);
   }
 
-  public NostrEventPublisherSubscriber(@NonNull String relayUrl, SslBundles sslBundles) {
+  EventPublisherSubscriber(@NonNull String relayUrl, SslBundles sslBundles) {
     log.debug("{} constructor called with relay url {} and sslBundles {}", getClass().getSimpleName(), relayUrl, sslBundles);
     final SslBundle server = sslBundles.getBundle("server");
     log.debug("sslBundles name: \n{}", server);
     log.debug("sslBundles key: \n{}", server.getKey());
     log.debug("sslBundles protocol: \n{}", server.getProtocol());
-    this.eventSocketClient = new ReactiveWebSocketClient(relayUrl);
+    this.eventSocketClient = new WebSocketClient(relayUrl);
   }
 
-  public <T extends OkMessage> void send(@NonNull EventMessage eventMessage, @NonNull Subscriber<T> subscriber) {
+  <T extends OkMessage> void send(@NonNull EventMessage eventMessage, @NonNull Subscriber<T> subscriber) {
     log.debug("{} send(eventMessage, subscriber) [{}] content:\n{}",
         getClass().getSimpleName(),
         subscriber,
@@ -37,7 +37,7 @@ public class NostrEventPublisherSubscriber {
     getFlux(eventMessage, subscriber);
   }
 
-  public <T extends OkMessage> void send(@NonNull CanonicalAuthenticationMessage authMessage, @NonNull Subscriber<T> subscriber) {
+  <T extends OkMessage> void send(@NonNull CanonicalAuthenticationMessage authMessage, @NonNull Subscriber<T> subscriber) {
     log.debug("{} send(CanonicalAuthenticationMessage, subscriber) [{}] content:\n{}",
         getClass().getSimpleName(),
         subscriber,
@@ -53,7 +53,7 @@ public class NostrEventPublisherSubscriber {
     map.subscribe(subscriber);
   }
 
-  public void closeSocket() {
+  void closeSocket() {
     eventSocketClient.closeSocket();
   }
 }

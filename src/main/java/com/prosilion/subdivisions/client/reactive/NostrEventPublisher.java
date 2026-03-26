@@ -5,49 +5,72 @@ import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.OkMessage;
 import com.prosilion.subdivisions.client.RequestSubscriber;
 import java.time.Duration;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.ssl.SslBundle;
-import org.springframework.boot.ssl.SslBundles;
+import org.springframework.lang.NonNull;
 
 @Slf4j
 public class NostrEventPublisher {
-  private final NostrEventPublisherSubscriber nostrEventPublisherSubscriber;
+  private final EventPublisherSubscriber publisher;
+  private boolean authenticated = false;
 
   public NostrEventPublisher(@NonNull String relayUrl) {
-    log.debug("{} Ctor called with relay url: [{}]", getClass().getSimpleName(), relayUrl);
-    this.nostrEventPublisherSubscriber = new NostrEventPublisherSubscriber(relayUrl);
+    this.publisher = new EventPublisherSubscriber(relayUrl);
   }
 
-  public NostrEventPublisher(@NonNull String relayUrl, SslBundles sslBundles) {
-    log.debug("{} constructor called with relay url {} and sslBundles {}", getClass().getSimpleName(), relayUrl, sslBundles);
-    final SslBundle server = sslBundles.getBundle("server");
-    log.debug("sslBundles name: \n{}", server);
-    log.debug("sslBundles key: \n{}", server.getKey());
-    log.debug("sslBundles protocol: \n{}", server.getProtocol());
-    this.nostrEventPublisherSubscriber = new NostrEventPublisherSubscriber(relayUrl);
-  }
-
-  public OkMessage send(@NonNull EventMessage eventMessage) {
+  public OkMessage send(
+      @NonNull EventMessage eventMessage) {
     return send(eventMessage, new RequestSubscriber<>());
   }
 
-  public OkMessage send(@NonNull EventMessage eventMessage, @NonNull Duration timeout) {
+  public OkMessage send(
+      @NonNull EventMessage eventMessage,
+      @NonNull Duration timeout) {
     return send(eventMessage, new RequestSubscriber<>(timeout));
   }
 
-  private OkMessage send(@NonNull EventMessage eventMessage, @NonNull RequestSubscriber<OkMessage> subscriber) {
-    nostrEventPublisherSubscriber.send(eventMessage, subscriber);
-    return subscriber.getItems().getFirst();
+  public OkMessage send(
+      @NonNull EventMessage eventMessage,
+      @NonNull RequestSubscriber<OkMessage> subscriber) {
+    return sendAuthenticated(eventMessage, subscriber);
   }
 
-  public OkMessage send(@NonNull CanonicalAuthenticationMessage authMessage) {
-    RequestSubscriber<OkMessage> subscriber = new RequestSubscriber<>();
-    nostrEventPublisherSubscriber.send(authMessage, subscriber);
+  public OkMessage send(
+      @NonNull CanonicalAuthenticationMessage authMessage,
+      @NonNull EventMessage eventMessage) {
+    return send(authMessage, eventMessage, new RequestSubscriber<>());
+  }
+
+  public OkMessage send(
+      @NonNull CanonicalAuthenticationMessage authMessage,
+      @NonNull EventMessage eventMessage,
+      @NonNull Duration timeout) {
+    return send(authMessage, eventMessage, new RequestSubscriber<>(timeout));
+  }
+
+  public OkMessage send(
+      @NonNull CanonicalAuthenticationMessage authMessage,
+      @NonNull EventMessage eventMessage,
+      @NonNull RequestSubscriber<OkMessage> subscriber) {
+    if (authenticated)
+      return sendAuthenticated(eventMessage, subscriber);
+
+    publisher.send(authMessage, subscriber);
+    OkMessage okMessage = subscriber.getItems().stream()
+        .findFirst()
+        .filter(message -> Boolean.FALSE.equals(message.getFlag()))
+        .orElseGet(() -> sendAuthenticated(eventMessage, subscriber));
+    authenticated = true;
+    return okMessage;
+  }
+
+  private OkMessage sendAuthenticated(
+      EventMessage eventMessage,
+      RequestSubscriber<OkMessage> subscriber) {
+    publisher.send(eventMessage, subscriber);
     return subscriber.getItems().getFirst();
   }
 
   public void closeSocket() {
-    nostrEventPublisherSubscriber.closeSocket();
+    publisher.closeSocket();
   }
 }

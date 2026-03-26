@@ -16,15 +16,16 @@ import reactor.core.publisher.BaseSubscriber;
 
 @Slf4j
 public class RequestSubscriber<T> extends BaseSubscriber<T> {
+  public static final Duration DEFAULT_TIMEOUT_3000_MS = Duration.of(3000, ChronoUnit.MILLIS);
   private final List<T> items = Collections.synchronizedList(new ArrayList<>());
   private final AtomicBoolean areItemsPopulated = new AtomicBoolean(true);
-  
+
   @Getter
   private final Duration timeout;
   private Subscription subscription;
 
   public RequestSubscriber() {
-    this(Duration.of(3000, ChronoUnit.MILLIS));
+    this(DEFAULT_TIMEOUT_3000_MS);
   }
 
   public RequestSubscriber(@NonNull Duration timeout) {
@@ -68,6 +69,10 @@ public class RequestSubscriber<T> extends BaseSubscriber<T> {
       }
     }
     while (System.nanoTime() - startTime < timeoutNs);
-    throw new NostrException("TestSubscriber timed out");
+    throw new NostrException(
+        String.format("RequestSubscriber duration [%dmillis == %dmin, %dsec] timed out", 
+            timeout.toMillis(),
+            timeout.toMinutesPart(),
+            timeout.toSecondsPart()));
   }
 }

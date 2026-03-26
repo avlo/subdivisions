@@ -18,17 +18,17 @@ import org.springframework.boot.ssl.SslBundles;
 import reactor.core.publisher.Flux;
 
 @Slf4j
-class ReactiveSubscriptionsManager {
-  private final Map<String, ReactiveWebSocketClient> subscriberIdWebSocketClientMap = new ConcurrentHashMap<>();
+class SingleRelaySubscriptionsManager {
+  private final Map<String, WebSocketClient> subscriberIdWebSocketClientMap = new ConcurrentHashMap<>();
   private final String relayUri;
   private SslBundles sslBundles;
 
-  protected ReactiveSubscriptionsManager(@NonNull String relayUrl) {
+  SingleRelaySubscriptionsManager(@NonNull String relayUrl) {
     log.debug("{} constructor called with relay url: [{}]", getClass().getSimpleName(), relayUrl);
     this.relayUri = relayUrl;
   }
 
-  protected ReactiveSubscriptionsManager(@NonNull String relayUrl, @NonNull SslBundles sslBundles) {
+  SingleRelaySubscriptionsManager(@NonNull String relayUrl, @NonNull SslBundles sslBundles) {
     log.debug("{} constructor called with relay url:  [{}], sslBundles [{}]", getClass().getSimpleName(), relayUrl, sslBundles);
     this.relayUri = relayUrl;
     this.sslBundles = sslBundles;
@@ -38,7 +38,7 @@ class ReactiveSubscriptionsManager {
     log.debug("sslBundles protocol: [{}]", server.getProtocol());
   }
 
-  protected <T extends ReqMessage, V extends BaseMessage> void send(@NonNull T reqMessage, @NonNull Subscriber<V> subscriber) {
+  <T extends ReqMessage, V extends BaseMessage> void send(@NonNull T reqMessage, @NonNull Subscriber<V> subscriber) {
     Flux<V> apply = baseMessagesReturnedByReqMessage(getRequestResults(reqMessage));
     apply.subscribe(subscriber);
   }
@@ -46,8 +46,8 @@ class ReactiveSubscriptionsManager {
   private <T extends ReqMessage> Flux<String> getRequestResults(T reqMessage) {
     String subscriberId = reqMessage.getSubscriptionId();
     subscriberIdWebSocketClientMap.putIfAbsent(subscriberId, getReactiveWebSocketClient());
-    ReactiveWebSocketClient reactiveWebSocketClient = subscriberIdWebSocketClientMap.get(subscriberId);
-    return reactiveWebSocketClient.send(reqMessage);
+    WebSocketClient webSocketClient = subscriberIdWebSocketClientMap.get(subscriberId);
+    return webSocketClient.send(reqMessage);
   }
 
   private <V extends BaseMessage> Flux<V> baseMessagesReturnedByReqMessage(@NonNull Flux<String> reqMessage) {
@@ -62,35 +62,35 @@ class ReactiveSubscriptionsManager {
         .filter(Objects::nonNull);
   }
 
-  private ReactiveWebSocketClient getReactiveWebSocketClient() {
+  private WebSocketClient getReactiveWebSocketClient() {
     return Objects.isNull(sslBundles) ?
-        new ReactiveWebSocketClient(relayUri) :
-        new ReactiveWebSocketClient(relayUri, sslBundles);
+        new WebSocketClient(relayUri) :
+        new WebSocketClient(relayUri, sslBundles);
   }
 
-  protected void closeSession(@NonNull String... subscriberIds) {
+  void closeSession(@NonNull String... subscriberIds) {
     closeSessions(List.of(subscriberIds));
   }
 
-  protected void closeSessions(@NonNull List<String> subscriberIds) {
+  void closeSessions(@NonNull List<String> subscriberIds) {
     subscriberIds.forEach(id -> closeSessions(subscriberIdWebSocketClientMap.get(id)));
     subscriberIds.forEach(subscriberIdWebSocketClientMap::remove);
   }
 
-  protected void closeAllSessions() {
+  void closeAllSessions() {
     closeSessions(subscriberIdWebSocketClientMap);
     subscriberIdWebSocketClientMap.clear();
   }
 
-  private void closeSessions(Map<String, ReactiveWebSocketClient> subscriberIdWebSocketClientMap) {
+  private void closeSessions(Map<String, WebSocketClient> subscriberIdWebSocketClientMap) {
     closeSessions(subscriberIdWebSocketClientMap.values());
   }
 
-  private void closeSessions(ReactiveWebSocketClient... reactiveWebSocketClients) {
-    closeSessions(List.of(reactiveWebSocketClients));
+  private void closeSessions(WebSocketClient... webSocketClients) {
+    closeSessions(List.of(webSocketClients));
   }
 
-  private void closeSessions(Collection<ReactiveWebSocketClient> reactiveWebSocketClients) {
-    reactiveWebSocketClients.forEach(ReactiveWebSocketClient::closeSocket);
+  private void closeSessions(Collection<WebSocketClient> webSocketClients) {
+    webSocketClients.forEach(WebSocketClient::closeSocket);
   }
 }
