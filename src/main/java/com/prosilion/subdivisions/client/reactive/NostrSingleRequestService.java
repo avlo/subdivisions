@@ -16,21 +16,21 @@ public class NostrSingleRequestService {
   public List<BaseMessage> send(
       @NonNull ReqMessage reqMessage,
       @NonNull String relayUrl) {
-    return send(reqMessage, relayUrl, new RequestSubscriber<>());
+    return sendAuthenticated(reqMessage, relayUrl, new RequestSubscriber<>());
   }
 
   public List<BaseMessage> send(
       @NonNull ReqMessage reqMessage,
       @NonNull String relayUrl,
       @NonNull Duration timeout) {
-    return send(reqMessage, relayUrl, new RequestSubscriber<>(timeout));
+    return sendAuthenticated(reqMessage, relayUrl, new RequestSubscriber<>(timeout));
   }
 
-  public List<BaseMessage> send(
+  public void send(
       @NonNull ReqMessage reqMessage,
       @NonNull String relayUrl,
       @NonNull RequestSubscriber<BaseMessage> subscriber) {
-    return sendAuthenticated(reqMessage, relayUrl, subscriber);
+    sendToLocalRequestSubmitter(reqMessage, relayUrl, subscriber);
   }
 
   //  TODO: impl auth
@@ -54,11 +54,19 @@ public class NostrSingleRequestService {
       ReqMessage reqMessage,
       String relayUrl,
       RequestSubscriber<BaseMessage> subscriber) {
-    SingleRelaySubscriptionsManager manager = new SingleRelaySubscriptionsManager(relayUrl);
-    manager.send(reqMessage, subscriber);
+    SingleRelaySubscriptionsManager manager = sendToLocalRequestSubmitter(reqMessage, relayUrl, subscriber);
     List<BaseMessage> items = subscriber.getItems();
     manager.closeAllSessions();
     return items;
+  }
+
+  private SingleRelaySubscriptionsManager sendToLocalRequestSubmitter(
+      ReqMessage reqMessage,
+      String relayUrl,
+      RequestSubscriber<BaseMessage> subscriber) {
+    SingleRelaySubscriptionsManager manager = new SingleRelaySubscriptionsManager(relayUrl);
+    manager.send(reqMessage, subscriber);
+    return manager;
   }
 
   private <T extends BaseMessage> void getFlux(CanonicalAuthenticationMessage baseMessage, Subscriber<T> subscriber) {
