@@ -18,19 +18,18 @@ import org.springframework.boot.ssl.SslBundles;
 import reactor.core.publisher.Flux;
 
 @Slf4j
-class SingleRelaySubscriptionsManager {
+public class SingleRelaySubscriptionsManager {
   private final Map<String, WebSocketClient> subscriberIdWebSocketClientMap = new ConcurrentHashMap<>();
-  private final String relayUri;
+  private final String relayUrl;
   private SslBundles sslBundles;
 
   SingleRelaySubscriptionsManager(@NonNull String relayUrl) {
-    log.debug("{} constructor called with relay url: [{}]", getClass().getSimpleName(), relayUrl);
-    this.relayUri = relayUrl;
+    this.relayUrl = relayUrl;
   }
 
   SingleRelaySubscriptionsManager(@NonNull String relayUrl, @NonNull SslBundles sslBundles) {
     log.debug("{} constructor called with relay url:  [{}], sslBundles [{}]", getClass().getSimpleName(), relayUrl, sslBundles);
-    this.relayUri = relayUrl;
+    this.relayUrl = relayUrl;
     this.sslBundles = sslBundles;
     final SslBundle server = sslBundles.getBundle("server");
     log.debug("sslBundles name: [{}]", server);
@@ -38,20 +37,18 @@ class SingleRelaySubscriptionsManager {
     log.debug("sslBundles protocol: [{}]", server.getProtocol());
   }
 
-  <T extends ReqMessage, V extends BaseMessage> void send(@NonNull T reqMessage, @NonNull Subscriber<V> subscriber) {
-    Flux<V> apply = baseMessagesReturnedByReqMessage(getRequestResults(reqMessage));
-    apply.subscribe(subscriber);
+  public void send(@NonNull ReqMessage reqMessage, @NonNull Subscriber<BaseMessage> subscriber) {
+    baseMessagesReturnedByReqMessage(getRequestResults(reqMessage)).subscribe(subscriber);
   }
 
-  private <T extends ReqMessage> Flux<String> getRequestResults(T reqMessage) {
-    String subscriberId = reqMessage.getSubscriptionId();
-    subscriberIdWebSocketClientMap.putIfAbsent(subscriberId, getReactiveWebSocketClient());
-    WebSocketClient webSocketClient = subscriberIdWebSocketClientMap.get(subscriberId);
-    return webSocketClient.send(reqMessage);
+  private Flux<String> getRequestResults(ReqMessage reqMessage) {
+//    TODO: potentially throw exception if reqMessage.getSubscriptionId() already exists in map
+    subscriberIdWebSocketClientMap.putIfAbsent(reqMessage.getSubscriptionId(), getReactiveWebSocketClient());
+    return subscriberIdWebSocketClientMap.get(reqMessage.getSubscriptionId()).send(reqMessage);
   }
 
-  private <V extends BaseMessage> Flux<V> baseMessagesReturnedByReqMessage(@NonNull Flux<String> reqMessage) {
-    return (Flux<V>) reqMessage
+  private Flux<BaseMessage> baseMessagesReturnedByReqMessage(@NonNull Flux<String> reqMessage) {
+    return reqMessage
         .map(msg -> {
           try {
             return BaseMessageDecoder.decode(msg);
@@ -64,20 +61,20 @@ class SingleRelaySubscriptionsManager {
 
   private WebSocketClient getReactiveWebSocketClient() {
     return Objects.isNull(sslBundles) ?
-        new WebSocketClient(relayUri) :
-        new WebSocketClient(relayUri, sslBundles);
+        new WebSocketClient(relayUrl) :
+        new WebSocketClient(relayUrl, sslBundles);
   }
 
-  void closeSession(@NonNull String... subscriberIds) {
+  public void closeSession(@NonNull String... subscriberIds) {
     closeSessions(List.of(subscriberIds));
   }
 
-  void closeSessions(@NonNull List<String> subscriberIds) {
+  public void closeSessions(@NonNull List<String> subscriberIds) {
     subscriberIds.forEach(id -> closeSessions(subscriberIdWebSocketClientMap.get(id)));
     subscriberIds.forEach(subscriberIdWebSocketClientMap::remove);
   }
 
-  void closeAllSessions() {
+  public void closeAllSessions() {
     closeSessions(subscriberIdWebSocketClientMap);
     subscriberIdWebSocketClientMap.clear();
   }

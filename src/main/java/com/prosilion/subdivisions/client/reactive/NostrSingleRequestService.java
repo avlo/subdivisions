@@ -16,7 +16,7 @@ public class NostrSingleRequestService {
   public List<BaseMessage> send(
       @NonNull ReqMessage reqMessage,
       @NonNull String relayUrl) {
-    return sendAuthenticated(reqMessage, relayUrl, new RequestSubscriber<>());
+    return send(reqMessage, relayUrl, RequestSubscriber.DEFAULT_TIMEOUT_3000_MS);
   }
 
   public List<BaseMessage> send(
@@ -26,11 +26,11 @@ public class NostrSingleRequestService {
     return sendAuthenticated(reqMessage, relayUrl, new RequestSubscriber<>(timeout));
   }
 
-  public void send(
+  public SingleRelaySubscriptionsManager send(
       @NonNull ReqMessage reqMessage,
       @NonNull String relayUrl,
       @NonNull RequestSubscriber<BaseMessage> subscriber) {
-    sendToLocalRequestSubmitter(reqMessage, relayUrl, subscriber);
+    return sendUsingSubscriptionsManager(reqMessage, relayUrl, subscriber);
   }
 
   //  TODO: impl auth
@@ -54,13 +54,14 @@ public class NostrSingleRequestService {
       ReqMessage reqMessage,
       String relayUrl,
       RequestSubscriber<BaseMessage> subscriber) {
-    SingleRelaySubscriptionsManager manager = sendToLocalRequestSubmitter(reqMessage, relayUrl, subscriber);
+    SingleRelaySubscriptionsManager manager = sendUsingSubscriptionsManager(reqMessage, relayUrl, subscriber);
     List<BaseMessage> items = subscriber.getItems();
+    subscriber.dispose();
     manager.closeAllSessions();
     return items;
   }
 
-  private SingleRelaySubscriptionsManager sendToLocalRequestSubmitter(
+  private SingleRelaySubscriptionsManager sendUsingSubscriptionsManager(
       ReqMessage reqMessage,
       String relayUrl,
       RequestSubscriber<BaseMessage> subscriber) {
