@@ -6,9 +6,9 @@ import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.OkMessage;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.reactivestreams.Subscriber;
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
+import reactor.core.publisher.BaseSubscriber;
 import reactor.core.publisher.Flux;
 
 @Slf4j
@@ -29,7 +29,7 @@ class EventPublisherSubscriber {
     this.eventSocketClient = new WebSocketClient(relayUrl);
   }
 
-  <T extends OkMessage> void send(@NonNull EventMessage eventMessage, @NonNull Subscriber<T> subscriber) {
+  <T extends OkMessage> void send(@NonNull EventMessage eventMessage, @NonNull BaseSubscriber<T> subscriber) {
     log.debug("{} send(eventMessage, subscriber) [{}] content:\n{}",
         getClass().getSimpleName(),
         subscriber,
@@ -37,7 +37,7 @@ class EventPublisherSubscriber {
     getFlux(eventMessage, subscriber);
   }
 
-  <T extends OkMessage> void send(@NonNull CanonicalAuthenticationMessage authMessage, @NonNull Subscriber<T> subscriber) {
+  <T extends OkMessage> void send(@NonNull CanonicalAuthenticationMessage authMessage, @NonNull BaseSubscriber<T> subscriber) {
     log.debug("{} send(CanonicalAuthenticationMessage, subscriber) [{}] content:\n{}",
         getClass().getSimpleName(),
         subscriber,
@@ -45,7 +45,7 @@ class EventPublisherSubscriber {
     getFlux(authMessage, subscriber);
   }
 
-  private <T extends OkMessage> void getFlux(BaseMessage baseMessage, Subscriber<T> subscriber) {
+  private <T extends OkMessage> void getFlux(BaseMessage baseMessage, BaseSubscriber<T> subscriber) {
     Flux<T> map = eventSocketClient
         .send(baseMessage) // sending an event...
         .take(Long.MAX_VALUE)
@@ -53,7 +53,7 @@ class EventPublisherSubscriber {
     map.subscribe(subscriber);
   }
 
-  void closeSocket() {
+  void dispose() {
     eventSocketClient.closeSocket();
   }
 }

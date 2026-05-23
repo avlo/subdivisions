@@ -4,4 +4,5 @@ import org.springframework.lang.NonNull;
 
 public interface RequestSubscriberDelegateIF<T> {
   void doDelegate(@NonNull T t);
+  void dispose();
 }

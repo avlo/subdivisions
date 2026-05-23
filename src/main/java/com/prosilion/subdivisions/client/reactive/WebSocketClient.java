@@ -45,11 +45,12 @@ class WebSocketClient {
       throw new RuntimeException(e);
     }
     String finalEncodedMessage = encodedMessage;
-    return Mono
+    Flux<String> stringFlux = Mono
         .fromRunnable(
             () -> webSocketHandler.send(finalEncodedMessage))
         .thenMany(
-            webSocketHandler.receive().map(String::trim));
+            webSocketHandler.receive());
+    return stringFlux;
   }
 
   void closeSocket() {

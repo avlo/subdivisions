@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import lombok.NonNull;
-import org.reactivestreams.Subscriber;
+import reactor.core.publisher.BaseSubscriber;
 
 public class MultiRelaySubscriptionsManager {
   private final Map<String, SingleRelaySubscriptionsManager> relaysSubscriptionsMap = new HashMap<>();
@@ -16,7 +16,7 @@ public class MultiRelaySubscriptionsManager {
   public void send(
       @NonNull ReqMessage reqMessage,
       @NonNull String url,
-      @NonNull Subscriber<BaseMessage> subscriber) throws JsonProcessingException, NostrException {
+      @NonNull BaseSubscriber<BaseMessage> subscriber) throws JsonProcessingException, NostrException {
     relaysSubscriptionsMap.putIfAbsent(url, new SingleRelaySubscriptionsManager(url));
     for (SingleRelaySubscriptionsManager mgr : relaysSubscriptionsMap.values()) {
       mgr.send(reqMessage, subscriber);

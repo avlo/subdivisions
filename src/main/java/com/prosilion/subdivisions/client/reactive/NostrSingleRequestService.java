@@ -8,7 +8,6 @@ import com.prosilion.subdivisions.client.RequestSubscriber;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import org.reactivestreams.Subscriber;
 import org.springframework.lang.NonNull;
 import reactor.core.publisher.Flux;
 
@@ -16,7 +15,7 @@ public class NostrSingleRequestService {
   public List<BaseMessage> send(
       @NonNull ReqMessage reqMessage,
       @NonNull String relayUrl) {
-    return send(reqMessage, relayUrl, RequestSubscriber.DEFAULT_TIMEOUT_3000_MS);
+    return sendAuthenticated(reqMessage, relayUrl, new RequestSubscriber<>());
   }
 
   public List<BaseMessage> send(
@@ -70,7 +69,7 @@ public class NostrSingleRequestService {
     return manager;
   }
 
-  private <T extends BaseMessage> void getFlux(CanonicalAuthenticationMessage baseMessage, Subscriber<T> subscriber) {
+  private <T extends BaseMessage> void getFlux(CanonicalAuthenticationMessage baseMessage, RequestSubscriber<T> subscriber) {
     Flux<T> map = new WebSocketClient("asdsd")
         .send(baseMessage) // sending an event...
         .take(Long.MAX_VALUE)

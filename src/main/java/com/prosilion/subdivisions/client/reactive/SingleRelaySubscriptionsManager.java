@@ -10,11 +10,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.reactivestreams.Subscriber;
+import org.reactivestreams.Publisher;
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
+import reactor.core.publisher.BaseSubscriber;
 import reactor.core.publisher.Flux;
 
 @Slf4j
@@ -37,8 +39,13 @@ public class SingleRelaySubscriptionsManager {
     log.debug("sslBundles protocol: [{}]", server.getProtocol());
   }
 
-  public void send(@NonNull ReqMessage reqMessage, @NonNull Subscriber<BaseMessage> subscriber) {
-    baseMessagesReturnedByReqMessage(getRequestResults(reqMessage)).subscribe(subscriber);
+  public void send(@NonNull ReqMessage reqMessage, @NonNull BaseSubscriber<BaseMessage> subscriber) {
+    log.debug("... send(@NonNull ReqMessage reqMessage, @NonNull BaseSubscriber<BaseMessage> subscriber ... ");
+    Flux<String> requestResults = getRequestResults(reqMessage);
+    log.debug("... received Flux<String> requestResults = getRequestResults(reqMessage) ... ");
+    Flux<BaseMessage> baseMessageFlux = baseMessagesReturnedByReqMessageFlatMap(requestResults);
+    log.debug("... received Flux<BaseMessage> baseMessagesReturnedByReqMessage(requestResults) ... ");
+    baseMessageFlux.subscribe(subscriber);
   }
 
   private Flux<String> getRequestResults(ReqMessage reqMessage) {
@@ -47,16 +54,35 @@ public class SingleRelaySubscriptionsManager {
     return subscriberIdWebSocketClientMap.get(reqMessage.getSubscriptionId()).send(reqMessage);
   }
 
-  private Flux<BaseMessage> baseMessagesReturnedByReqMessage(@NonNull Flux<String> reqMessage) {
-    return reqMessage
+  private Flux<BaseMessage> baseMessagesReturnedByReqMessage(@NonNull Flux<String> reqMessageFlux) {
+    log.debug("... (1of3) Flux<BaseMessage> baseMessagesReturnedByReqMessage(@NonNull Flux<String> reqMessageFlux) ... ");
+    Flux<BaseMessage> filter = reqMessageFlux
         .map(msg -> {
           try {
-            return BaseMessageDecoder.decode(msg);
+            BaseMessage decode = BaseMessageDecoder.decode(msg);
+            log.debug("... (2of3) Flux<BaseMessage> baseMessagesReturnedByReqMessage(@NonNull Flux<String> reqMessageFlux) ... ");
+            return decode;
           } catch (JsonProcessingException e) {
             throw new NostrException(String.format("%s flux bad not good", getClass().getSimpleName()), e);
           }
         })
         .filter(Objects::nonNull);
+    log.debug("... (3of3) Flux<BaseMessage> baseMessagesReturnedByReqMessage(@NonNull Flux<String> reqMessageFlux) ... ");
+    return filter;
+  }
+
+  private Flux<BaseMessage> baseMessagesReturnedByReqMessageFlatMap(@NonNull Flux<String> reqMessageFlux) {
+    log.debug("... (1of3) Flux<BaseMessage> baseMessagesReturnedByReqMessageFlatap(@NonNull Flux<String> reqMessageFlux) ... ");
+    Function<String, Publisher<BaseMessage>> mapper = s -> {
+      try {
+        return Flux.just(BaseMessageDecoder.decode(s));
+      } catch (JsonProcessingException e) {
+        log.debug("Flux.just(BaseMessageDecoder.decode(s)) shit the bed");
+        throw new RuntimeException(e);
+      }
+    };
+    Flux<BaseMessage> baseMessageFlux = reqMessageFlux.flatMapSequential(mapper);
+    return baseMessageFlux;
   }
 
   private WebSocketClient getReactiveWebSocketClient() {

@@ -65,6 +65,13 @@ public class RequestSubscriber<T> extends BaseSubscriber<T> {
     return eventList;
   }
 
+  @Override
+  protected void hookOnComplete() {
+    log.debug("... hookOnComplete() ...");
+    areItemsPopulated.set(true);
+    subscription.cancel();
+  }
+
   public static void await(@NonNull Duration timeout, @NonNull BooleanSupplier conditionSupplier) {
     long timeoutNs = timeout.toNanos();
     long startTime = System.nanoTime();

@@ -67,14 +67,16 @@ public class NostrEventPublisher {
       EventMessage eventMessage,
       RequestSubscriber<OkMessage> subscriber) {
     sendToPublisher(eventMessage, subscriber);
-    return subscriber.getItems().getFirst();
+    OkMessage first = subscriber.getItems().getFirst();
+    dispose();
+    return first;
   }
 
   private void sendToPublisher(EventMessage eventMessage, RequestSubscriber<OkMessage> subscriber) {
     publisher.send(eventMessage, subscriber);
   }
 
-  public void closeSocket() {
-    publisher.closeSocket();
+  private void dispose() {
+    publisher.dispose();
   }
 }
