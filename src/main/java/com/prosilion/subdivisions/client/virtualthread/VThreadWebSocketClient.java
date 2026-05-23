@@ -20,39 +20,39 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 @Slf4j
-class VThreadWebSocketClient extends TextWebSocketHandler {
+public class VThreadWebSocketClient extends TextWebSocketHandler {
   private final WebSocketSession clientSession;
   
   @Getter
   private final List<String> events = Collections.synchronizedList(new ArrayList<>());
 
-  protected VThreadWebSocketClient(@NonNull String relayUri) throws ExecutionException, InterruptedException {
+  public VThreadWebSocketClient(@NonNull String relayUri) throws ExecutionException, InterruptedException {
     StandardWebSocketClient standardWebSocketClient = new StandardWebSocketClient();
     this.clientSession = getClientSession(relayUri, standardWebSocketClient);
     log.debug("Non-Secure (WS) WebSocket subdivisions connected {}", clientSession.getId());
   }
 
-  protected VThreadWebSocketClient(@NonNull String relayUri, @NonNull SslBundles sslBundles) throws ExecutionException, InterruptedException {
+  public VThreadWebSocketClient(@NonNull String relayUri, @NonNull SslBundles sslBundles) throws ExecutionException, InterruptedException {
     StandardWebSocketClient standardWebSocketClient = new StandardWebSocketClient();
     standardWebSocketClient.setSslContext(sslBundles.getBundle("server").createSslContext());
     this.clientSession = getClientSession(relayUri, standardWebSocketClient);
     log.debug("Secure (WSS) WebSocket subdivisions connected {}", clientSession.getId());
   }
 
-  protected <T extends BaseMessage> void send(T message) throws IOException {
+  public <T extends BaseMessage> void send(T message) throws IOException {
     clientSession.sendMessage(
         new TextMessage(
             message.encode()));
   }
 
-  protected List<String> getPopulatedEvents() {
+  public List<String> getPopulatedEvents() {
     List<String> eventList = List.copyOf(events);
     events.clear();
     return eventList;
   }
 
   @Override
-  protected void handleTextMessage(@NonNull WebSocketSession session, TextMessage textMessage) {
+  public void handleTextMessage(@NonNull WebSocketSession session, TextMessage textMessage) {
     log.debug("handleTextMessage WebSocketSession id:\n [{}]", session.getId());
     events.add(textMessage.getPayload());
     log.debug("handleTextMessage TextMessage events:");
@@ -70,7 +70,7 @@ class VThreadWebSocketClient extends TextWebSocketHandler {
     return webSocketSession;
   }
 
-  protected void closeSession() throws IOException {
+  public void closeSession() throws IOException {
     clientSession.close();
   }
 }
