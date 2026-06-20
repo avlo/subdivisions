@@ -8,7 +8,7 @@ import com.prosilion.subdivisions.client.RequestSubscriber;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import org.springframework.lang.NonNull;
+import lombok.NonNull;
 import reactor.core.publisher.Flux;
 
 public class NostrSingleRequestService {

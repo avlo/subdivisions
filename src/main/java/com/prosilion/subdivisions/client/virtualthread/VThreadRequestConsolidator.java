@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.stream.Streams;
-import org.springframework.lang.NonNull;
+import lombok.NonNull;
 
 public class VThreadRequestConsolidator {
   private final Map<String, VThreadRelaySubscriptionsManager> map = new HashMap<>();

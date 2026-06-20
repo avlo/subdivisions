@@ -6,7 +6,7 @@ import com.prosilion.nostr.message.OkMessage;
 import com.prosilion.subdivisions.client.RequestSubscriber;
 import java.time.Duration;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
+import lombok.NonNull;
 
 @Slf4j
 public class NostrEventPublisher {

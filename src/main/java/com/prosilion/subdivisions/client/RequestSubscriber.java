@@ -11,7 +11,7 @@ import java.util.function.BooleanSupplier;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Subscription;
-import org.springframework.lang.NonNull;
+import lombok.NonNull;
 import reactor.core.publisher.BaseSubscriber;
 
 @Getter

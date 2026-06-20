@@ -1,8 +1,10 @@
 package com.prosilion.subdivisions.client;
 
-import org.springframework.lang.NonNull;
+import com.prosilion.nostr.event.internal.Relay;
+import lombok.NonNull;
 
 public interface RequestSubscriberDelegateIF<T> {
-  void doDelegate(@NonNull T t);
+  void doDelegate(@NonNull T t, @NonNull Relay relay);
   void dispose();
+  Relay getRelay();
 }
