@@ -1,10 +1,9 @@
 package com.prosilion.subdivisions.client;
 
-import com.prosilion.nostr.event.internal.Relay;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Subscription;
-import lombok.NonNull;
 import reactor.core.publisher.BaseSubscriber;
 
 @Getter
@@ -14,7 +13,6 @@ public class RequestSubscriberDelegate<T> extends BaseSubscriber<T> {
 
   private final RequestSubscriberDelegateIF<T> requestSubscriberDelegateIF;
   private final long requestCount;
-  private final Relay relay;
   
   private Subscription subscription;
 
@@ -25,7 +23,6 @@ public class RequestSubscriberDelegate<T> extends BaseSubscriber<T> {
   public RequestSubscriberDelegate(@NonNull RequestSubscriberDelegateIF<T> requestSubscriberDelegateIF, long requestCount) {
     this.requestSubscriberDelegateIF = requestSubscriberDelegateIF;
     this.requestCount = requestCount;
-    this.relay = requestSubscriberDelegateIF.getRelay();
   }
 
   @Override
@@ -36,7 +33,7 @@ public class RequestSubscriberDelegate<T> extends BaseSubscriber<T> {
 
   @Override
   public void hookOnNext(@NonNull T value) {
-    requestSubscriberDelegateIF.doDelegate(value, this.relay);
+    requestSubscriberDelegateIF.doDelegate(value);
     subscription.request(requestCount);
   }
 
