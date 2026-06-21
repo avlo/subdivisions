@@ -23,8 +23,9 @@ public class RequestSubscriber<T> extends BaseSubscriber<T> {
   private final List<T> items = Collections.synchronizedList(new ArrayList<>());
 
   private final Duration timeout;
-  private Subscription subscription;
   private final long requestCount;
+  
+  private Subscription subscription;
 
   public RequestSubscriber() {
     this(DEFAULT_TIMEOUT_3000_MS);
